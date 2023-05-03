@@ -1,0 +1,295 @@
+################################################################################
+## ShamanOps Base Pipeline | Github Actions ####################################
+################################################################################
+##
+name: shamanops-base-pipeline
+on:
+  workflow_call:
+    inputs:
+      environments:
+        type: string
+      code_quality_enabled:
+        type: string
+      code_quality_blocker:
+        type: string
+      functional_test_enabled:
+        type: string
+      functional_test_blocker:
+        type: string
+      stress_test_enabled:
+        type: string
+      stress_test_blocker:
+        type: string
+      security_check_enabled:
+        type: string
+      security_check_blocker:
+        type: string
+      projectName: 
+        type: string
+        required: true
+      shamanopsBusinessApprovers:
+        type: string
+      shamanopsBusinessApproversMinimal:
+        type: string
+      shamanopsTechnicalApprovers:
+        type: string
+      shamanopsTechnicalApproversMinimal:
+        type: string
+env:
+# Client side
+  environments: ${{inputs.environments}}
+  projectName: ${{inputs.projectName}}
+  security_check_enabled: ${{inputs.security_check_enabled}}
+  security_check_blocker: ${{inputs.security_check_blocker}}
+  code_quality_enabled: ${{inputs.code_quality_enabled}}
+  code_quality_blocker: ${{inputs.code_quality_blocker}}
+  functional_test_enabled: ${{inputs.functional_test_enabled}}
+  functional_test_blocker: ${{inputs.functional_test_blocker}}
+  stress_test_enabled: ${{inputs.stress_test_enabled}}
+  stress_test_blocker: ${{inputs.stress_test_blocker}}
+  shamanopsBusinessApprovers: ${{inputs.shamanopsBusinessApprovers}}
+  shamanopsBusinessApproversMinimal: ${{inputs.shamanopsBusinessApproversMinimal}}
+  shamanopsTechnicalApprovers: ${{inputs.shamanopsTechnicalApprovers}}
+  shamanopsTechnicalApproversMinimal: ${{inputs.shamanopsTechnicalApproversMinimal}}
+# Global side
+  shamanops_argocd_dev_url: ${{secrets.shamanops_argocd_dev_url}}
+  shamanops_argocd_dev_user: ${{secrets.shamanops_argocd_dev_user}}
+  shamanops_argocd_dev_token: ${{secrets.shamanops_argocd_dev_token}}
+  shamanops_argocd_stg_url: ${{secrets.shamanops_argocd_stg_url}}
+  shamanops_argocd_stg_user: ${{secrets.shamanops_argocd_stg_user}}
+  shamanops_argocd_stg_token: ${{secrets.shamanops_argocd_stg_token}}
+  shamanops_argocd_prod_url: ${{secrets.shamanops_argocd_prod_url}}
+  shamanops_argocd_prod_user: ${{secrets.shamanops_argocd_prod_user}}
+  shamanops_argocd_prod_token: ${{secrets.shamanops_argocd_prod_token}}
+  shamanops_argocd_drp_url: ${{secrets.shamanops_argocd_drp_url}}
+  shamanops_argocd_drp_user: ${{secrets.shamanops_argocd_drp_user}}
+  shamanops_argocd_drp_token: ${{secrets.shamanops_argocd_drp_token}}
+  shamanops_chat_webhook: ${{secrets.shamanops_chat_webhook}}
+  shamanops_manifest_repository: ${{secrets.shamanops_manifest_repository}}
+  shamanops_manifest_repository_user: ${{secrets.shamanops_manifest_repository_user}}
+  shamanops_manifest_repository_token: ${{secrets.shamanops_manifest_repository_token}}
+  shamanops_registry_name: ${{secrets.shamanops_registry_name}}
+  shamanops_registry_url: ${{secrets.shamanops_registry_url}}
+  shamanops_registry_user: ${{secrets.shamanops_registry_user}}
+  shamanops_registry_password: ${{secrets.shamanops_registry_password}}
+  shamanops_code_quality_url: 'https://sonarqube.shamanops.com'
+  shamanops_code_quality_username: 'sonaruser'
+  shamanops_code_quality_token: 'sonarpassword'
+  
+# For CI Platform:
+  # Global variables
+  customerName: ${{github.repository_owner}}
+  appName: ${{github.event.repository.name}}
+  repoUrl: ${{github.server_url}}/${{github.repository}}
+  jobUrl: ${{ github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}
+  var2: ${CI_REGISTRY_IMAGE%/*}
+  # Approvals Timeout
+  approvals_timeout: '30m'
+  # Code language Auto-detection
+  code_language_detection_enabled: 'true'
+  ##############################################################################
+jobs:
+################################################################################
+# Stages
+# ------------------------------------------------------------------------------
+# Stage 1 - Requirements #######################################################
+  repository-check:
+      # Image
+    runs-on: self-hosted
+    container:
+      image: registry.gitlab.com/shamanops/runners/gitlab:fedora_rootless
+      options: --privileged --pull always
+    # --------------------------------------------------------------------------
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: repository-check
+        run: shamanops repository-check
+# Stage 2 - Build ##############################################################
+  image-build-and-push:
+    # Image
+    runs-on: self-hosted
+    container:
+      image: registry.gitlab.com/shamanops/runners/gitlab:fedora_rootless
+      options: --privileged --pull always
+    # ------------------------------------------------------------------------------
+    needs: ["repository-check"]
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: image-build-and-push
+        run: shamanops image-build
+  image-check:
+    # Image
+    runs-on: self-hosted
+    container:
+      image: registry.gitlab.com/shamanops/runners/gitlab:fedora_rootless
+      options: --privileged --pull always
+    # ------------------------------------------------------------------------------
+    needs: ["image-build-and-push"]
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: image-check
+        run: shamanops image-check
+# Stage 3 - Analysis ##############################################################
+  security-check:
+    # Image
+    runs-on: self-hosted
+    container:
+      image: registry.gitlab.com/shamanops/runners/gitlab:fedora_rootless
+      options: --privileged --pull always
+    # -----------------------------------------------------------------------------
+    needs: ["image-check"]
+    if: inputs.security_check_enabled == 'true'
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: security-check
+        run: shamanops security-check
+  code_quality_check:
+    # Image
+    runs-on: self-hosted
+    container:
+      image: registry.gitlab.com/shamanops/runners/gitlab:fedora_rootless
+      options: --privileged --pull always
+    # -----------------------------------------------------------------------------
+    needs: ["image-check"]
+    if: inputs.code_quality_enabled == 'true'
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: code_quality_check
+        run: echo "code_quality_check"
+# Stage 4 - Test #################################################################
+  functional_test:
+    # Image
+    runs-on: self-hosted
+    container:
+      image: registry.gitlab.com/shamanops/runners/gitlab:fedora_rootless
+      options: --privileged --pull always
+    # -----------------------------------------------------------------------------
+    needs: ["image-check"]
+    if: inputs.functional_test_enabled == 'true'
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: functional_test
+        run: echo "functional_test"
+  stress_test:
+    # Image
+    runs-on: self-hosted
+    container:
+      image: registry.gitlab.com/shamanops/runners/gitlab:fedora_rootless
+      options: --privileged --pull always
+    # -----------------------------------------------------------------------------
+    needs: ["image-check"]
+    if: inputs.stress_test_enabled == 'true'
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: stress_test
+        run: echo "stress_test"
+# Stage 5 - Deploy - DEV environment #############################################
+  app-create-and-deploy-dev:
+    # Image
+    runs-on: self-hosted
+    container:
+      image: registry.gitlab.com/shamanops/runners/gitlab:fedora_rootless
+      options: --privileged --pull always
+    # ----------------------------------------------------------------------------
+    needs: [security-check, image-check]
+    if: |
+      always()
+      && (inputs.environments != 'minimal' && inputs.environments != 'mid')
+      && (
+          contains(needs.*.result, 'success') || 
+          (needs.image-check == 'success' && needs.security-check == 'skipped')  ||
+          (needs.image-check == 'success' && inputs.security_check_blocker != 'true')
+        )
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: app-create-and-deploy-dev
+        run: shamanops app-create-and-deploy dev
+# Stage 5 - Deploy - STG environment #############################################
+  app-create-and-deploy-stg:
+    # Image
+    runs-on: self-hosted
+    container:
+      image: registry.gitlab.com/shamanops/runners/gitlab:fedora_rootless
+      options: --privileged --pull always
+    # ----------------------------------------------------------------------------
+    needs: [security-check, image-check, app-create-and-deploy-dev]
+    if: |
+      always()
+      && (inputs.environments != 'minimal')
+      && (
+          contains(needs.*.result, 'success') ||
+          (needs.image-check == 'success' && needs.security-check == 'skipped' && needs.app-create-and-deploy-dev == 'skipped') ||
+          (needs.image-check == 'success' && inputs.security_check_blocker != 'true' && needs.app-create-and-deploy-dev != 'failure')
+        )
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: app-create-and-deploy-stg
+        run: shamanops app-create-and-deploy stg
+# Stage 5 - Deploy - PROD environment ############################################
+  approvals:
+    # Image
+    runs-on: self-hosted
+    container:
+      image: registry.gitlab.com/shamanops/runners/gitlab:fedora_rootless
+      options: --privileged --pull always
+    # ------------------------------------------------------------------------------
+    needs: [security-check, image-check, app-create-and-deploy-dev, app-create-and-deploy-stg]
+    if: |
+      always()
+      && (
+          contains(needs.*.result, 'success') ||
+          (needs.image-check == 'success' && needs.security-check == 'skipped' && needs.app-create-and-deploy-dev == 'skipped' && needs.app-create-and-deploy-stg == 'skipped') ||
+          (needs.image-check == 'success' && inputs.security_check_blocker != 'true' && needs.app-create-and-deploy-dev != 'failure' && needs.app-create-and-deploy-stg != 'failure')
+        )
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: approvals
+        run: shamanops approvals-generator
+  app-create-and-deploy-prod:
+    # Image
+    runs-on: self-hosted
+    container:
+      image: registry.gitlab.com/shamanops/runners/gitlab:fedora_rootless
+      options: --privileged --pull always
+    # ------------------------------------------------------------------------------
+    needs: ["approvals"]
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: app-create-and-deploy-prod
+        run: shamanops app-create-and-deploy prod
+  app-create-and-deploy-drp:
+    # Image
+    runs-on: self-hosted
+    container:
+      image: registry.gitlab.com/shamanops/runners/gitlab:fedora_rootless
+      options: --privileged --pull always
+    # ------------------------------------------------------------------------------
+    needs: ["app-create-and-deploy-prod"]
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: app-create-and-deploy-drp
+        run: shamanops app-create-and-deploy drp
