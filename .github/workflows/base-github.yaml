@@ -21,7 +21,7 @@ on:
       # Code language Auto-detection
       code_language_detection_enabled:
         type: string
-        defualt: 'true'
+        default: 'true'
       # SAST check | Sonarqube
       code_quality_check_enabled:
         type: string
