@@ -141,6 +141,9 @@ jobs:
     container:
       image: ghcr.io/shamanops/runners-fedora:stable
       options: --privileged --pull always
+      credentials:
+        username: ${{env.shamanops_registry_user}}
+        password: ${{env.shamanops_registry_password}}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -153,6 +156,9 @@ jobs:
     container:
       image: ghcr.io/shamanops/runners-fedora:stable
       options: --privileged --pull always
+      credentials:
+        username: ${{env.shamanops_registry_user}}
+        password: ${{env.shamanops_registry_password}}
     needs: ["repository-check"]
     steps:
       - uses: actions/checkout@v3
@@ -165,6 +171,9 @@ jobs:
     container:
       image: ghcr.io/shamanops/runners-fedora:stable
       options: --privileged --pull always
+      credentials:
+        username: ${{env.shamanops_registry_user}}
+        password: ${{env.shamanops_registry_password}}
     needs: ["image-build-and-push"]
     steps:
       - uses: actions/checkout@v3
@@ -178,6 +187,9 @@ jobs:
     container:
       image: ghcr.io/shamanops/runners-fedora:stable
       options: --privileged --pull always
+      credentials:
+        username: ${{env.shamanops_registry_user}}
+        password: ${{env.shamanops_registry_password}}
     needs: ["image-check"]
     if: inputs.security_check_enabled == 'true'
     steps:
@@ -191,6 +203,9 @@ jobs:
     container:
       image: ghcr.io/shamanops/runners-fedora:stable
       options: --privileged --pull always
+      credentials:
+        username: ${{env.shamanops_registry_user}}
+        password: ${{env.shamanops_registry_password}}
     needs: ["image-check"]
     if: inputs.code_quality_check_enabled == 'true'
     steps:
@@ -205,6 +220,9 @@ jobs:
     container:
       image: ghcr.io/shamanops/runners-fedora:stable
       options: --privileged --pull always
+      credentials:
+        username: ${{env.shamanops_registry_user}}
+        password: ${{env.shamanops_registry_password}}
     needs: ["image-check"]
     if: inputs.functional_test_enabled == 'true'
     steps:
@@ -218,6 +236,9 @@ jobs:
     container:
       image: ghcr.io/shamanops/runners-fedora:stable
       options: --privileged --pull always
+      credentials:
+        username: ${{env.shamanops_registry_user}}
+        password: ${{env.shamanops_registry_password}}
     needs: ["image-check"]
     if: inputs.stress_check_enabled == 'true'
     steps:
@@ -232,6 +253,9 @@ jobs:
     container:
       image: ghcr.io/shamanops/runners-fedora:stable
       options: --privileged --pull always
+      credentials:
+        username: ${{env.shamanops_registry_user}}
+        password: ${{env.shamanops_registry_password}}
     needs: [security-check, image-check]
     if: |
       always()
@@ -253,6 +277,9 @@ jobs:
     container:
       image: ghcr.io/shamanops/runners-fedora:stable
       options: --privileged --pull always
+      credentials:
+        username: ${{env.shamanops_registry_user}}
+        password: ${{env.shamanops_registry_password}}
     needs: [security-check, image-check, app-create-and-deploy-dev]
     if: |
       always()
@@ -274,6 +301,9 @@ jobs:
     container:
       image: ghcr.io/shamanops/runners-fedora:stable
       options: --privileged --pull always
+      credentials:
+        username: ${{env.shamanops_registry_user}}
+        password: ${{env.shamanops_registry_password}}
     needs: [security-check, image-check, app-create-and-deploy-dev, app-create-and-deploy-stg]
     if: |
       always()
@@ -293,6 +323,9 @@ jobs:
     container:
       image: ghcr.io/shamanops/runners-fedora:stable
       options: --privileged --pull always
+      credentials:
+        username: ${{env.shamanops_registry_user}}
+        password: ${{env.shamanops_registry_password}}
     needs: ["approvals"]
     steps:
       - uses: actions/checkout@v3
@@ -305,6 +338,9 @@ jobs:
     container:
       image: ghcr.io/shamanops/runners-fedora:stable
       options: --privileged --pull always
+      credentials:
+        username: ${{env.shamanops_registry_user}}
+        password: ${{env.shamanops_registry_password}}
     needs: ["app-create-and-deploy-prod"]
     if: |
       always()
