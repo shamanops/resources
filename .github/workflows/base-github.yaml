@@ -31,7 +31,7 @@ on:
         default: 'false'
       code_quality_check_exlusions: 
         type: string
-        defualt: 'test/**'
+        default: 'test/**'
       code_quality_check_test_exlusions:
         type: string
         default: '**/vendor/**' 
