@@ -141,9 +141,9 @@ jobs:
     container:
       image: ghcr.io/shamanops/runners-fedora:stable
       options: --privileged --pull always
-      credentials:
-        username: ${{env.shamanops_registry_user}}
-        password: ${{env.shamanops_registry_password}}
+      #credentials:
+      #  username: ${{env.shamanops_registry_user}}
+      #  password: ${{env.shamanops_registry_password}}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -156,9 +156,9 @@ jobs:
     container:
       image: ghcr.io/shamanops/runners-fedora:stable
       options: --privileged --pull always
-      credentials:
-        username: ${{env.shamanops_registry_user}}
-        password: ${{env.shamanops_registry_password}}
+      #credentials:
+      #  username: ${{env.shamanops_registry_user}}
+      #  password: ${{env.shamanops_registry_password}}
     needs: ["repository-check"]
     steps:
       - uses: actions/checkout@v3
