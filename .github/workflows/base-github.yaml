@@ -155,7 +155,7 @@ jobs:
     runs-on: self-hosted
     container:
       image: ghcr.io/shamanops/runners-fedora:stable
-      options: --privileged #--pull always
+      options: --privileged --pull always
       credentials:
         username: ${{env.shamanops_registry_user}}
         password: ${{env.shamanops_registry_password}}
