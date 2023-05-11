@@ -120,6 +120,8 @@ env:
   shamanops_registry_url: ${{secrets.shamanops_registry_url}}
   shamanops_registry_user: ${{secrets.shamanops_registry_user}}
   shamanops_registry_password: ${{secrets.shamanops_registry_password}}
+  shamanops_customer_user: ${{secrets.shamanops_customer_user}}
+  shamanops_customer_token: ${{secrets.shamanops_customer_token}}
   shamanops_code_quality_url: 'https://sonarqube.shamanops.com'
   shamanops_code_quality_username: 'sonaruser'
   shamanops_code_quality_token: 'sonarpassword'
