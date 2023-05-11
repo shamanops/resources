@@ -329,6 +329,11 @@ jobs:
         username: ${{env.shamanops_registry_user}}
         password: ${{env.shamanops_registry_password}}
     needs: ["approvals"]
+    if: |
+      always() 
+      && ( 
+          contains(needs.*.result, 'success')
+        )
     steps:
       - uses: actions/checkout@v3
         with:
