@@ -215,7 +215,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: code_quality_check
-        run: echo "code_quality_check"
+        run: shamanops sast-check
 # Stage 4 - Test #################################################################
   functional_test:
     runs-on: self-hosted
@@ -242,13 +242,13 @@ jobs:
         username: ${{env.shamanops_registry_user}}
         password: ${{env.shamanops_registry_password}}
     needs: ["image-check"]
-    if: inputs.stress_check_enabled == 'true'
+    if: inputs.stress_check_enabled == 'true' && inputs.environments != 'minimal'
     steps:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
       - name: stress_test
-        run: echo "stress_test"
+        run: shamanops stress-check
 # Stage 5 - Deploy - DEV environment #############################################
   app-create-and-deploy-dev:
     runs-on: self-hosted
