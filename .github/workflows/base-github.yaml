@@ -264,8 +264,8 @@ jobs:
       && (inputs.environments != 'minimal' && inputs.environments != 'mid')
       && (
           contains(needs.*.result, 'success') || 
-          (needs.image-check.result == 'success' && needs.security-check.result == 'skipped')  ||
-          (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true')
+          ( contains(needs.image-check.result, 'success') && needs.security-check.result == 'skipped')  ||
+          ( contains(needs.image-check.result, 'success') && inputs.security_check_blocker != 'true')
         )
     steps:
       - uses: actions/checkout@v3
