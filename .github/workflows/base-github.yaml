@@ -264,8 +264,8 @@ jobs:
       && (inputs.environments != 'minimal' && inputs.environments != 'mid')
       && (
           contains(needs.*.result, 'success') || 
-          (needs.image-check == 'success' && needs.security-check == 'skipped')  ||
-          (needs.image-check == 'success' && inputs.security_check_blocker != 'true')
+          (needs.image-check.result == 'success' && needs.security-check.result == 'skipped')  ||
+          (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true')
         )
     steps:
       - uses: actions/checkout@v3
@@ -288,8 +288,8 @@ jobs:
       && (inputs.environments != 'minimal')
       && (
           contains(needs.*.result, 'success') ||
-          (needs.image-check == 'success' && needs.security-check == 'skipped' && needs.app-create-and-deploy-dev == 'skipped') ||
-          (needs.image-check == 'success' && inputs.security_check_blocker != 'true' && needs.app-create-and-deploy-dev != 'failure')
+          (needs.image-check.result == 'success' && needs.security-check.result == 'skipped' && needs.app-create-and-deploy-dev.result == 'skipped') ||
+          (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true' && needs.app-create-and-deploy-dev.result != 'failure')
         )
     steps:
       - uses: actions/checkout@v3
@@ -311,8 +311,8 @@ jobs:
       always()
       && (
           contains(needs.*.result, 'success') ||
-          (needs.image-check == 'success' && needs.security-check == 'skipped' && needs.app-create-and-deploy-dev == 'skipped' && needs.app-create-and-deploy-stg == 'skipped') ||
-          (needs.image-check == 'success' && inputs.security_check_blocker != 'true' && needs.app-create-and-deploy-dev != 'failure' && needs.app-create-and-deploy-stg != 'failure')
+          (needs.image-check.result == 'success' && needs.security-check.result == 'skipped' && needs.app-create-and-deploy-dev.result == 'skipped' && needs.app-create-and-deploy-stg.result == 'skipped') ||
+          (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true' && needs.app-create-and-deploy-dev.result != 'failure' && needs.app-create-and-deploy-stg.result != 'failure')
         )
     steps:
       - uses: actions/checkout@v3
@@ -353,8 +353,8 @@ jobs:
       always()
       && (
           contains(needs.*.result, 'success') ||
-          (needs.image-check == 'success' && needs.security-check == 'skipped' && needs.app-create-and-deploy-dev == 'skipped' && needs.app-create-and-deploy-stg == 'skipped') ||
-          (needs.image-check == 'success' && inputs.security_check_blocker != 'true' && needs.app-create-and-deploy-dev != 'failure' && needs.app-create-and-deploy-stg != 'failure')
+          (needs.image-check.result == 'success' && needs.security-check.result == 'skipped' && needs.app-create-and-deploy-dev.result == 'skipped' && needs.app-create-and-deploy-stg.result == 'skipped') ||
+          (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true' && needs.app-create-and-deploy-dev.result != 'failure' && needs.app-create-and-deploy-stg.result != 'failure')
         )
       && (inputs.environments == 'full-with-drp')
     steps:
