@@ -1,10 +1,9 @@
 ################################################################################
-## DevOps CICDaaS by Fusion    #################################################
+## ShamanOps Base Pipeline | Github Actions | Cloud runner #####################
 ################################################################################
 ##
-# Image
 image: 
-  name: registry.gitlab.com/shamanops/runners/fedora:stable
+  name: ghcr.io/shamanops/runners-fedora:stable
   entrypoint: [""]
 ################################################################################
 # Stages
@@ -25,16 +24,23 @@ variables:
   environments: 'full'
   # Global variables
   customerName: $CI_PROJECT_ROOT_NAMESPACE
-  projectName: ''
+  # Project
+  projectName: 'default'
   appName: $CI_PROJECT_NAME
   repoUrl: $CI_REPOSITORY_URL
   jobUrl: $CI_JOB_URL
   var2: ${CI_REGISTRY_IMAGE%/*}
-  # Approvals Timeout
+  # Approvals
   approvals_timeout: '30m'
+  shamanopsBusinessApprovers: ''
+  shamanopsTechnicalApprovers: ''
+  shamanopsApprovalsDev: 'false'
+  shamanopsApprovalsStg: 'false'
+  shamanopsApprovalsProd: 'true'
+  shamanopsBusinessApproversMinimalProd: '0'
+  shamanopsTechnicalApproversMinimalProd: '1'
   # Code language Auto-detection
   code_language_detection_enabled: 'true'
-  ##############################################################################
   # Dependency and OS security checker
   security_check_enabled: 'true'
   security_check_blocker: 'false'
@@ -54,6 +60,8 @@ variables:
   # Functional tests | Selenium
   functional_test_enabled: 'false'
   functional_test_blocker: 'false'
+  # Verbosity level
+  log_level: 'normal'
 ################################################################################
 # Stages
 # ------------------------------------------------------------------------------
@@ -70,6 +78,7 @@ image-build-and-push:
   stage: build
   script:
     - shamanops image-build
+  needs: ["repository-check"]
 image-check:
   stage: build
   script:
