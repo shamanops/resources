@@ -1,10 +1,9 @@
 ################################################################################
-## DevOps CICDaaS by Fusion    #################################################
+## ShamanOps Base Pipeline | Github Actions | Cloud runner #####################
 ################################################################################
 ##
-# Image
 image: 
-  name: registry.gitlab.com/shamanops/runners/fedora:stable
+  name: ghcr.io/shamanops/runners-fedora:stable
   entrypoint: [""]
 ################################################################################
 # Stages
@@ -25,16 +24,23 @@ variables:
   environments: 'full'
   # Global variables
   customerName: $CI_PROJECT_ROOT_NAMESPACE
-  projectName: ''
+  # Project
+  projectName: 'default'
   appName: $CI_PROJECT_NAME
   repoUrl: $CI_REPOSITORY_URL
   jobUrl: $CI_JOB_URL
   var2: ${CI_REGISTRY_IMAGE%/*}
-  # Approvals Timeout
+  # Approvals
   approvals_timeout: '30m'
+  shamanopsBusinessApprovers: ''
+  shamanopsTechnicalApprovers: ''
+  shamanopsApprovalsDev: 'false'
+  shamanopsApprovalsStg: 'false'
+  shamanopsApprovalsProd: 'true'
+  shamanopsBusinessApproversMinimalProd: '0'
+  shamanopsTechnicalApproversMinimalProd: '1'
   # Code language Auto-detection
   code_language_detection_enabled: 'true'
-  ##############################################################################
   # Dependency and OS security checker
   security_check_enabled: 'true'
   security_check_blocker: 'false'
@@ -54,11 +60,15 @@ variables:
   # Functional tests | Selenium
   functional_test_enabled: 'false'
   functional_test_blocker: 'false'
+  # Verbosity level
+  log_level: 'normal'
 ################################################################################
 # Stages
 # ------------------------------------------------------------------------------
 # Stage 1 - Requirements #######################################################
 repository-check:
+  tags:
+    - self-hosted
   stage: requirements
   rules:
     - when: always
@@ -67,17 +77,24 @@ repository-check:
 # ------------------------------------------------------------------------------
 # Stage 2 - Build ##############################################################
 image-build-and-push:
+  tags:
+    - self-hosted
   stage: build
   script:
     - shamanops image-build
+  needs: ["repository-check"]
 image-check:
+  tags:
+    - self-hosted
   stage: build
   script:
     - shamanops image-check
-  needs: ["image-build-and-push"]
+  needs: ["repository-check", "image-build-and-push"]
 # ------------------------------------------------------------------------------
 # Stage 3 - Analysis ###########################################################
 security_check:
+  tags:
+    - self-hosted
   stage: analysis
   rules:
     - if: $security_check_enabled == 'true' && $security_check_blocker == 'true'
@@ -89,7 +106,9 @@ security_check:
     - when: never
   script:
     - shamanops security-check
-code_quality_check:
+sast_check:
+  tags:
+    - self-hosted
   stage: analysis
   rules:
     - if: $code_quality_check_enabled == 'true' && $code_quality_check_blocker == 'true'
@@ -103,7 +122,20 @@ code_quality_check:
     - shamanops sast-check
 # ------------------------------------------------------------------------------
 # Stage 5 - Deploy - DEV environment #########################################################
+approvals-dev:
+  tags:
+    - self-hosted
+  stage: deploy
+  rules:
+    - if: $environments != 'minimal' && $environments != 'mid' && $shamanopsApprovalsDev == 'true'
+      when: on_success
+      allow_failure: false
+    - when: never
+  script:
+    - echo "approvals-dev"
 app-create-and-deploy-dev:
+  tags:
+    - self-hosted
   stage: deploy
   rules:
     - if: $environments != 'minimal' && $environments != 'mid'
@@ -114,7 +146,20 @@ app-create-and-deploy-dev:
     - shamanops app-create-and-deploy dev
 # ------------------------------------------------------------------------------
 # Stage 5 - Deploy - STG environment #########################################################
+approvals-stg:
+  tags:
+    - self-hosted
+  stage: deploy
+  rules:
+    - if: $environments != 'minimal' && $shamanopsApprovalsStg == 'true'
+      when: on_success
+      allow_failure: false
+    - when: never
+  script:
+    - echo "approvals-stg"
 app-create-and-deploy-stg:
+  tags:
+    - self-hosted
   stage: deploy
   needs: ["app-create-and-deploy-dev"]
   rules:
@@ -127,6 +172,8 @@ app-create-and-deploy-stg:
 # ------------------------------------------------------------------------------
 # Stage 5 - Deploy - PROD environment #########################################################
 stress_test:
+  tags:
+    - self-hosted
   stage: deploy
   needs: ["app-create-and-deploy-stg"]
   rules:
@@ -139,7 +186,9 @@ stress_test:
     - when: never
   script:
     - shamanops stress-check
-approvals:
+approvals-prod:
+  tags:
+    - self-hosted
   stage: deploy
   needs:
     - job: app-create-and-deploy-stg
@@ -147,16 +196,22 @@ approvals:
     - job: stress_test
       optional: true
   rules:
-    - if: $businessApproversMinimal != '0' && $technicalApproversMinimal != '0'
+    - if: $shamanopsApprovalsProd == 'true'
       when: on_success
+      allow_failure: false
+    - when: never
   script:
-    - shamanops approvals-generator
+    - echo "approvals-prod"
 app-create-and-deploy-prod:
+  tags:
+    - self-hosted
   stage: deploy
-  needs: ["approvals"]
+  needs: ["approvals-prod"]
   script:
     - shamanops app-create-and-deploy prod
 app-create-and-deploy-drp:
+  tags:
+    - self-hosted
   stage: deploy
   needs: ["app-create-and-deploy-prod"]
   rules:
