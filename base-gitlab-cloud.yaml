@@ -67,6 +67,8 @@ variables:
 # ------------------------------------------------------------------------------
 # Stage 1 - Requirements #######################################################
 repository-check:
+  tags:
+    - docker
   stage: requirements
   rules:
     - when: always
@@ -75,18 +77,24 @@ repository-check:
 # ------------------------------------------------------------------------------
 # Stage 2 - Build ##############################################################
 image-build-and-push:
+  tags:
+    - docker
   stage: build
   script:
     - shamanops image-build
   needs: ["repository-check"]
 image-check:
+  tags:
+    - docker
   stage: build
   script:
     - shamanops image-check
-  needs: ["image-build-and-push"]
+  needs: ["repository-check", "image-build-and-push"]
 # ------------------------------------------------------------------------------
 # Stage 3 - Analysis ###########################################################
 security_check:
+  tags:
+    - docker
   stage: analysis
   rules:
     - if: $security_check_enabled == 'true' && $security_check_blocker == 'true'
@@ -98,7 +106,9 @@ security_check:
     - when: never
   script:
     - shamanops security-check
-code_quality_check:
+sast_check:
+  tags:
+    - docker
   stage: analysis
   rules:
     - if: $code_quality_check_enabled == 'true' && $code_quality_check_blocker == 'true'
@@ -112,7 +122,20 @@ code_quality_check:
     - shamanops sast-check
 # ------------------------------------------------------------------------------
 # Stage 5 - Deploy - DEV environment #########################################################
+approvals-dev:
+  tags:
+    - docker
+  stage: deploy
+  rules:
+    - if: $environments != 'minimal' && $environments != 'mid' && $shamanopsApprovalsDev == 'true'
+      when: on_success
+      allow_failure: false
+    - when: never
+  script:
+    - echo "approvals-dev"
 app-create-and-deploy-dev:
+  tags:
+    - docker
   stage: deploy
   rules:
     - if: $environments != 'minimal' && $environments != 'mid'
@@ -123,7 +146,20 @@ app-create-and-deploy-dev:
     - shamanops app-create-and-deploy dev
 # ------------------------------------------------------------------------------
 # Stage 5 - Deploy - STG environment #########################################################
+approvals-stg:
+  tags:
+    - docker
+  stage: deploy
+  rules:
+    - if: $environments != 'minimal' && $shamanopsApprovalsStg == 'true'
+      when: on_success
+      allow_failure: false
+    - when: never
+  script:
+    - echo "approvals-stg"
 app-create-and-deploy-stg:
+  tags:
+    - docker
   stage: deploy
   needs: ["app-create-and-deploy-dev"]
   rules:
@@ -136,6 +172,8 @@ app-create-and-deploy-stg:
 # ------------------------------------------------------------------------------
 # Stage 5 - Deploy - PROD environment #########################################################
 stress_test:
+  tags:
+    - docker
   stage: deploy
   needs: ["app-create-and-deploy-stg"]
   rules:
@@ -148,7 +186,9 @@ stress_test:
     - when: never
   script:
     - shamanops stress-check
-approvals:
+approvals-prod:
+  tags:
+    - docker
   stage: deploy
   needs:
     - job: app-create-and-deploy-stg
@@ -156,16 +196,22 @@ approvals:
     - job: stress_test
       optional: true
   rules:
-    - if: $businessApproversMinimal != '0' && $technicalApproversMinimal != '0'
+    - if: $shamanopsApprovalsProd == 'true'
       when: on_success
+      allow_failure: false
+    - when: never
   script:
-    - shamanops approvals-generator
+    - echo "approvals-prod"
 app-create-and-deploy-prod:
+  tags:
+    - docker
   stage: deploy
-  needs: ["approvals"]
+  needs: ["approvals-prod"]
   script:
     - shamanops app-create-and-deploy prod
 app-create-and-deploy-drp:
+  tags:
+    - docker
   stage: deploy
   needs: ["app-create-and-deploy-prod"]
   rules:
