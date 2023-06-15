@@ -4,6 +4,7 @@
 ##
 image: 
   name: ghcr.io/shamanops/runners-fedora:stable
+  pull_policy: always
   entrypoint: [""]
 ################################################################################
 # Stages
