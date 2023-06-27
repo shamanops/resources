@@ -1,0 +1,455 @@
+################################################################################
+## ShamanOps Base Pipeline | Github Actions | Cloud runner #####################
+################################################################################
+##
+name: shamanops-base-pipeline-rc
+on:
+  workflow_call:
+    inputs:
+      # Project
+      projectName:
+        type: string
+        default: 'default'
+      # Environments: full-with-drp (dev/stg/prod/drp) | full (dev/stg/prod) | mid (stg/prod) | minimal (prod)
+      environments:
+        type: string
+        default: 'full'
+      # Approvals
+      approvals_timeout:
+        type: string
+        default: '30m'
+      shamanopsBusinessApprovers:
+        type: string
+      shamanopsTechnicalApprovers:
+        type: string
+      shamanopsApprovalsDev:
+        type: string
+        default: 'false'
+      shamanopsBusinessApproversMinimalDev:
+        type: string
+        default: '0'
+      shamanopsTechnicalApproversMinimalDev:
+        type: string
+        default: '0'
+      shamanopsApprovalsStg:
+        type: string
+        default: 'false'
+      shamanopsBusinessApproversMinimalStg:
+        type: string
+        default: '0'
+      shamanopsTechnicalApproversMinimalStg:
+        type: string
+        default: '0'
+      shamanopsApprovalsProd:
+        type: string
+        default: 'true'
+      shamanopsBusinessApproversMinimalProd:
+        type: string
+        default: '1'
+      shamanopsTechnicalApproversMinimalProd:
+        type: string
+        default: '1'
+      # Code language Auto-detection
+      code_language_detection_enabled:
+        type: string
+        default: 'true'
+      # SAST check | Sonarqube
+      code_quality_check_enabled:
+        type: string
+        default: 'true'
+      code_quality_check_blocker:
+        type: string
+        default: 'false'
+      code_quality_check_exlusions: 
+        type: string
+        default: 'test/**'
+      code_quality_check_test_exlusions:
+        type: string
+        default: '**/vendor/**' 
+      code_quality_check_test_inclusions:
+        type: string
+        default: '**/*test*'
+      # Functional tests | Selenium
+      functional_test_enabled:
+        type: string
+        default: 'false'
+      functional_test_blocker:
+        type: string
+        default: 'false'
+      # Stress tests | JMeter
+      stress_check_enabled:
+        type: string
+      stress_check_blocker:
+        type: string
+      stress_check_error_rate_max:
+        type: string
+      stress_check_thread:
+        type: string
+      stress_check_upPeriod:
+        type: string
+      stress_check_second:
+        type: string
+      # Dependency and OS security checker
+      security_check_enabled:
+        type: string
+      security_check_blocker:
+        type: string
+      # Verbosity level
+      log_level:
+        type: string
+        default: 'normal'
+env:
+# Client side
+  environments: ${{inputs.environments}}
+  projectName: ${{inputs.projectName}}
+  approvals_timeout: ${{inputs.approvals_timeout}}
+  code_language_detection_enabled: ${{inputs.code_language_detection_enabled}}
+  code_quality_check_enabled: ${{inputs.code_quality_check_enabled}}
+  code_quality_check_blocker: ${{inputs.code_quality_check_blocker}}
+  code_quality_check_exlusions: ${{inputs.code_quality_check_exlusions}}
+  code_quality_check_test_exlusions: ${{inputs.code_quality_check_test_exlusions}}
+  code_quality_check_test_inclusions: ${{inputs.code_quality_check_test_inclusions}}
+  stress_check_enabled: ${{inputs.stress_check_enabled}}
+  stress_check_blocker: ${{inputs.stress_check_blocker}}
+  stress_check_error_rate_max: ${{inputs.stress_check_error_rate_max}}
+  stress_check_thread: ${{inputs.stress_check_thread}}
+  stress_check_upPeriod: ${{inputs.stress_check_upPeriod}}
+  stress_check_second: ${{inputs.stress_check_second}}
+  functional_test_enabled: ${{inputs.functional_test_enabled}}
+  functional_test_blocker: ${{inputs.functional_test_blocker}}
+  security_check_enabled: ${{inputs.security_check_enabled}}
+  security_check_blocker: ${{inputs.security_check_blocker}}
+  log_level: ${{inputs.log_level}}
+  shamanopsBusinessApprovers: ${{inputs.shamanopsBusinessApprovers}}
+  shamanopsTechnicalApprovers: ${{inputs.shamanopsTechnicalApprovers}}
+  shamanopsApprovalsDev: ${{inputs.shamanopsApprovalsDev}}
+  shamanopsBusinessApproversMinimalDev: ${{inputs.shamanopsBusinessApproversMinimalDev}}
+  shamanopsTechnicalApproversMinimalDev: ${{inputs.shamanopsTechnicalApproversMinimalDev}}
+  shamanopsApprovalsStg: ${{inputs.shamanopsApprovalsStg}}
+  shamanopsBusinessApproversMinimalStg: ${{inputs.shamanopsBusinessApproversMinimalStg}}
+  shamanopsTechnicalApproversMinimalStg: ${{inputs.shamanopsTechnicalApproversMinimalStg}}
+  shamanopsApprovalsProd: ${{inputs.shamanopsApprovalsProd}}
+  shamanopsBusinessApproversMinimalProd: ${{inputs.shamanopsBusinessApproversMinimalProd}}
+  shamanopsTechnicalApproversMinimalProd: ${{inputs.shamanopsTechnicalApproversMinimalProd}}
+# Global side
+  shamanops_argocd_dev_url: ${{secrets.shamanops_argocd_dev_url}}
+  shamanops_argocd_dev_user: ${{secrets.shamanops_argocd_dev_user}}
+  shamanops_argocd_dev_token: ${{secrets.shamanops_argocd_dev_token}}
+  shamanops_argocd_stg_url: ${{secrets.shamanops_argocd_stg_url}}
+  shamanops_argocd_stg_user: ${{secrets.shamanops_argocd_stg_user}}
+  shamanops_argocd_stg_token: ${{secrets.shamanops_argocd_stg_token}}
+  shamanops_argocd_prod_url: ${{secrets.shamanops_argocd_prod_url}}
+  shamanops_argocd_prod_user: ${{secrets.shamanops_argocd_prod_user}}
+  shamanops_argocd_prod_token: ${{secrets.shamanops_argocd_prod_token}}
+  shamanops_argocd_drp_url: ${{secrets.shamanops_argocd_drp_url}}
+  shamanops_argocd_drp_user: ${{secrets.shamanops_argocd_drp_user}}
+  shamanops_argocd_drp_token: ${{secrets.shamanops_argocd_drp_token}}
+  shamanops_chat_webhook: ${{secrets.shamanops_chat_webhook}}
+  shamanops_manifest_repository: ${{secrets.shamanops_manifest_repository}}
+  shamanops_manifest_repository_user: ${{secrets.shamanops_manifest_repository_user}}
+  shamanops_manifest_repository_token: ${{secrets.shamanops_manifest_repository_token}}
+  shamanops_registry_name: ${{secrets.shamanops_registry_name}}
+  shamanops_registry_url: ${{secrets.shamanops_registry_url}}
+  shamanops_registry_user: ${{secrets.shamanops_registry_user}}
+  shamanops_registry_password: ${{secrets.shamanops_registry_password}}
+  shamanops_customer_user: ${{secrets.shamanops_customer_user}}
+  shamanops_customer_token: ${{secrets.shamanops_customer_token}}
+  shamanops_code_quality_url: 'https://sonarqube.shamanops.com'
+  shamanops_code_quality_username: 'sonaruser'
+  shamanops_code_quality_token: 'sonarpassword'
+# For CI Platform:
+  # Global variables
+  customerName: ${{github.repository_owner}}
+  appName: ${{github.event.repository.name}}
+  repoUrl: ${{github.server_url}}/${{github.repository}}
+  jobUrl: ${{ github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}
+  var2: ${CI_REGISTRY_IMAGE%/*}
+  ##############################################################################
+jobs:
+################################################################################
+# Stages
+# ------------------------------------------------------------------------------
+# Stage 1 - Requirements #######################################################
+  repository-check:
+    runs-on: ubuntu-latest #self-hosted
+    container:
+      image: ghcr.io/shamanops/runners-fedora:rc
+      options: -u root --privileged
+      credentials:
+        username: ${{env.shamanops_registry_user}}
+        password: ${{env.shamanops_registry_password}}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: repository-check
+        run: shamanops repository-check
+# Stage 2 - Build ##############################################################
+  image-build-and-push:
+    runs-on: ubuntu-latest #self-hosted
+    container:
+      image: ghcr.io/shamanops/runners-fedora:rc
+      options: -u root --privileged
+      credentials:
+        username: ${{env.shamanops_registry_user}}
+        password: ${{env.shamanops_registry_password}}
+    needs: [repository-check]
+    if: ${{ always() && !cancelled() && !failure() }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: image-build-and-push
+        run: shamanops image-build
+  image-check:
+    runs-on: ubuntu-latest #self-hosted
+    container:
+      image: ghcr.io/shamanops/runners-fedora:rc
+      options: -u root --privileged
+      credentials:
+        username: ${{env.shamanops_registry_user}}
+        password: ${{env.shamanops_registry_password}}
+    needs: [repository-check, image-build-and-push]
+    if: ${{ always() && !cancelled() && !failure() }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: image-check
+        run: shamanops image-check
+# Stage 3 - Analysis ##############################################################
+  sast-check:
+    runs-on: ubuntu-latest #self-hosted
+    container:
+      image: ghcr.io/shamanops/runners-fedora:rc
+      options: -u root --privileged
+      credentials:
+        username: ${{env.shamanops_registry_user}}
+        password: ${{env.shamanops_registry_password}}
+    needs: [image-build-and-push, image-check]
+    if: ${{ always() && !cancelled() && !failure() &&
+          inputs.code_quality_check_enabled == 'true'
+        }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: sast-check
+        run: shamanops sast-check
+  security-check:
+    runs-on: ubuntu-latest #self-hosted
+    container:
+      image: ghcr.io/shamanops/runners-fedora:rc
+      options: -u root --privileged
+      credentials:
+        username: ${{env.shamanops_registry_user}}
+        password: ${{env.shamanops_registry_password}}
+    needs: [image-build-and-push, image-check]
+    if: ${{ always() && !cancelled() && !failure() &&
+          inputs.security_check_enabled == 'true'
+        }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: security-check
+        run: shamanops security-check
+
+# Stage 4 - Test #################################################################
+  functional_test:
+    runs-on: ubuntu-latest #self-hosted
+    container:
+      image: ghcr.io/shamanops/runners-fedora:rc
+      options: -u root --privileged
+      credentials:
+        username: ${{env.shamanops_registry_user}}
+        password: ${{env.shamanops_registry_password}}
+    needs: [image-build-and-push, image-check]
+    if: ${{ always() && !cancelled() && !failure() &&
+          inputs.functional_test_enabled == 'true'
+        }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: functional_test
+        run: echo "functional_test"
+# Stage 5 - Approvals - DEV environment #############################################
+  approvals-dev:
+    runs-on: ubuntu-latest #self-hosted
+    container:
+      image: ghcr.io/shamanops/runners-fedora:rc
+      options: -u root --privileged
+      credentials:
+        username: ${{env.shamanops_registry_user}}
+        password: ${{env.shamanops_registry_password}}
+    needs: [image-build-and-push, image-check, sast-check, security-check, functional_test]
+    if: ${{ always() && !cancelled() && 
+          (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true')) &&
+          (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true')) &&
+          (!failure() || (needs.image-check.result == 'success' && inputs.functional_test_blocker != 'true')) &&
+          (inputs.environments != 'minimal' && inputs.environments != 'mid' && inputs.shamanopsApprovalsDev == 'true')
+        }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name:  approvals-dev
+        run: echo "approvals-dev"
+# Stage 5 - Deploy - DEV environment #############################################
+  app-create-and-deploy-dev:
+    runs-on: ubuntu-latest #self-hosted
+    container:
+      image: ghcr.io/shamanops/runners-fedora:rc
+      options: -u root --privileged
+      credentials:
+        username: ${{env.shamanops_registry_user}}
+        password: ${{env.shamanops_registry_password}}
+    needs: [image-build-and-push, image-check, sast-check, security-check, functional_test, approvals-dev]
+    if: ${{ always() && !cancelled() && 
+          (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true')) &&
+          (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true')) &&
+          (!failure() || (needs.image-check.result == 'success' && inputs.functional_test_blocker != 'true')) &&
+          (inputs.environments != 'minimal' && inputs.environments != 'mid' && needs.approvals-dev.result == 'success')
+        }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: app-create-and-deploy-dev
+        run: shamanops app-create-and-deploy dev
+# Stage 5 - Approvals - STG environment #############################################
+  approvals-stg:
+    runs-on: ubuntu-latest #self-hosted
+    container:
+      image: ghcr.io/shamanops/runners-fedora:rc
+      options: -u root --privileged
+      credentials:
+        username: ${{env.shamanops_registry_user}}
+        password: ${{env.shamanops_registry_password}}
+    needs: [image-build-and-push, image-check, sast-check, security-check, functional_test, approvals-dev, app-create-and-deploy-dev]
+    if: ${{ always() && !cancelled() && 
+          (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true')) &&
+          (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true')) &&
+          (!failure() || (needs.image-check.result == 'success' && inputs.functional_test_blocker != 'true')) &&
+          (inputs.environments != 'minimal' && inputs.shamanopsApprovalsStg == 'true')
+        }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name:  approvals-stg
+        run: echo "approvals-stg"
+# Stage 5 - Deploy - STG environment #############################################
+  app-create-and-deploy-stg:
+    runs-on: ubuntu-latest #self-hosted
+    container:
+      image: ghcr.io/shamanops/runners-fedora:rc
+      options: -u root --privileged
+      credentials:
+        username: ${{env.shamanops_registry_user}}
+        password: ${{env.shamanops_registry_password}}
+    needs: [image-build-and-push, image-check, sast-check, security-check, functional_test, approvals-dev, app-create-and-deploy-dev, approvals-stg]
+    if: ${{ always() && !cancelled() && 
+          (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true')) &&
+          (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true')) &&
+          (!failure() || (needs.image-check.result == 'success' && inputs.functional_test_blocker != 'true')) &&
+          (inputs.environments != 'minimal' && needs.approvals-stg.result == 'success')
+        }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: app-create-and-deploy-stg
+        run: shamanops app-create-and-deploy stg
+# Stage 5 - Stress Test ##########################################################
+  stress_check:
+    runs-on: ubuntu-latest #self-hosted
+    container:
+      image: ghcr.io/shamanops/runners-fedora:rc
+      options: -u root --privileged
+      credentials:
+        username: ${{env.shamanops_registry_user}}
+        password: ${{env.shamanops_registry_password}}
+    needs: [image-build-and-push, image-check, sast-check, security-check, functional_test, app-create-and-deploy-dev, app-create-and-deploy-stg]
+    if: ${{ always() && !cancelled() && 
+          (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true')) &&
+          (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true')) &&
+          (!failure() || (needs.image-check.result == 'success' && inputs.functional_test_blocker != 'true')) &&
+          (inputs.stress_check_enabled == 'true' && inputs.environments != 'minimal')
+        }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: stress_check
+        run: shamanops stress-check
+# Stage 5 - Approvals - PROD environment #############################################
+  approvals-prod:
+    runs-on: ubuntu-latest #self-hosted
+    container:
+      image: ghcr.io/shamanops/runners-fedora:rc
+      options: -u root --privileged
+      credentials:
+        username: ${{env.shamanops_registry_user}}
+        password: ${{env.shamanops_registry_password}}
+    needs: [image-build-and-push, image-check, sast-check, security-check, functional_test, app-create-and-deploy-dev, approvals-stg, app-create-and-deploy-stg, stress_check]
+    if: ${{ always() && !cancelled() && 
+          (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true')) &&
+          (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true')) &&
+          (!failure() || (needs.image-check.result == 'success' && inputs.functional_test_blocker != 'true')) &&
+          (!failure() || (needs.image-check.result == 'success' && inputs.stress_check_blocker != 'true')) &&
+          (inputs.shamanopsApprovalsProd == 'true' && needs.approvals-stg.result == 'success')
+        }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name:  approvals-prod
+        run: echo "approvals-prod"
+# Stage 5 - Deploy - PROD environment #############################################
+  app-create-and-deploy-prod:
+    runs-on: ubuntu-latest #self-hosted
+    container:
+      image: ghcr.io/shamanops/runners-fedora:rc
+      options: -u root --privileged
+      credentials:
+        username: ${{env.shamanops_registry_user}}
+        password: ${{env.shamanops_registry_password}}
+    needs: [image-build-and-push, image-check, sast-check, security-check, functional_test, app-create-and-deploy-dev, app-create-and-deploy-stg, stress_check, approvals-prod]
+    if: ${{ always() && !cancelled() && 
+          (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true')) &&
+          (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true')) &&
+          (!failure() || (needs.image-check.result == 'success' && inputs.functional_test_blocker != 'true')) &&
+          (!failure() || (needs.image-check.result == 'success' && inputs.stress_check_blocker != 'true')) &&
+          (needs.approvals-prod.result == 'success')
+        }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: app-create-and-deploy-prod
+        run: shamanops app-create-and-deploy prod
+# Stage 5 - Deploy - DRP environment #############################################
+  app-create-and-deploy-drp:
+    runs-on: ubuntu-latest #self-hosted
+    container:
+      image: ghcr.io/shamanops/runners-fedora:rc
+      options: -u root --privileged
+      credentials:
+        username: ${{env.shamanops_registry_user}}
+        password: ${{env.shamanops_registry_password}}
+    needs: [image-build-and-push, image-check, sast-check, security-check, functional_test, approvals-dev, app-create-and-deploy-dev, approvals-stg, app-create-and-deploy-stg, stress_check, approvals-prod, app-create-and-deploy-prod]
+    if: ${{ always() && !cancelled() && 
+          (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true')) &&
+          (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true')) &&
+          (!failure() || (needs.image-check.result == 'success' && inputs.functional_test_blocker != 'true')) &&
+          (!failure() || (needs.image-check.result == 'success' && inputs.stress_check_blocker != 'true')) &&
+          (inputs.environments == 'full-with-drp' && needs.approvals-prod.result == 'success')
+        }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: app-create-and-deploy-drp
+        run: shamanops app-create-and-deploy drp
