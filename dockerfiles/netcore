@@ -1,0 +1,23 @@
+# syntax=docker/dockerfile:1
+# Start from the .NET SDK image as building base
+FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
+
+# Set the Current Working Directory inside the container
+WORKDIR /source
+
+# Copy everything from the current directory to the Working Directory inside the container
+COPY . ./app/
+WORKDIR /source/app
+RUN dotnet publish -c release -o /app 
+
+# Final image
+FROM mcr.microsoft.com/dotnet/aspnet:6.0
+WORKDIR /app
+COPY --from=build /app ./
+
+# Expose port 8080 to listens on specified network ports at runtime
+ENV PORT 8080
+EXPOSE 8080
+
+# Command to run the executable
+ENTRYPOINT ["dotnet", "dotnet-app.dll"]

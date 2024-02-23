@@ -1,0 +1,54 @@
+stages:
+- stage: pre_requirements
+  jobs:
+  - job: azdevops
+    steps:
+    - checkout: none
+    - task: AzureKeyVault@1
+      name: azKeyVault
+      displayName: azure-keyvault
+      inputs:
+        azureSubscription: shamanops-keyvault
+        KeyVaultName: 'shamanops-keyvault'
+        SecretsFilter: '*' 
+        RunAsPreJob: false
+    - script: |
+        # Variables
+        organization=$(echo $(System.CollectionUri) | cut -d "/" -f 4)
+        # Secrets
+        pat=$(azdevops-pat)
+        # Export variables
+        echo "##vso[task.setvariable variable=organization;isOutput=true]$organization"
+        # Export secrets
+        echo "##vso[task.setvariable variable=pat;isOutput=true;issecret=true]$pat"
+      displayName: cicd-variables-and-secrets
+      name: globalVars
+    - task: Docker@2
+      name: registryLogin
+      displayName: shamanops-registry-login
+      inputs:
+        containerRegistry: shamanops-registry
+        command: 'login'
+- stage: share_service_connections
+  dependsOn: pre_requirements
+  variables:
+    organization: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.organization'] ]
+    pat: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.pat'] ]
+  jobs:
+  - job: share_service_connections
+    steps:
+    - checkout: none
+    - task: Docker@1
+      name: share_service_connections
+      displayName: share-service-connections
+      inputs:
+        containerregistrytype: 'Container Registry'
+        dockerRegistryEndpoint: shamanops-registry
+        command: 'Run an image'
+        arguments: '--privileged -u root --pull=always'
+        imageName: 'registry.shamanops.com/tool/azdevops-share-sc:stable'
+        envVars: |
+          organization=$(organization)
+          pat=$(pat)
+        containerCommand: '-c "/tmp/azdevops-share-sc.sh"'
+        runInBackground: false

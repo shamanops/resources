@@ -1,0 +1,64 @@
+variables:
+  # For CI Platform:
+  # Global variables
+  GIT_STRATEGY: "fetch"
+  GIT_DEPTH: "0"
+  customerURI: $(System.CollectionUri)
+  appName: $(Build.Repository.Name)
+  repoUrl: $(Build.Repository.Uri)
+  jobUrl: "$(System.CollectionUri)$(System.TeamProject)/_build/results?buildId=$(Build.BuildId)"
+  pipelineId: $(Build.BuildId)
+  # Client side
+  environments: 'full'
+  projectName: 'default'
+  appInternalPort: '8080'
+  # Approvals
+  approvals_timeout: '30'
+  shamanopsBusinessApprovers: ''
+  shamanopsTechnicalApprovers: ''
+  shamanopsApprovalsDev: 'false'
+  shamanopsApprovalsStg: 'false'
+  shamanopsApprovalsProd: 'false'
+  shamanopsBusinessApproversMinimalProd: '0'
+  shamanopsTechnicalApproversMinimalProd: '0' 
+  # Code language Auto-detection
+  code_language_detection_enabled: 'false'
+  # Dependency and OS security checker
+  security_check_enabled: 'true'
+  security_check_blocker: 'false'
+  security_check_report_upload: 'false'
+  security_check_report_format: 'table'
+  # Software Bill of Materials
+  sbom_check_enabled: 'false'
+  sbom_check_report_upload: 'false'
+  sbom_check_report_format: 'table'
+  # SAST check
+  code_quality_check_enabled: 'false'
+  code_quality_check_blocker: 'false'
+  code_quality_check_exclusions: 'test/**'
+  code_quality_check_test_exclusions: '**/vendor/**' 
+  code_quality_check_test_inclusions: '**/*test*'
+  code_quality_check_cs_dir: ''
+  code_quality_check_cs_nuget_enabled: 'false'
+  code_quality_check_cs_nuget_dir: '/nuget'
+  code_quality_check_cs_nuget_config: 'NuGet.Config'
+  code_quality_check_test_cs_enabled: 'false'
+  code_quality_check_test_cs_opencover_reportsPaths: 'tests/**/coverage.opencover.xml'
+  # Stress tests
+  stress_check_enabled: 'false'
+  stress_check_blocker: 'false'
+  stress_check_error_rate_max: '15'
+  stress_check_thread: '19'
+  stress_check_upPeriod: '10'
+  stress_check_second: '60'
+  # Functional tests
+  functional_test_enabled: 'false'
+  functional_test_blocker: 'false'
+  # Database Versioning
+  db_versioning_dev_enabled: 'false'
+  db_versioning_stg_enabled: 'false'
+  db_versioning_prod_enabled: 'false'
+  db_versioning_type: 'postgresql'
+  db_versioning_changelog_file: 'db.changelog.xml'
+  # Verbosity level
+  log_level: 'normal'
