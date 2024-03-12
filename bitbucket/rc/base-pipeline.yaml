@@ -48,7 +48,7 @@ definitions:
           - source base-variables.yaml
           - export $(grep -v '^#' .bitbucket/envs.yaml | xargs -0)
           - echo $shamanops_customer_token | docker login registry.shamanops.com -u $shamanops_customer_id --password-stdin
-          - docker run --user root --privileged -v $(pwd):/home/runner -e appName=$appName -e pipelineId=$pipelineId --env-file base-variables.yaml --env-file <(env | grep shamanops) registry.shamanops.com/runner/fedora:rc -c "ls -lha && shamanops image-check"
+          - docker run --user root --privileged -v $(pwd):/home/runner -e appName=$appName -e pipelineId=$pipelineId --env-file base-variables.yaml --env-file <(env | grep shamanops) registry.shamanops.com/runner/fedora:rc -c "shamanops image-check"
         services:
           - docker      
     - step:
@@ -116,8 +116,8 @@ definitions:
           - export $(grep -v '^#' .bitbucket/envs.yaml | xargs -0)
           - echo $shamanops_customer_token | docker login registry.shamanops.com -u $shamanops_customer_id --password-stdin
           - >-
-            if ["$db-versioning-dev" == "true" && "$environments" != "mid" && "$environments" != "minimal"]; then
-              docker run --user root --privileged -v $(pwd):/home/runner -e appName=$appName -e pipelineId=$pipelineId --env-file base-variables.yaml --env-file <(env | grep shamanops) registry.shamanops.com/runner/fedora:rc -c "shamanops db-versioning-dev"
+            if ["$db_versioning_enabled" == "true" && "$environments" != "mid" && "$environments" != "minimal"]; then
+              docker run --user root --privileged -v $(pwd):/home/runner -e appName=$appName -e pipelineId=$pipelineId --env-file base-variables.yaml --env-file <(env | grep shamanops) registry.shamanops.com/runner/fedora:rc -c "shamanops db-versioning dev"
             else   
                 echo "This step has been skipped due to conditionals!" && exit 0; 
             fi    
@@ -133,7 +133,7 @@ definitions:
           - echo $shamanops_customer_token | docker login registry.shamanops.com -u $shamanops_customer_id --password-stdin
           - >-
             if [ "$environments" != "mid" && "$environments" != "minimal"]; then
-              docker run --user root --privileged -v $(pwd):/home/runner -e appName=$appName -e pipelineId=$pipelineId --env-file base-variables.yaml --env-file <(env | grep shamanops) registry.shamanops.com/runner/fedora:rc -c " shamanops app-create-and-deploy dev"
+              docker run --user root --privileged -v $(pwd):/home/runner -e appName=$appName -e pipelineId=$pipelineId --env-file base-variables.yaml --env-file <(env | grep shamanops) registry.shamanops.com/runner/fedora:rc -c "shamanops app-create-and-deploy dev"
             else   
                  echo "This step has been skipped due to conditionals!" && exit 0; 
             fi     
@@ -149,7 +149,7 @@ definitions:
           - echo $shamanops_customer_token | docker login registry.shamanops.com -u $shamanops_customer_id --password-stdin
           - >-
             if [ "$shamanopsApprovalsStg" == "true" && "$environments" != "minimal" ]; then
-              docker run --user root --privileged -v $(pwd):/home/runner -e appName=$appName -e pipelineId=$pipelineId --env-file base-variables.yaml --env-file <(env | grep shamanops) registry.shamanops.com/runner/fedora:rc -c " shamanops approvals stg"
+              docker run --user root --privileged -v $(pwd):/home/runner -e appName=$appName -e pipelineId=$pipelineId --env-file base-variables.yaml --env-file <(env | grep shamanops) registry.shamanops.com/runner/fedora:rc -c "shamanops approvals stg"
             else   
                  echo "This step has been skipped due to conditionals!" && exit 0; 
             fi     
@@ -164,8 +164,8 @@ definitions:
           - export $(grep -v '^#' .bitbucket/envs.yaml | xargs -0)
           - echo $shamanops_customer_token | docker login registry.shamanops.com -u $shamanops_customer_id --password-stdin
           - >-
-            if [ "$db_versioning_stg_enabled" == "true" && "$environments" != "minimal" ]; then
-              docker run --user root --privileged -v $(pwd):/home/runner -e appName=$appName -e pipelineId=$pipelineId --env-file base-variables.yaml --env-file <(env | grep shamanops) registry.shamanops.com/runner/fedora:rc -c " shamanops db-versioning stg"
+            if [ "$db_versioning_enabled" == "true" && "$environments" != "minimal" ]; then
+              docker run --user root --privileged -v $(pwd):/home/runner -e appName=$appName -e pipelineId=$pipelineId --env-file base-variables.yaml --env-file <(env | grep shamanops) registry.shamanops.com/runner/fedora:rc -c "shamanops db-versioning stg"
             else   
                  echo "This step has been skipped due to conditionals!" && exit 0;
             fi     
@@ -181,7 +181,7 @@ definitions:
           - echo $shamanops_customer_token | docker login registry.shamanops.com -u $shamanops_customer_id --password-stdin
           - >-
             if [ "$environments" != "minimal" ]; then
-              docker run --user root --privileged -v $(pwd):/home/runner -e appName=$appName -e pipelineId=$pipelineId --env-file base-variables.yaml --env-file <(env | grep shamanops) registry.shamanops.com/runner/fedora:rc -c " shamanops app-create-and-deploy stg"
+              docker run --user root --privileged -v $(pwd):/home/runner -e appName=$appName -e pipelineId=$pipelineId --env-file base-variables.yaml --env-file <(env | grep shamanops) registry.shamanops.com/runner/fedora:rc -c "shamanops app-create-and-deploy stg"
             else   
                  echo "This step has been skipped due to conditionals!" && exit 0; 
             fi   
@@ -232,7 +232,7 @@ definitions:
           - export $(grep -v '^#' .bitbucket/envs.yaml | xargs -0)
           - echo $shamanops_customer_token | docker login registry.shamanops.com -u $shamanops_customer_id --password-stdin
           - >-
-            if [ "$db_versioning_prod_enabled" == "true" ]; then 
+            if [ "$db_versioning_enabled" == "true" ]; then 
               docker run --user root --privileged -v $(pwd):/home/runner -e appName=$appName -e pipelineId=$pipelineId --env-file base-variables.yaml --env-file <(env | grep shamanops) registry.shamanops.com/runner/fedora:rc -c "shamanops db-versioning prod"
             else
                  echo "This step has been skipped due to conditionals!" && exit 0;
