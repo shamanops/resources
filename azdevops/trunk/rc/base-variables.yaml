@@ -55,9 +55,7 @@ variables:
   functional_test_enabled: 'false'
   functional_test_blocker: 'false'
   # Database Versioning
-  db_versioning_dev_enabled: 'false'
-  db_versioning_stg_enabled: 'false'
-  db_versioning_prod_enabled: 'false'
+  db_versioning_enabled: 'false'
   db_versioning_type: 'postgresql'
   db_versioning_changelog_file: 'db.changelog.xml'
   # Verbosity level
