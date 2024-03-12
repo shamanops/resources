@@ -82,9 +82,7 @@ variables:
   functional_test_enabled: 'false'
   functional_test_blocker: 'false'
   # Database Versioning | Liquibase
-  db_versioning_dev_enabled: 'false'
-  db_versioning_stg_enabled: 'false'
-  db_versioning_prod_enabled: 'false'
+  db_versioning_enabled: 'false'
   db_versioning_type: 'postgresql'
   db_versioning_changelog_file: 'db.changelog.xml'
   # Verbosity level
@@ -183,7 +181,7 @@ db-versioning-dev:
     - job: image-check
       optional: false
   rules:
-    - if: $environments != 'minimal' && $environments != 'mid' && $db_versioning_dev_enabled == 'true'
+    - if: $environments != 'minimal' && $environments != 'mid' && $db_versioning_enabled == 'true'
       when: on_success
       allow_failure: false
     - when: never
@@ -245,7 +243,7 @@ db-versioning-stg:
     - job: image-check
       optional: false
   rules:
-    - if: $environments != 'minimal' && $db_versioning_stg_enabled == 'true'
+    - if: $environments != 'minimal' && $db_versioning_enabled == 'true'
       when: on_success
       allow_failure: false
     - when: never
@@ -340,7 +338,7 @@ db-versioning-prod:
     - job: image-check
       optional: false
   rules:
-    - if: $db_versioning_prod_enabled == 'true'
+    - if: $db_versioning_enabled == 'true'
       when: on_success
       allow_failure: false
     - when: never
