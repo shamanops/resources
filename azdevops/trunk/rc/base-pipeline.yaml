@@ -521,7 +521,7 @@ stages:
         and(
           not(contains(variables['environments'], 'minimal')),
           not(contains(variables['environments'], 'mid')),
-          contains(variables['db_versioning_dev_enabled'], 'true'),
+          contains(variables['db_versioning_enabled'], 'true'),
           in(dependencies.approvals_dev.result, 'Succeeded', 'Skipped')
         )   
     steps:
@@ -681,7 +681,7 @@ stages:
     condition: |
         and(
           not(contains(variables['environments'], 'minimal')),
-          contains(variables['db_versioning_stg_enabled'], 'true'),
+          contains(variables['db_versioning_enabled'], 'true'),
           in(dependencies.approvals_dev.result, 'Succeeded', 'Skipped'),
           in(dependencies.app_create_and_deploy_dev.result, 'Succeeded', 'Skipped')
         )
@@ -950,7 +950,7 @@ stages:
       - stress_check
     condition: |
         and(
-          contains(variables['db_versioning_prod_enabled'], 'true'),
+          contains(variables['db_versioning_enabled'], 'true'),
           in(dependencies.approvals_dev.result, 'Succeeded', 'Skipped'),
           in(dependencies.approvals_stg.result, 'Succeeded', 'Skipped'),
           in(dependencies.approvals_prod.result, 'Succeeded', 'Skipped'),
