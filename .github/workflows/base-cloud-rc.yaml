@@ -150,13 +150,7 @@ on:
         type: string
         default: 'table'
       # Database Versioning
-      db_versioning_dev_enabled:
-        type: string
-        default: 'false'
-      db_versioning_stg_enabled:
-        type: string
-        default: 'false'
-      db_versioning_prod_enabled:
+      db_versioning_enabled:
         type: string
         default: 'false'
       db_versioning_type:
@@ -227,9 +221,7 @@ env:
   sbom_check_enabled: ${{inputs.sbom_check_enabled}}
   sbom_check_report_upload: ${{inputs.sbom_check_report_upload}}
   sbom_check_report_format: ${{inputs.sbom_check_report_format}}
-  db_versioning_dev_enabled: ${{inputs.db_versioning_dev_enabled}}
-  db_versioning_stg_enabled: ${{inputs.db_versioning_stg_enabled}}
-  db_versioning_prod_enabled: ${{inputs.db_versioning_prod_enabled}}
+  db_versioning_enabled: ${{inputs.db_versioning_enabled}}
   db_versioning_type: ${{inputs.db_versioning_type}}
   db_versioning_changelog_file: ${{inputs.db_versioning_changelog_file}}
   log_level: ${{inputs.log_level}}
@@ -423,7 +415,7 @@ jobs:
           (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true')) &&
           (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true')) &&
           (!failure() || (needs.image-check.result == 'success' && inputs.functional_test_blocker != 'true')) &&
-          (inputs.environments != 'minimal' && inputs.environments != 'mid' && needs.approvals-dev.result != 'failure' && inputs.db_versioning_dev_enabled == 'true')
+          (inputs.environments != 'minimal' && inputs.environments != 'mid' && needs.approvals-dev.result != 'failure' && inputs.db_versioning_enabled == 'true')
         }}
     steps:
       - uses: actions/checkout@v4.1.1
@@ -487,7 +479,7 @@ jobs:
           (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true')) &&
           (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true')) &&
           (!failure() || (needs.image-check.result == 'success' && inputs.functional_test_blocker != 'true')) &&
-          (inputs.environments != 'minimal' && inputs.db_versioning_stg_enabled == 'true' && needs.approvals-dev.result != 'failure' && needs.db-versioning-dev.result != 'failure' && needs.app-create-and-deploy-dev.result != 'failure' && needs.approvals-stg.result != 'failure')
+          (inputs.environments != 'minimal' && inputs.db_versioning_enabled == 'true' && needs.approvals-dev.result != 'failure' && needs.db-versioning-dev.result != 'failure' && needs.app-create-and-deploy-dev.result != 'failure' && needs.approvals-stg.result != 'failure')
         }}
     steps:
       - uses: actions/checkout@v4.1.1
@@ -575,7 +567,7 @@ jobs:
           (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true')) &&
           (!failure() || (needs.image-check.result == 'success' && inputs.functional_test_blocker != 'true')) &&
           (!failure() || (needs.image-check.result == 'success' && inputs.stress_check_blocker != 'true')) &&
-          (inputs.db_versioning_prod_enabled == 'true' && needs.approvals-dev.result != 'failure' && needs.db-versioning-dev.result != 'failure' && needs.app-create-and-deploy-dev.result != 'failure' && needs.approvals-stg.result != 'failure' && needs.db-versioning-stg.result != 'failure' && needs.app-create-and-deploy-stg.result != 'failure' && needs.approvals-prod.result != 'failure')
+          (inputs.db_versioning_enabled == 'true' && needs.approvals-dev.result != 'failure' && needs.db-versioning-dev.result != 'failure' && needs.app-create-and-deploy-dev.result != 'failure' && needs.approvals-stg.result != 'failure' && needs.db-versioning-stg.result != 'failure' && needs.app-create-and-deploy-stg.result != 'failure' && needs.approvals-prod.result != 'failure')
         }}
     steps:
       - uses: actions/checkout@v4.1.1
