@@ -174,7 +174,7 @@ definitions:
           - source .bitbucket/envs.yaml
           - echo $shamanops_customer_token | docker login registry.shamanops.com -u $shamanops_customer_id --password-stdin
           - >-
-            if ["$db-versioning-dev" == "true" && "$environments" != "mid" && "$environments" != "minimal"]; then
+            if ["$db_versioning_enabled" == "true" && "$environments" != "mid" && "$environments" != "minimal"]; then
               docker run --user root --privileged -v $(pwd):/home/runner \
                 -e appName=$appName \
                 -e customerURI=$customerURI \
@@ -243,7 +243,7 @@ definitions:
           - source .bitbucket/envs.yaml
           - echo $shamanops_customer_token | docker login registry.shamanops.com -u $shamanops_customer_id --password-stdin
           - >-
-            if [ "$db_versioning_stg_enabled" == "true" && "$environments" != "minimal" ]; then
+            if [ "$db_versioning_enabled" == "true" && "$environments" != "minimal" ]; then
               docker run --user root --privileged -v $(pwd):/home/runner \
                 -e appName=$appName \
                 -e customerURI=$customerURI \
@@ -346,7 +346,7 @@ definitions:
           - source .bitbucket/envs.yaml
           - echo $shamanops_customer_token | docker login registry.shamanops.com -u $shamanops_customer_id --password-stdin
           - >-
-            if [ "$db_versioning_prod_enabled" == "true" ]; then
+            if [ "$db_versioning_enabled" == "true" ]; then
               docker run --user root --privileged -v $(pwd):/home/runner \
                 -e appName=$appName \
                 -e customerURI=$customerURI \
