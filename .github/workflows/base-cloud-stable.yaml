@@ -393,7 +393,7 @@ jobs:
         run: echo "functional_test"
 # Stage 5 - Deploy - DEV environment #############################################
   approvals-dev:
-    runs-on: ${{env.approvals_runner}}
+    runs-on: ${{ inputs.approvals_runner }}
     container:
       image: registry.shamanops.com/runner/fedora:stable
       options: -u root --privileged --quiet
@@ -457,7 +457,7 @@ jobs:
         run: shamanops app-create-and-deploy dev
 # Stage 5 - Deploy - STG environment #############################################
   approvals-stg:
-    runs-on: ${{env.approvals_runner}}
+    runs-on: ${{ inputs.approvals_runner }}
     container:
       image: registry.shamanops.com/runner/fedora:stable
       options: -u root --privileged --quiet
@@ -543,7 +543,7 @@ jobs:
         run: shamanops stress-check
 # Stage 5 - Deploy - PROD environment ############################################# 
   approvals-prod:
-    runs-on: ${{env.approvals_runner}}
+    runs-on: ${{ inputs.approvals_runner }}
     container:
       image: registry.shamanops.com/runner/fedora:stable
       options: -u root --privileged --quiet
