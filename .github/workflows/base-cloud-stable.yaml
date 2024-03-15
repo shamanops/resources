@@ -37,6 +37,10 @@ on:
       approvals_timeout:
         type: string
         default: '30'
+      # GitHub Actions - Actions Runner Controller 
+      approvals_runner:
+        type: string
+        default: 'ubuntu-latest'
       shamanopsBusinessApprovers:
         type: string
       shamanopsTechnicalApprovers:
@@ -194,6 +198,7 @@ env:
   environments: ${{inputs.environments}}
   projectName: ${{inputs.projectName}}
   approvals_timeout: ${{inputs.approvals_timeout}}
+  approvals_runner: ${{inputs.approvals_runner}}
   strategyCanaryProd: ${{inputs.strategyCanaryProd}}
   strategyCanaryStg: ${{inputs.strategyCanaryStg}}
   strategyCanaryDev: ${{inputs.strategyCanaryDev}}
@@ -388,7 +393,7 @@ jobs:
         run: echo "functional_test"
 # Stage 5 - Deploy - DEV environment #############################################
   approvals-dev:
-    runs-on: ubuntu-latest #self-hosted
+    runs-on: ${{env.approvals-runner}}
     container:
       image: registry.shamanops.com/runner/fedora:stable
       options: -u root --privileged --quiet
@@ -452,7 +457,7 @@ jobs:
         run: shamanops app-create-and-deploy dev
 # Stage 5 - Deploy - STG environment #############################################
   approvals-stg:
-    runs-on: ubuntu-latest #self-hosted
+    runs-on: ${{env.approvals-runner}}
     container:
       image: registry.shamanops.com/runner/fedora:stable
       options: -u root --privileged --quiet
@@ -538,7 +543,7 @@ jobs:
         run: shamanops stress-check
 # Stage 5 - Deploy - PROD environment ############################################# 
   approvals-prod:
-    runs-on: ubuntu-latest #self-hosted
+    runs-on: ${{env.approvals-runner}}
     container:
       image: registry.shamanops.com/runner/fedora:stable
       options: -u root --privileged --quiet
