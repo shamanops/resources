@@ -194,6 +194,24 @@ on:
       appInternalPort:
         type: string
         default: '8080'
+#########################################################################
+      # Dynamic Envs
+      shamanopsDynamicEnvsEnabled:
+        type: string
+        default: 'false'
+      shamanopsDynamicEnvs:
+        type: string
+        default: 'qa'
+      shamanopsTechnicalApproversMinimalDynamicEnvs:
+        type: string
+        default: '1'
+      shamanopsBusinessApproversMinimalDynamicEnvs:
+        type: string
+        default: '1'
+      shamanopsApprovalsDynamicEnvs:
+        type: string
+        default: 'false'
+#########################################################################
     # Secrets
     secrets:
       shamanops_customer_token:
@@ -211,6 +229,7 @@ on:
         required: true
       shamanops_dockerfile_token:
       shamanops_testing_git_token:
+      shamanops_argocd_dynenv_token:
 env:
 # Client side
   environments: ${{inputs.environments}}
@@ -271,6 +290,14 @@ env:
   shamanopsApprovalsProd: ${{inputs.shamanopsApprovalsProd}}
   shamanopsBusinessApproversMinimalProd: ${{inputs.shamanopsBusinessApproversMinimalProd}}
   shamanopsTechnicalApproversMinimalProd: ${{inputs.shamanopsTechnicalApproversMinimalProd}}
+#################################################################################################################
+# Dynamic envs
+  shamanopsDynamicEnvsEnabled: ${{inputs.shamanopsDynamicEnvsEnabled}}
+  shamanopsDynamicEnvs: ${{inputs.shamanopsDynamicEnvs}}
+  shamanopsTechnicalApproversMinimalDynamicEnvs: ${{inputs.shamanopsTechnicalApproversMinimalDynamicEnvs}}
+  shamanopsBusinessApproversMinimalDynamicEnvs: ${{inputs.shamanopsBusinessApproversMinimalDynamicEnvs}}
+  shamanopsApprovalsDynamicEnvs: ${{inputs.shamanopsApprovalsDynamicEnvs}}
+#################################################################################################################
 # Global side
   shamanops_argocd_dev_url: ${{vars.shamanops_argocd_dev_url}}
   shamanops_argocd_dev_user: ${{vars.shamanops_argocd_dev_user}}
@@ -300,6 +327,12 @@ env:
   shamanops_testing_git_token: ${{secrets.shamanops_testing_git_token}}
   shamanops_testing_api_url: ${{vars.shamanops_testing_api_url}}
   #shamanops_testing_api_token: ${{secrets.shamanops_testing_api_token}}
+#################################################################################################################
+# Dynamic envs
+  shamanops_argocd_dynenv_url: ${{vars.shamanops_argocd_dynenv_url}}
+  shamanops_argocd_dynenv_user: ${{vars.shamanops_argocd_dynenv_user}}
+  shamanops_argocd_dynenv_token: ${{secrets.shamanops_argocd_dynenv_token}}
+#################################################################################################################
 # For CI Platform:
   # Global variables
   customerName: ${{github.repository_owner}}
@@ -459,6 +492,30 @@ jobs:
           fetch-depth: 0
       - name: app-create-and-deploy-dev
         run: shamanops app-create-and-deploy dev
+#######################################################################################################################################################################
+# Dynamic Envs
+  app-create-and-deploy-dynamic-envs:
+    runs-on: ubuntu-latest #self-hosted
+    container:
+      image: registry.shamanops.com/runner/fedora:stable
+      options: -u root --privileged --quiet
+      credentials:
+        username: ${{env.shamanops_customer_id}}
+        password: ${{env.shamanops_customer_token}}
+    needs: [image-build-and-push, image-check, sast-check, security-check, approvals-dev, db-versioning-dev, app-create-and-deploy-dev]
+    if: ${{ always() && !cancelled() &&  
+          (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true')) &&
+          (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true')) &&
+          (inputs.environments != 'minimal' && inputs.shamanopsDynamicEnvsEnabled == 'true' && needs.approvals-dev.result != 'failure' && needs.db-versioning-dev.result != 'failure' && needs.app-create-and-deploy-dev != 'failure')
+        }}
+    steps:
+      - uses: actions/checkout@v4.1.1
+        with:
+          fetch-depth: 0
+      - name: app-create-and-deploy-dynamic-envs
+        run: shamanops dynamic-envs
+#######################################################################################################################################################################
+########################################################################################################################################################################
 # Stage 5 - Deploy - STG environment #############################################
   approvals-stg:
     runs-on: ${{ inputs.approvals_runner }}
