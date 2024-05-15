@@ -214,9 +214,9 @@ on:
         type: string
         default: 'false'
       # GIT Submodules
-    git_submodules_enabled:
-      type: string
-      default: 'false'
+      git_submodules_enabled:
+        type: string
+        default: 'false'
 #########################################################################
     # Secrets
     secrets:
