@@ -213,6 +213,10 @@ on:
       shamanopsApprovalsDynamicEnvs:
         type: string
         default: 'false'
+      # GIT Submodules
+    git_submodules_enabled:
+      type: string
+      default: 'false'
 #########################################################################
     # Secrets
     secrets:
@@ -336,7 +340,6 @@ env:
   shamanops_argocd_dynenv_user: ${{vars.shamanops_argocd_dynenv_user}}
   shamanops_argocd_dynenv_token: ${{secrets.shamanops_argocd_dynenv_token}}
   shamanops_submodules_token: ${{secrets.shamanops_submodules_token}}
-  GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
 #################################################################################################################
 # For CI Platform:
   # Global variables
@@ -362,10 +365,15 @@ jobs:
         password: ${{env.shamanops_customer_token}}
     steps:
       - uses: actions/checkout@v4.1.1
+        if: inputs.git_submodules_enabled != 'true'
         with:
           fetch-depth: 0
-          token: ${{env.GITHUB_TOKEN}}
+      - uses: actions/checkout@v4.1.1
+        if: inputs.code_quality_check_blocker == 'true'
+        with:
+          token: ${{ env.shamanops_submodules_token }}
           submodules: recursive
+          fetch-depth: 0
       - name: repository-check
         run: shamanops repository-check
 # Stage 2 - Build ##############################################################
@@ -381,6 +389,11 @@ jobs:
     if: ${{ always() && !cancelled() && !failure() }}
     steps:
       - uses: actions/checkout@v4.1.1
+        if: inputs.git_submodules_enabled != 'true' 
+        with:
+          fetch-depth: 0
+      - uses: actions/checkout@v4.1.1
+        if: inputs.code_quality_check_blocker == 'true' 
         with:
           token: ${{ env.shamanops_submodules_token }}
           submodules: recursive
