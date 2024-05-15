@@ -1,8 +1,8 @@
 ################################################################################
-## ShamanOps Base Pipeline | Github Actions | Self-hosted runner Stable ########
+## ShamanOps Base Pipeline | Github Actions | Cloud runner Stable ##############
 ################################################################################
 ##
-name: shamanops-base-pipeline-stable-self-hosted
+name: shamanops-base-pipeline-stable-cloud
 on:
   workflow_call:
     inputs:
@@ -194,6 +194,10 @@ on:
       appInternalPort:
         type: string
         default: '8080'
+      # GIT Submodules
+      git_submodules_enabled:
+        type: string
+        default: 'false'
     # Secrets
     secrets:
       shamanops_customer_token:
@@ -211,6 +215,7 @@ on:
         required: true
       shamanops_dockerfile_token:
       shamanops_testing_git_token:
+      shamanops_submodules_token:
 env:
 # Client side
   environments: ${{inputs.environments}}
@@ -260,6 +265,7 @@ env:
   functional_analysis_test_timeout: ${{inputs.functional_analysis_test_timeout}}
   log_level: ${{inputs.log_level}}
   appInternalPort: ${{inputs.appInternalPort}}
+  git_submodules_enabled: ${{inputs.git_submodules_enabled}}
   shamanopsBusinessApprovers: ${{inputs.shamanopsBusinessApprovers}}
   shamanopsTechnicalApprovers: ${{inputs.shamanopsTechnicalApprovers}}
   shamanopsApprovalsDev: ${{inputs.shamanopsApprovalsDev}}
@@ -299,6 +305,7 @@ env:
   shamanops_testing_git_user: ${{vars.shamanops_testing_git_user}}
   shamanops_testing_git_token: ${{secrets.shamanops_testing_git_token}}
   shamanops_testing_api_url: ${{vars.shamanops_testing_api_url}}
+  shamanops_submodules_token: ${{secrets.shamanops_submodules_token}}
   #shamanops_testing_api_token: ${{secrets.shamanops_testing_api_token}}
 # For CI Platform:
   # Global variables
@@ -324,8 +331,17 @@ jobs:
         password: ${{env.shamanops_customer_token}}
     steps:
       - uses: actions/checkout@v4.1.1
+        if: inputs.git_submodules_enabled != 'true'
         with:
           fetch-depth: 0
+        name: checkout-repository-normal
+      - uses: actions/checkout@v4.1.1
+        if: inputs.git_submodules_enabled == 'true'
+        with:
+          token: ${{ env.shamanops_submodules_token }}
+          submodules: recursive
+          fetch-depth: 0
+        name: checkout-repository-with-submodules
       - name: repository-check
         run: shamanops repository-check
 # Stage 2 - Build ##############################################################
@@ -341,8 +357,17 @@ jobs:
     if: ${{ always() && !cancelled() && !failure() }}
     steps:
       - uses: actions/checkout@v4.1.1
+        if: inputs.git_submodules_enabled != 'true'
         with:
           fetch-depth: 0
+        name: checkout-repository-normal
+      - uses: actions/checkout@v4.1.1
+        if: inputs.git_submodules_enabled == 'true'
+        with:
+          token: ${{ env.shamanops_submodules_token }}
+          submodules: recursive
+          fetch-depth: 0
+        name: checkout-repository-with-submodules
       - name: image-build-and-push
         run: shamanops image-build
   image-check:
@@ -357,8 +382,17 @@ jobs:
     if: ${{ always() && !cancelled() && !failure() }}
     steps:
       - uses: actions/checkout@v4.1.1
+        if: inputs.git_submodules_enabled != 'true'
         with:
           fetch-depth: 0
+        name: checkout-repository-normal
+      - uses: actions/checkout@v4.1.1
+        if: inputs.git_submodules_enabled == 'true'
+        with:
+          token: ${{ env.shamanops_submodules_token }}
+          submodules: recursive
+          fetch-depth: 0
+        name: checkout-repository-with-submodules
       - name: image-check
         run: shamanops image-check
 # Stage 3 - Analysis ##############################################################
@@ -376,8 +410,17 @@ jobs:
         }}
     steps:
       - uses: actions/checkout@v4.1.1
+        if: inputs.git_submodules_enabled != 'true'
         with:
           fetch-depth: 0
+        name: checkout-repository-normal
+      - uses: actions/checkout@v4.1.1
+        if: inputs.git_submodules_enabled == 'true'
+        with:
+          token: ${{ env.shamanops_submodules_token }}
+          submodules: recursive
+          fetch-depth: 0
+        name: checkout-repository-with-submodules
       - name: sast-check
         run: shamanops sast-check
   security-check:
@@ -394,8 +437,17 @@ jobs:
         }}
     steps:
       - uses: actions/checkout@v4.1.1
+        if: inputs.git_submodules_enabled != 'true'
         with:
           fetch-depth: 0
+        name: checkout-repository-normal
+      - uses: actions/checkout@v4.1.1
+        if: inputs.git_submodules_enabled == 'true'
+        with:
+          token: ${{ env.shamanops_submodules_token }}
+          submodules: recursive
+          fetch-depth: 0
+        name: checkout-repository-with-submodules
       - name: security-check
         run: shamanops security-check
 # Stage 5 - Deploy - DEV environment #############################################
@@ -415,9 +467,18 @@ jobs:
         }}
     steps:
       - uses: actions/checkout@v4.1.1
+        if: inputs.git_submodules_enabled != 'true'
         with:
           fetch-depth: 0
-      - name: approvals-dev
+        name: checkout-repository-normal
+      - uses: actions/checkout@v4.1.1
+        if: inputs.git_submodules_enabled == 'true'
+        with:
+          token: ${{ env.shamanops_submodules_token }}
+          submodules: recursive
+          fetch-depth: 0
+        name: checkout-repository-with-submodules
+      - name:  approvals-dev
         run: shamanops approvals dev
   db-versioning-dev:
     runs-on: self-hosted
@@ -435,8 +496,17 @@ jobs:
         }}
     steps:
       - uses: actions/checkout@v4.1.1
+        if: inputs.git_submodules_enabled != 'true'
         with:
           fetch-depth: 0
+        name: checkout-repository-normal
+      - uses: actions/checkout@v4.1.1
+        if: inputs.git_submodules_enabled == 'true'
+        with:
+          token: ${{ env.shamanops_submodules_token }}
+          submodules: recursive
+          fetch-depth: 0
+        name: checkout-repository-with-submodules
       - name: db-versioning-dev
         run: shamanops db-versioning dev
   app-create-and-deploy-dev:
@@ -455,8 +525,17 @@ jobs:
         }}
     steps:
       - uses: actions/checkout@v4.1.1
+        if: inputs.git_submodules_enabled != 'true'
         with:
           fetch-depth: 0
+        name: checkout-repository-normal
+      - uses: actions/checkout@v4.1.1
+        if: inputs.git_submodules_enabled == 'true'
+        with:
+          token: ${{ env.shamanops_submodules_token }}
+          submodules: recursive
+          fetch-depth: 0
+        name: checkout-repository-with-submodules
       - name: app-create-and-deploy-dev
         run: shamanops app-create-and-deploy dev
 # Stage 5 - Deploy - STG environment #############################################
@@ -476,8 +555,17 @@ jobs:
         }}
     steps:
       - uses: actions/checkout@v4.1.1
+        if: inputs.git_submodules_enabled != 'true'
         with:
           fetch-depth: 0
+        name: checkout-repository-normal
+      - uses: actions/checkout@v4.1.1
+        if: inputs.git_submodules_enabled == 'true'
+        with:
+          token: ${{ env.shamanops_submodules_token }}
+          submodules: recursive
+          fetch-depth: 0
+        name: checkout-repository-with-submodules
       - name: approvals-stg
         run: shamanops approvals stg
   db-versioning-stg:
@@ -496,9 +584,18 @@ jobs:
         }}
     steps:
       - uses: actions/checkout@v4.1.1
+        if: inputs.git_submodules_enabled != 'true'
         with:
           fetch-depth: 0
-      - name: db-versioning-stg
+        name: checkout-repository-normal
+      - uses: actions/checkout@v4.1.1
+        if: inputs.git_submodules_enabled == 'true'
+        with:
+          token: ${{ env.shamanops_submodules_token }}
+          submodules: recursive
+          fetch-depth: 0
+        name: checkout-repository-with-submodules
+      - name:  db-versioning-stg
         run: shamanops db-versioning stg
   app-create-and-deploy-stg:
     runs-on: self-hosted
@@ -516,8 +613,17 @@ jobs:
         }}
     steps:
       - uses: actions/checkout@v4.1.1
+        if: inputs.git_submodules_enabled != 'true'
         with:
           fetch-depth: 0
+        name: checkout-repository-normal
+      - uses: actions/checkout@v4.1.1
+        if: inputs.git_submodules_enabled == 'true'
+        with:
+          token: ${{ env.shamanops_submodules_token }}
+          submodules: recursive
+          fetch-depth: 0
+        name: checkout-repository-with-submodules
       - name: app-create-and-deploy-stg
         run: shamanops app-create-and-deploy stg
 # Stage 5 - Stress Test ##########################################################
@@ -537,8 +643,17 @@ jobs:
         }}
     steps:
       - uses: actions/checkout@v4.1.1
+        if: inputs.git_submodules_enabled != 'true'
         with:
           fetch-depth: 0
+        name: checkout-repository-normal
+      - uses: actions/checkout@v4.1.1
+        if: inputs.git_submodules_enabled == 'true'
+        with:
+          token: ${{ env.shamanops_submodules_token }}
+          submodules: recursive
+          fetch-depth: 0
+        name: checkout-repository-with-submodules
       - name: functional-check
         run: shamanops functional-check
   stress-check:
@@ -558,8 +673,17 @@ jobs:
         }}
     steps:
       - uses: actions/checkout@v4.1.1
+        if: inputs.git_submodules_enabled != 'true'
         with:
           fetch-depth: 0
+        name: checkout-repository-normal
+      - uses: actions/checkout@v4.1.1
+        if: inputs.git_submodules_enabled == 'true'
+        with:
+          token: ${{ env.shamanops_submodules_token }}
+          submodules: recursive
+          fetch-depth: 0
+        name: checkout-repository-with-submodules
       - name: stress-check
         run: shamanops stress-check
 # Stage 5 - Deploy - PROD environment ############################################# 
@@ -581,9 +705,18 @@ jobs:
         }}
     steps:
       - uses: actions/checkout@v4.1.1
+        if: inputs.git_submodules_enabled != 'true'
         with:
           fetch-depth: 0
-      - name: approvals-prod
+        name: checkout-repository-normal
+      - uses: actions/checkout@v4.1.1
+        if: inputs.git_submodules_enabled == 'true'
+        with:
+          token: ${{ env.shamanops_submodules_token }}
+          submodules: recursive
+          fetch-depth: 0
+        name: checkout-repository-with-submodules
+      - name:  approvals-prod
         run: shamanops approvals prod
   db-versioning-prod:
     runs-on: self-hosted
@@ -603,9 +736,18 @@ jobs:
         }}
     steps:
       - uses: actions/checkout@v4.1.1
+        if: inputs.git_submodules_enabled != 'true'
         with:
           fetch-depth: 0
-      - name: db-versioning-prod
+        name: checkout-repository-normal
+      - uses: actions/checkout@v4.1.1
+        if: inputs.git_submodules_enabled == 'true'
+        with:
+          token: ${{ env.shamanops_submodules_token }}
+          submodules: recursive
+          fetch-depth: 0
+        name: checkout-repository-with-submodules
+      - name:  db-versioning-prod
         run: shamanops db-versioning prod
   app-create-and-deploy-prod:
     runs-on: self-hosted
@@ -625,8 +767,17 @@ jobs:
         }}
     steps:
       - uses: actions/checkout@v4.1.1
+        if: inputs.git_submodules_enabled != 'true'
         with:
           fetch-depth: 0
+        name: checkout-repository-normal
+      - uses: actions/checkout@v4.1.1
+        if: inputs.git_submodules_enabled == 'true'
+        with:
+          token: ${{ env.shamanops_submodules_token }}
+          submodules: recursive
+          fetch-depth: 0
+        name: checkout-repository-with-submodules
       - name: app-create-and-deploy-prod
         run: shamanops app-create-and-deploy prod
 # Stage 5 - Deploy - DRP environment #############################################
@@ -648,7 +799,16 @@ jobs:
         }}
     steps:
       - uses: actions/checkout@v4.1.1
+        if: inputs.git_submodules_enabled != 'true'
         with:
           fetch-depth: 0
+        name: checkout-repository-normal
+      - uses: actions/checkout@v4.1.1
+        if: inputs.git_submodules_enabled == 'true'
+        with:
+          token: ${{ env.shamanops_submodules_token }}
+          submodules: recursive
+          fetch-depth: 0
+        name: checkout-repository-with-submodules
       - name: app-create-and-deploy-drp
         run: shamanops app-create-and-deploy drp
