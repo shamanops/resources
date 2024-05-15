@@ -3,6 +3,7 @@
 ################################################################################
 ##
 name: shamanops-base-pipeline-rc-cloud
+permissions: read-all
 on:
   workflow_call:
     inputs:
