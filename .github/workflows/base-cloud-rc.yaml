@@ -370,7 +370,7 @@ jobs:
           fetch-depth: 0
         name: checkout-repository-normal
       - uses: actions/checkout@v4.1.1
-        if: inputs.code_quality_check_blocker == 'true'
+        if: inputs.git_submodules_enabled == 'true'
         with:
           token: ${{ env.shamanops_submodules_token }}
           submodules: recursive
