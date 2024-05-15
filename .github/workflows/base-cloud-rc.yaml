@@ -334,6 +334,7 @@ env:
   shamanops_argocd_dynenv_user: ${{vars.shamanops_argocd_dynenv_user}}
   shamanops_argocd_dynenv_token: ${{secrets.shamanops_argocd_dynenv_token}}
   shamanops_submodules_token: ${{secrets.shamanops_submodules_token}}
+  GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
 #################################################################################################################
 # For CI Platform:
   # Global variables
@@ -361,7 +362,7 @@ jobs:
       - uses: actions/checkout@v4.1.1
         with:
           fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{env.GITHUB_TOKEN}}
           submodules: recursive
       - name: repository-check
         run: shamanops repository-check
