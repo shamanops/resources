@@ -1,8 +1,8 @@
 ################################################################################
-## ShamanOps Base Pipeline | Github Actions | Cloud runner Stable ##############
+## ShamanOps Base Pipeline | Github Actions | Self-hosted runner Stable ########
 ################################################################################
 ##
-name: shamanops-base-pipeline-stable-cloud
+name: shamanops-base-pipeline-stable-self-hosted
 on:
   workflow_call:
     inputs:
