@@ -38,6 +38,10 @@ on:
       shamanops_registry_password:
         required: true
       shamanops_dockerfile_token:
+      # For AWS credentials
+      AWS_ACCESS_KEY_ID:
+      AWS_SECRET_ACCESS_KEY:
+      AWS_REGION:
 env:
 # Client side
   projectName: ${{inputs.projectName}}
@@ -60,6 +64,10 @@ env:
   shamanops_customer_id: ${{vars.shamanops_customer_id}}
   shamanops_customer_token: ${{secrets.shamanops_customer_token}}
   shamanops_dockerfile_token: ${{secrets.shamanops_dockerfile_token}}
+  # For AWS credentials
+  AWS_ACCESS_KEY_ID: ${{secrets.AWS_ACCESS_KEY_ID}}
+  AWS_SECRET_ACCESS_KEY: ${{secrets.AWS_SECRET_ACCESS_KEY}}
+  AWS_REGION: ${{secrets.AWS_REGION}}
 # For CI Platform:
   # Global variables
   customerName: ${{github.repository_owner}}
