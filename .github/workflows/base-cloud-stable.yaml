@@ -216,6 +216,10 @@ on:
       shamanops_dockerfile_token:
       shamanops_testing_git_token:
       shamanops_submodules_token:
+      # For AWS credentials
+      AWS_ACCESS_KEY_ID:
+      AWS_SECRET_ACCESS_KEY:
+      AWS_REGION:
 env:
 # Client side
   environments: ${{inputs.environments}}
@@ -307,6 +311,11 @@ env:
   shamanops_testing_api_url: ${{vars.shamanops_testing_api_url}}
   shamanops_submodules_token: ${{secrets.shamanops_submodules_token}}
   #shamanops_testing_api_token: ${{secrets.shamanops_testing_api_token}}
+  # For AWS credentials
+  AWS_ACCESS_KEY_ID: ${{secrets.AWS_ACCESS_KEY_ID}}
+  AWS_SECRET_ACCESS_KEY: ${{secrets.AWS_SECRET_ACCESS_KEY}}
+  AWS_REGION: ${{secrets.AWS_REGION}}
+
 # For CI Platform:
   # Global variables
   customerName: ${{github.repository_owner}}
