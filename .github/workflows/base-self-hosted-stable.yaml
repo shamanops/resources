@@ -198,12 +198,29 @@ on:
       git_submodules_enabled:
         type: string
         default: 'false'
+      # Dynamic Envs
+      shamanopsDynamicEnvsEnabled:
+        type: string
+        default: 'false'
+      shamanopsDynamicEnvs:
+        type: string
+        default: 'qa'
+      shamanopsTechnicalApproversMinimalDynamicEnvs:
+        type: string
+        default: '1'
+      shamanopsBusinessApproversMinimalDynamicEnvs:
+        type: string
+        default: '1'
+      shamanopsApprovalsDynamicEnvs:
+        type: string
+        default: 'false'
     # Secrets
     secrets:
       shamanops_customer_token:
         required: true
       shamanops_argocd_dev_token:
       shamanops_argocd_stg_token:
+      shamanops_argocd_dynenv_token:
       shamanops_argocd_prod_token:
         required: true
       shamanops_argocd_drp_token:
@@ -281,6 +298,11 @@ env:
   shamanopsApprovalsProd: ${{inputs.shamanopsApprovalsProd}}
   shamanopsBusinessApproversMinimalProd: ${{inputs.shamanopsBusinessApproversMinimalProd}}
   shamanopsTechnicalApproversMinimalProd: ${{inputs.shamanopsTechnicalApproversMinimalProd}}
+  shamanopsDynamicEnvsEnabled: ${{inputs.shamanopsDynamicEnvsEnabled}}
+  shamanopsDynamicEnvs: ${{inputs.shamanopsDynamicEnvs}}
+  shamanopsTechnicalApproversMinimalDynamicEnvs: ${{inputs.shamanopsTechnicalApproversMinimalDynamicEnvs}}
+  shamanopsBusinessApproversMinimalDynamicEnvs: ${{inputs.shamanopsBusinessApproversMinimalDynamicEnvs}}
+  shamanopsApprovalsDynamicEnvs: ${{inputs.shamanopsApprovalsDynamicEnvs}}
 # Global side
   shamanops_argocd_dev_url: ${{vars.shamanops_argocd_dev_url}}
   shamanops_argocd_dev_user: ${{vars.shamanops_argocd_dev_user}}
@@ -288,6 +310,9 @@ env:
   shamanops_argocd_stg_url: ${{vars.shamanops_argocd_stg_url}}
   shamanops_argocd_stg_user: ${{vars.shamanops_argocd_stg_user}}
   shamanops_argocd_stg_token: ${{secrets.shamanops_argocd_stg_token}}
+  shamanops_argocd_dynenv_url: ${{vars.shamanops_argocd_dynenv_url}}
+  shamanops_argocd_dynenv_user: ${{vars.shamanops_argocd_dynenv_user}}
+  shamanops_argocd_dynenv_token: ${{secrets.shamanops_argocd_dynenv_token}}
   shamanops_argocd_prod_url: ${{vars.shamanops_argocd_prod_url}}
   shamanops_argocd_prod_user: ${{vars.shamanops_argocd_prod_user}}
   shamanops_argocd_prod_token: ${{secrets.shamanops_argocd_prod_token}}
@@ -515,7 +540,7 @@ jobs:
           submodules: recursive
           fetch-depth: 0
         name: checkout-repository-with-submodules
-      - name: db-versioning-dev
+      - name:  db-versioning-dev
         run: shamanops db-versioning dev
   app-create-and-deploy-dev:
     runs-on: self-hosted
@@ -546,6 +571,27 @@ jobs:
         name: checkout-repository-with-submodules
       - name: app-create-and-deploy-dev
         run: shamanops app-create-and-deploy dev
+# Deploy - DYNAMIC environment #############################################
+  app-create-and-deploy-dynamic-envs:
+    runs-on: self-hosted
+    container:
+      image: registry.shamanops.com/runner/fedora:stable
+      options: -u root --privileged --quiet
+      credentials:
+        username: ${{env.shamanops_customer_id}}
+        password: ${{env.shamanops_customer_token}}
+    needs: [image-build-and-push, image-check, sast-check, security-check, approvals-dev, db-versioning-dev, app-create-and-deploy-dev]
+    if: ${{ always() && !cancelled() &&
+          (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true')) &&
+          (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true')) &&
+          (inputs.environments != 'minimal' && inputs.shamanopsDynamicEnvsEnabled == 'true' && needs.approvals-dev.result != 'failure' && needs.db-versioning-dev.result != 'failure' && needs.app-create-and-deploy-dev != 'failure')
+        }}
+    steps:
+      - uses: actions/checkout@v4.1.1
+        with:
+          fetch-depth: 0
+      - name: app-create-and-deploy-dynamic-envs
+        run: shamanops dynamic-envs
 # Stage 5 - Deploy - STG environment #############################################
   approvals-stg:
     runs-on: ${{ inputs.approvals_runner }}
@@ -555,11 +601,11 @@ jobs:
       credentials:
         username: ${{env.shamanops_customer_id}}
         password: ${{env.shamanops_customer_token}}
-    needs: [image-build-and-push, image-check, sast-check, security-check, approvals-dev, db-versioning-dev, app-create-and-deploy-dev]
+    needs: [image-build-and-push, image-check, sast-check, security-check, approvals-dev, db-versioning-dev, app-create-and-deploy-dev, app-create-and-deploy-dynamic-envs]
     if: ${{ always() && !cancelled() && 
           (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true')) &&
           (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true')) &&
-          (inputs.environments != 'minimal' && inputs.shamanopsApprovalsStg == 'true' && needs.approvals-dev.result != 'failure' && needs.db-versioning-dev.result != 'failure' && needs.app-create-and-deploy-dev.result != 'failure')
+          (inputs.environments != 'minimal' && inputs.shamanopsApprovalsStg == 'true' && needs.approvals-dev.result != 'failure' && needs.db-versioning-dev.result != 'failure' && needs.app-create-and-deploy-dev.result != 'failure' && needs.app-create-and-deploy-dynamic-envs.result != 'failure')
         }}
     steps:
       - uses: actions/checkout@v4.1.1
@@ -584,11 +630,11 @@ jobs:
       credentials:
         username: ${{env.shamanops_customer_id}}
         password: ${{env.shamanops_customer_token}}
-    needs: [image-build-and-push, image-check, sast-check, security-check, approvals-dev, db-versioning-dev, app-create-and-deploy-dev, approvals-stg]
+    needs: [image-build-and-push, image-check, sast-check, security-check, approvals-dev, db-versioning-dev, app-create-and-deploy-dev, app-create-and-deploy-dynamic-envs, approvals-stg]
     if: ${{ always() && !cancelled() &&
           (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true')) &&
           (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true')) &&
-          (inputs.environments != 'minimal' && inputs.db_versioning_enabled == 'true' && needs.approvals-dev.result != 'failure' && needs.db-versioning-dev.result != 'failure' && needs.app-create-and-deploy-dev.result != 'failure' && needs.approvals-stg.result != 'failure')
+          (inputs.environments != 'minimal' && inputs.db_versioning_enabled == 'true' && needs.approvals-dev.result != 'failure' && needs.db-versioning-dev.result != 'failure' && needs.app-create-and-deploy-dev.result != 'failure' && needs.app-create-and-deploy-dynamic-envs.result != 'failure' && needs.approvals-stg.result != 'failure')
         }}
     steps:
       - uses: actions/checkout@v4.1.1
@@ -613,11 +659,11 @@ jobs:
       credentials:
         username: ${{env.shamanops_customer_id}}
         password: ${{env.shamanops_customer_token}}
-    needs: [image-build-and-push, image-check, sast-check, security-check, approvals-dev, db-versioning-dev, app-create-and-deploy-dev, approvals-stg, db-versioning-stg]
+    needs: [image-build-and-push, image-check, sast-check, security-check, approvals-dev, db-versioning-dev, app-create-and-deploy-dev, app-create-and-deploy-dynamic-envs, approvals-stg, db-versioning-stg]
     if: ${{ always() && !cancelled() && 
           (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true')) &&
           (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true')) &&
-          (inputs.environments != 'minimal' && needs.approvals-dev.result != 'failure' && needs.db-versioning-dev.result != 'failure' && needs.app-create-and-deploy-dev.result != 'failure' && needs.approvals-stg.result != 'failure' && needs.db-versioning-stg.result != 'failure')
+          (inputs.environments != 'minimal' && needs.approvals-dev.result != 'failure' && needs.db-versioning-dev.result != 'failure' && needs.app-create-and-deploy-dev.result != 'failure' && needs.app-create-and-deploy-dynamic-envs.result != 'failure' && needs.approvals-stg.result != 'failure' && needs.db-versioning-stg.result != 'failure')
         }}
     steps:
       - uses: actions/checkout@v4.1.1
@@ -643,11 +689,11 @@ jobs:
       credentials:
         username: ${{env.shamanops_customer_id}}
         password: ${{env.shamanops_customer_token}}
-    needs: [image-build-and-push, image-check, sast-check, security-check, approvals-dev, db-versioning-dev, app-create-and-deploy-dev, approvals-stg, db-versioning-stg, app-create-and-deploy-stg]
+    needs: [image-build-and-push, image-check, sast-check, security-check, approvals-dev, db-versioning-dev, app-create-and-deploy-dev, app-create-and-deploy-dynamic-envs, approvals-stg, db-versioning-stg, app-create-and-deploy-stg]
     if: ${{ always() && !cancelled() && 
           (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true')) &&
           (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true')) &&
-          (inputs.functional_analysis_enabled == 'true' && inputs.environments != 'minimal' && needs.approvals-dev.result != 'failure' && needs.db-versioning-dev.result != 'failure' && needs.app-create-and-deploy-dev.result != 'failure' && needs.approvals-stg.result != 'failure' && needs.db-versioning-stg.result != 'failure' && needs.app-create-and-deploy-stg.result != 'failure')
+          (inputs.functional_analysis_enabled == 'true' && inputs.environments != 'minimal' && needs.approvals-dev.result != 'failure' && needs.db-versioning-dev.result != 'failure' && needs.app-create-and-deploy-dev.result != 'failure' && needs.app-create-and-deploy-dynamic-envs.result != 'failure' && needs.approvals-stg.result != 'failure' && needs.db-versioning-stg.result != 'failure' && needs.app-create-and-deploy-stg.result != 'failure')
         }}
     steps:
       - uses: actions/checkout@v4.1.1
@@ -672,12 +718,12 @@ jobs:
       credentials:
         username: ${{env.shamanops_customer_id}}
         password: ${{env.shamanops_customer_token}}
-    needs: [image-build-and-push, image-check, sast-check, security-check, approvals-dev, db-versioning-dev, app-create-and-deploy-dev, approvals-stg, db-versioning-stg, app-create-and-deploy-stg, functional-check]
+    needs: [image-build-and-push, image-check, sast-check, security-check, approvals-dev, db-versioning-dev, app-create-and-deploy-dev, app-create-and-deploy-dynamic-envs, approvals-stg, db-versioning-stg, app-create-and-deploy-stg, functional-check]
     if: ${{ always() && !cancelled() &&
           (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true')) &&
           (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true')) &&
           (!failure() || (needs.image-check.result == 'success' && inputs.functional_analysis_blocker != 'true')) &&
-          (inputs.stress_check_enabled == 'true' && inputs.environments != 'minimal' && needs.approvals-dev.result != 'failure' && needs.db-versioning-dev.result != 'failure' && needs.app-create-and-deploy-dev.result != 'failure' && needs.approvals-stg.result != 'failure' && needs.db-versioning-stg.result != 'failure' && needs.app-create-and-deploy-stg.result != 'failure')
+          (inputs.stress_check_enabled == 'true' && inputs.environments != 'minimal' && needs.approvals-dev.result != 'failure' && needs.db-versioning-dev.result != 'failure' && needs.app-create-and-deploy-dev.result != 'failure' && needs.app-create-and-deploy-dynamic-envs.result != 'failure' && needs.approvals-stg.result != 'failure' && needs.db-versioning-stg.result != 'failure' && needs.app-create-and-deploy-stg.result != 'failure')
         }}
     steps:
       - uses: actions/checkout@v4.1.1
@@ -703,13 +749,13 @@ jobs:
       credentials:
         username: ${{env.shamanops_customer_id}}
         password: ${{env.shamanops_customer_token}}
-    needs: [image-build-and-push, image-check, sast-check, security-check, approvals-dev, db-versioning-dev, app-create-and-deploy-dev, approvals-stg, db-versioning-stg, app-create-and-deploy-stg, functional-check, stress-check]
+    needs: [image-build-and-push, image-check, sast-check, security-check, approvals-dev, db-versioning-dev, app-create-and-deploy-dev, app-create-and-deploy-dynamic-envs, approvals-stg, db-versioning-stg, app-create-and-deploy-stg, functional-check, stress-check]
     if: ${{ always() && !cancelled() && 
           (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true')) &&
           (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true')) &&
           (!failure() || (needs.image-check.result == 'success' && inputs.functional_analysis_blocker != 'true')) &&
           (!failure() || (needs.image-check.result == 'success' && inputs.stress_check_blocker != 'true')) &&
-          (inputs.shamanopsApprovalsProd == 'true' && needs.approvals-dev.result != 'failure' && needs.db-versioning-dev.result != 'failure' && needs.app-create-and-deploy-dev.result != 'failure' && needs.approvals-stg.result != 'failure' && needs.db-versioning-stg.result != 'failure' && needs.app-create-and-deploy-stg.result != 'failure')
+          (inputs.shamanopsApprovalsProd == 'true' && needs.approvals-dev.result != 'failure' && needs.db-versioning-dev.result != 'failure' && needs.app-create-and-deploy-dev.result != 'failure' && needs.app-create-and-deploy-dynamic-envs.result != 'failure' && needs.approvals-stg.result != 'failure' && needs.db-versioning-stg.result != 'failure' && needs.app-create-and-deploy-stg.result != 'failure')
         }}
     steps:
       - uses: actions/checkout@v4.1.1
@@ -734,13 +780,13 @@ jobs:
       credentials:
         username: ${{env.shamanops_customer_id}}
         password: ${{env.shamanops_customer_token}}
-    needs: [image-build-and-push, image-check, sast-check, security-check, approvals-dev, db-versioning-dev, app-create-and-deploy-dev, approvals-stg, db-versioning-stg, app-create-and-deploy-stg, functional-check, stress-check, approvals-prod]
+    needs: [image-build-and-push, image-check, sast-check, security-check, approvals-dev, db-versioning-dev, app-create-and-deploy-dev, app-create-and-deploy-dynamic-envs, approvals-stg, db-versioning-stg, app-create-and-deploy-stg, functional-check, stress-check, approvals-prod]
     if: ${{ always() && !cancelled() &&
           (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true')) &&
           (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true')) &&
           (!failure() || (needs.image-check.result == 'success' && inputs.functional_analysis_blocker != 'true')) &&
           (!failure() || (needs.image-check.result == 'success' && inputs.stress_check_blocker != 'true')) &&
-          (inputs.db_versioning_enabled == 'true' && needs.approvals-dev.result != 'failure' && needs.db-versioning-dev.result != 'failure' && needs.app-create-and-deploy-dev.result != 'failure' && needs.approvals-stg.result != 'failure' && needs.db-versioning-stg.result != 'failure' && needs.app-create-and-deploy-stg.result != 'failure' && needs.approvals-prod.result != 'failure')
+          (inputs.db_versioning_enabled == 'true' && needs.approvals-dev.result != 'failure' && needs.db-versioning-dev.result != 'failure' && needs.app-create-and-deploy-dev.result != 'failure' && needs.app-create-and-deploy-dynamic-envs.result != 'failure' && needs.approvals-stg.result != 'failure' && needs.db-versioning-stg.result != 'failure' && needs.app-create-and-deploy-stg.result != 'failure' && needs.approvals-prod.result != 'failure')
         }}
     steps:
       - uses: actions/checkout@v4.1.1
@@ -755,7 +801,7 @@ jobs:
           submodules: recursive
           fetch-depth: 0
         name: checkout-repository-with-submodules
-      - name:  db-versioning-prod
+      - name: db-versioning-prod
         run: shamanops db-versioning prod
   app-create-and-deploy-prod:
     runs-on: self-hosted
@@ -765,13 +811,13 @@ jobs:
       credentials:
         username: ${{env.shamanops_customer_id}}
         password: ${{env.shamanops_customer_token}}
-    needs: [image-build-and-push, image-check, sast-check, security-check, approvals-dev, db-versioning-dev, app-create-and-deploy-dev, approvals-stg, db-versioning-stg, app-create-and-deploy-stg, functional-check, stress-check, approvals-prod, db-versioning-prod]
+    needs: [image-build-and-push, image-check, sast-check, security-check, approvals-dev, db-versioning-dev, app-create-and-deploy-dev, app-create-and-deploy-dynamic-envs, approvals-stg, db-versioning-stg, app-create-and-deploy-stg, functional-check, stress-check, approvals-prod, db-versioning-prod]
     if: ${{ always() && !cancelled() && 
           (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true')) &&
           (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true')) &&
           (!failure() || (needs.image-check.result == 'success' && inputs.functional_analysis_blocker != 'true')) &&
           (!failure() || (needs.image-check.result == 'success' && inputs.stress_check_blocker != 'true')) &&
-          (needs.approvals-dev.result != 'failure' && needs.db-versioning-dev.result != 'failure' && needs.app-create-and-deploy-dev.result != 'failure' && needs.approvals-stg.result != 'failure' && needs.db-versioning-stg.result != 'failure' && needs.app-create-and-deploy-stg.result != 'failure' && needs.approvals-prod.result != 'failure' && needs.db-versioning-prod.result != 'failure')
+          (needs.approvals-dev.result != 'failure' && needs.db-versioning-dev.result != 'failure' && needs.app-create-and-deploy-dev.result != 'failure' && needs.app-create-and-deploy-dynamic-envs.result != 'failure' && needs.approvals-stg.result != 'failure' && needs.db-versioning-stg.result != 'failure' && needs.app-create-and-deploy-stg.result != 'failure' && needs.approvals-prod.result != 'failure' && needs.db-versioning-prod.result != 'failure')
         }}
     steps:
       - uses: actions/checkout@v4.1.1
@@ -797,13 +843,13 @@ jobs:
       credentials:
         username: ${{env.shamanops_customer_id}}
         password: ${{env.shamanops_customer_token}}
-    needs: [image-build-and-push, image-check, sast-check, security-check, approvals-dev, db-versioning-dev, app-create-and-deploy-dev, approvals-stg, db-versioning-stg, app-create-and-deploy-stg, functional-check, stress-check, approvals-prod, db-versioning-prod, app-create-and-deploy-prod]
+    needs: [image-build-and-push, image-check, sast-check, security-check, approvals-dev, db-versioning-dev, app-create-and-deploy-dev, app-create-and-deploy-dynamic-envs, approvals-stg, db-versioning-stg, app-create-and-deploy-stg, functional-check, stress-check, approvals-prod, db-versioning-prod, app-create-and-deploy-prod]
     if: ${{ always() && !cancelled() && 
           (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true')) &&
           (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true')) &&
           (!failure() || (needs.image-check.result == 'success' && inputs.functional_analysis_blocker != 'true')) &&
           (!failure() || (needs.image-check.result == 'success' && inputs.stress_check_blocker != 'true')) &&
-          (inputs.environments == 'full-with-drp' && needs.approvals-dev.result != 'failure' && needs.db-versioning-dev.result != 'failure' && needs.app-create-and-deploy-dev.result != 'failure' && needs.approvals-stg.result != 'failure' && needs.db-versioning-stg.result != 'failure' && needs.app-create-and-deploy-stg.result != 'failure' && needs.approvals-prod.result != 'failure' && needs.db-versioning-prod.result != 'failure' && needs.app-create-and-deploy-prod.result != 'failure')
+          (inputs.environments == 'full-with-drp' && needs.approvals-dev.result != 'failure' && needs.db-versioning-dev.result != 'failure' && needs.app-create-and-deploy-dev.result != 'failure' && needs.app-create-and-deploy-dynamic-envs.result != 'failure' && needs.approvals-stg.result != 'failure' && needs.db-versioning-stg.result != 'failure' && needs.app-create-and-deploy-stg.result != 'failure' && needs.approvals-prod.result != 'failure' && needs.db-versioning-prod.result != 'failure' && needs.app-create-and-deploy-prod.result != 'failure')
         }}
     steps:
       - uses: actions/checkout@v4.1.1
