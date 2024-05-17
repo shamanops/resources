@@ -221,7 +221,7 @@ app-create-and-deploy-dev:
 # Deploy - DYNAMIC environment #############################################
 app-create-and-deploy-dynamic-envs:
   tags:
-    - docker
+    - self-hosted
   stage: deploy
   needs:
     - job: approvals-dev
