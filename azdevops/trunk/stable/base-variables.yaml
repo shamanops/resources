@@ -71,3 +71,11 @@ variables:
   db_versioning_changelog_file: 'db.changelog.xml'
   # Verbosity level
   log_level: 'normal'
+  # GIT Submodules
+  git_submodules_enabled: 'false'
+  # Dynamic Envs
+  shamanopsDynamicEnvsEnabled: 'false'
+  shamanopsDynamicEnvs: 'qa'
+  shamanopsTechnicalApproversMinimalDynamicEnvs: '1'
+  shamanopsBusinessApproversMinimalDynamicEnvs: '1'
+  shamanopsApprovalsDynamicEnvs: 'false'
