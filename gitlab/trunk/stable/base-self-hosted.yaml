@@ -92,6 +92,14 @@ variables:
   db_versioning_changelog_file: 'db.changelog.xml'
   # Verbosity level
   log_level: 'normal'
+  # GIT Submodules
+  git_submodules_enabled: 'false'
+  # Dynamic Envs
+  shamanopsDynamicEnvsEnabled: 'false'
+  shamanopsDynamicEnvs: 'qa'
+  shamanopsTechnicalApproversMinimalDynamicEnvs: '1' 
+  shamanopsBusinessApproversMinimalDynamicEnvs: '1' 
+  shamanopsApprovalsDynamicEnvs: 'false'
 ################################################################################
 # Stages
 # ------------------------------------------------------------------------------
@@ -210,6 +218,27 @@ app-create-and-deploy-dev:
     - when: never
   script:
     - shamanops app-create-and-deploy dev
+# Deploy - DYNAMIC environment #############################################
+app-create-and-deploy-dynamic-envs:
+  tags:
+    - docker
+  stage: deploy
+  needs:
+    - job: approvals-dev
+      optional: true
+    - job: db-versioning-dev
+      optional: true
+    - job: app-create-and-deploy-dev
+      optional: true
+    - job: image-check
+      optional: false
+  rules:
+    - if: $environments != 'minimal' && $shamanopsDynamicEnvsEnabled == 'true'
+      when: on_success
+      allow_failure: false
+    - when: never
+  script:
+    - shamanops dynamic-envs
 # ------------------------------------------------------------------------------
 # Stage 5 - Deploy - STG environment #########################################################
 approvals-stg:
@@ -222,6 +251,8 @@ approvals-stg:
     - job: db-versioning-dev
       optional: true
     - job: app-create-and-deploy-dev
+      optional: true
+    - job: app-create-and-deploy-dynamic-envs
       optional: true
     - job: image-check
       optional: false
@@ -242,6 +273,8 @@ db-versioning-stg:
     - job: db-versioning-dev
       optional: true
     - job: app-create-and-deploy-dev
+      optional: true
+    - job: app-create-and-deploy-dynamic-envs
       optional: true
     - job: approvals-stg
       optional: true
@@ -264,6 +297,8 @@ app-create-and-deploy-stg:
     - job: db-versioning-dev
       optional: true
     - job: app-create-and-deploy-dev
+      optional: true
+    - job: app-create-and-deploy-dynamic-envs
       optional: true
     - job: approvals-stg
       optional: true
@@ -325,6 +360,8 @@ approvals-prod:
       optional: true
     - job: app-create-and-deploy-dev
       optional: true
+    - job: app-create-and-deploy-dynamic-envs
+      optional: true
     - job: approvals-stg
       optional: true
     - job: db-versioning-stg
@@ -354,6 +391,8 @@ db-versioning-prod:
     - job: db-versioning-dev
       optional: true
     - job: app-create-and-deploy-dev
+      optional: true
+    - job: app-create-and-deploy-dynamic-envs
       optional: true
     - job: approvals-stg
       optional: true
@@ -386,6 +425,8 @@ app-create-and-deploy-prod:
     - job: db-versioning-dev
       optional: true
     - job: app-create-and-deploy-dev
+      optional: true
+    - job: app-create-and-deploy-dynamic-envs
       optional: true
     - job: approvals-stg
       optional: true
