@@ -56,3 +56,10 @@ db_versioning_enabled=false
 db_versioning_type=postgresql
 db_versioning_changelog_file=db.changelog.xml
 log_level=normal
+git_submodules_enabled=false
+shamanopsDynamicEnvsEnabled=false
+shamanopsDynamicEnvs=qa
+shamanopsTechnicalApproversMinimalDynamicEnvs=1
+shamanopsBusinessApproversMinimalDynamicEnvs=1
+shamanopsApprovalsDynamicEnvs=false
+
