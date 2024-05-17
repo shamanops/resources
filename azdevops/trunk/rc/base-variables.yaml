@@ -12,13 +12,19 @@ variables:
   environments: 'full'
   projectName: 'default'
   appInternalPort: '8080'
+  strategyCanaryProd: 'false'
+  strategyCanaryStg: 'false'
+  strategyCanaryDev: 'false'
+  strategyBlueGreenProd: 'false'
+  strategyBlueGreenStg: 'false'
+  strategyBlueGreenDev: 'false'
   # Approvals
   approvals_timeout: '30'
   shamanopsBusinessApprovers: ''
   shamanopsTechnicalApprovers: ''
   shamanopsApprovalsDev: 'false'
   shamanopsApprovalsStg: 'false'
-  shamanopsApprovalsProd: 'false'
+  shamanopsApprovalsProd: 'true'
   shamanopsBusinessApproversMinimalProd: '0'
   shamanopsTechnicalApproversMinimalProd: '0' 
   # Code language Auto-detection
@@ -65,3 +71,11 @@ variables:
   db_versioning_changelog_file: 'db.changelog.xml'
   # Verbosity level
   log_level: 'normal'
+  # GIT Submodules
+  git_submodules_enabled: 'false'
+  # Dynamic Envs
+  shamanopsDynamicEnvsEnabled: 'false'
+  shamanopsDynamicEnvs: 'qa'
+  shamanopsTechnicalApproversMinimalDynamicEnvs: '1'
+  shamanopsBusinessApproversMinimalDynamicEnvs: '1'
+  shamanopsApprovalsDynamicEnvs: 'false'
