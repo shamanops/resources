@@ -18,6 +18,8 @@ stages:
         shamanops_customer_id=$(echo "$(shamanops-customer-id)" | tr -d "{}")
         shamanops_argocd_dev_url=$(echo "$(shamanops-argocd-dev-url)" | tr -d "{}")
         shamanops_argocd_dev_user=$(echo "$(shamanops-argocd-dev-user)" | tr -d "{}")
+        shamanops_argocd_dynenv_url=$(echo "$(shamanops-argocd-dynenv-url)" | tr -d "{}")
+        shamanops_argocd_dynenv_user=$(echo "$(shamanops-argocd-dynenv-user)" | tr -d "{}")
         shamanops_argocd_stg_url=$(echo "$(shamanops-argocd-stg-url)" | tr -d "{}")
         shamanops_argocd_stg_user=$(echo "$(shamanops-argocd-stg-user)" | tr -d "{}")
         shamanops_argocd_prod_url=$(echo "$(shamanops-argocd-prod-url)" | tr -d "{}")
@@ -35,6 +37,7 @@ stages:
         # Secrets
         shamanops_customer_token=$(shamanops-customer-token)
         shamanops_argocd_dev_token=$(shamanops-argocd-dev-token)
+        shamanops_argocd_dynenv_token=$(shamanops-argocd-dynenv-token)
         shamanops_argocd_stg_token=$(shamanops-argocd-stg-token)
         shamanops_argocd_prod_token=$(shamanops-argocd-prod-token)
         shamanops_argocd_drp_token=$(shamanops-argocd-drp-token)
@@ -43,11 +46,16 @@ stages:
         shamanops_registry_password=$(shamanops-registry-password)
         shamanops_dockerfile_token=$(shamanops_dockerfile_token)
         shamanops_testing_git_token=$(shamanops_testing_git_token)
+        AWS_ACCESS_KEY_ID=$(AWS_ACCESS_KEY_ID)
+        AWS_SECRET_ACCESS_KEY=$(AWS_SECRET_ACCESS_KEY)
+        AWS_REGION=$(AWS_REGION)
         # Export variables
         echo "##vso[task.setvariable variable=customerName;isOutput=true]$customerName"
         echo "##vso[task.setvariable variable=shamanops_customer_id;isOutput=true]$shamanops_customer_id" >> /dev/null 2>&1
         echo "##vso[task.setvariable variable=shamanops_argocd_dev_url;isOutput=true]$shamanops_argocd_dev_url" >> /dev/null 2>&1
         echo "##vso[task.setvariable variable=shamanops_argocd_dev_user;isOutput=true]$shamanops_argocd_dev_user" >> /dev/null 2>&1
+        echo "##vso[task.setvariable variable=shamanops_argocd_dynenv_url;isOutput=true]$shamanops_argocd_dynenv_url" >> /dev/null 2>&1 
+        echo "##vso[task.setvariable variable=shamanops_argocd_dynenv_user;isOutput=true]$shamanops_argocd_dynenv_user" >> /dev/null 2>&1 
         echo "##vso[task.setvariable variable=shamanops_argocd_stg_url;isOutput=true]$shamanops_argocd_stg_url" >> /dev/null 2>&1
         echo "##vso[task.setvariable variable=shamanops_argocd_stg_user;isOutput=true]$shamanops_argocd_stg_user" >> /dev/null 2>&1
         echo "##vso[task.setvariable variable=shamanops_argocd_prod_url;isOutput=true]$shamanops_argocd_prod_url" >> /dev/null 2>&1
@@ -68,6 +76,7 @@ stages:
         # Export secrets
         echo "##vso[task.setvariable variable=shamanops_customer_token;isOutput=true;issecret=true]$shamanops_customer_token" >> /dev/null 2>&1
         echo "##vso[task.setvariable variable=shamanops_argocd_dev_token;isOutput=true;issecret=true]$shamanops_argocd_dev_token" >> /dev/null 2>&1
+        echo "##vso[task.setvariable variable=shamanops_argocd_dynenv_token;isOutput=true;issecret=true]$shamanops_argocd_dynenv_token" >> /dev/null 2>&1
         echo "##vso[task.setvariable variable=shamanops_argocd_stg_token;isOutput=true;issecret=true]$shamanops_argocd_stg_token" >> /dev/null 2>&1
         echo "##vso[task.setvariable variable=shamanops_argocd_prod_token;isOutput=true;issecret=true]$shamanops_argocd_prod_token" >> /dev/null 2>&1
         echo "##vso[task.setvariable variable=shamanops_argocd_drp_token;isOutput=true;issecret=true]$shamanops_argocd_drp_token" >> /dev/null 2>&1
@@ -77,7 +86,9 @@ stages:
         echo "##vso[task.setvariable variable=shamanops_chat_webhook;isOutput=true;issecret=true]$shamanops_chat_webhook" >> /dev/null 2>&1
         echo "##vso[task.setvariable variable=shamanops_dockerfile_token;isOutput=true;issecret=true]$shamanops_dockerfile_token" >> /dev/null 2>&1
         echo "##vso[task.setvariable variable=shamanops_testing_git_token;isOutput=true;issecret=true]$shamanops_testing_git_token" >> /dev/null 2>&1
-        
+        echo "##vso[task.setvariable variable=AWS_ACCESS_KEY_ID;isOutput=true;issecret=true]$AWS_ACCESS_KEY_ID" >> /dev/null 2>&1
+        echo "##vso[task.setvariable variable=AWS_SECRET_ACCESS_KEY;isOutput=true;issecret=true]$AWS_SECRET_ACCESS_KEY" >> /dev/null 2>&1
+        echo "##vso[task.setvariable variable=AWS_REGION;isOutput=true;issecret=true]$AWS_REGION" >> /dev/null 2>&1
       displayName: cicd-variables-and-secrets
       name: globalVars
     - task: Docker@2
@@ -95,6 +106,8 @@ stages:
     shamanops_manifest_repository_user: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_manifest_repository_user'] ]
     shamanops_argocd_dev_url: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_argocd_dev_url'] ]
     shamanops_argocd_dev_user: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_argocd_dev_user'] ]
+    shamanops_argocd_dynenv_url: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_argocd_dynenv_url'] ]
+    shamanops_argocd_dynenv_user: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_argocd_dynenv_user'] ]
     shamanops_argocd_stg_url: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_argocd_stg_url'] ]
     shamanops_argocd_stg_user: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_argocd_stg_user'] ]
     shamanops_argocd_prod_url: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_argocd_prod_url'] ]
@@ -151,6 +164,9 @@ stages:
           shamanops_argocd_dev_url=$(shamanops_argocd_dev_url)
           shamanops_argocd_dev_user=$(shamanops_argocd_dev_user)
           shamanops_argocd_dev_token=$(shamanops_argocd_dev_token)
+          shamanops_argocd_dynenv_url=$(shamanops_argocd_dynenv_url)
+          shamanops_argocd_dynenv_user=$(shamanops_argocd_dynenv_user)
+          shamanops_argocd_dynenv_token=$(shamanops_argocd_dynenv_token)
           shamanops_argocd_stg_url=$(shamanops_argocd_stg_url)
           shamanops_argocd_stg_user=$(shamanops_argocd_stg_user)
           shamanops_argocd_stg_token=$(shamanops_argocd_stg_token)
@@ -189,6 +205,9 @@ stages:
     shamanops_testing_api_url: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_testing_api_url'] ]
     shamanops_testing_git_user: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_testing_git_user'] ]
     shamanops_testing_git_token: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_testing_git_token'] ]
+    AWS_ACCESS_KEY_ID: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.AWS_ACCESS_KEY_ID'] ]
+    AWS_SECRET_ACCESS_KEY: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.AWS_SECRET_ACCESS_KEY'] ]
+    AWS_REGION: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.AWS_REGION'] ]
   jobs:
   - job: image_build_and_push
     steps:
@@ -231,6 +250,9 @@ stages:
           shamanops_manifest_repository_token=$(shamanops_manifest_repository_token)
           shamanops_chat_webhook=$(shamanops_chat_webhook)
           shamanops_dockerfile_token=$(shamanops_dockerfile_token)
+          AWS_ACCESS_KEY_ID=$(AWS_ACCESS_KEY_ID)
+          AWS_SECRET_ACCESS_KEY=$(AWS_SECRET_ACCESS_KEY)
+          AWS_REGION=$(AWS_REGION)
         containerCommand: '-c "shamanops image-build"'
         runInBackground: false
   - job: image_check
@@ -636,13 +658,64 @@ stages:
           shamanops_chat_webhook=$(shamanops_chat_webhook)
         containerCommand: '-c "shamanops app-create-and-deploy dev"'
         runInBackground: false
-  - job: approvals_stg
+  - job: app_create_and_deploy_dynenv
     dependsOn: app_create_and_deploy_dev
     condition: |
         and(
           not(contains(variables['environments'], 'minimal')),
-          contains(variables['shamanopsApprovalsStg'], 'true'),
+          contains(variables['shamanopsDynamicEnvsEnabled'], 'true'),
           in(dependencies.app_create_and_deploy_dev.result, 'Succeeded', 'Skipped')
+        )
+    steps:
+    - checkout: self
+      clean: true
+      fetchDepth: 0
+    - task: Docker@1
+      name: app_create_and_deploy_dynenv
+      displayName: app-create-and-deploy-dynenv
+      inputs:
+        containerregistrytype: 'Container Registry'
+        dockerRegistryEndpoint: shamanops-registry
+        command: 'Run an image'
+        arguments: '--privileged -u root --pull=always --quiet'
+        imageName: 'registry.shamanops.com/runner/fedora:stable'
+        volumes: '$(Build.Repository.LocalPath):/home/runner'
+        envVars: |
+          customerName=$(customerName)
+          appName=$(appName)
+          appInternalPort=$(appInternalPort)
+          repoUrl=$(repoUrl)
+          jobUrl=$(jobUrl)
+          pipelineId=$(pipelineId)
+          GIT_STRATEGY=$(GIT_STRATEGY)
+          GIT_DEPTH=$(GIT_DEPTH)
+          environments=$(environments)
+          projectName=$(projectName)
+          log_level=$(log_level)
+          shamanops_customer_id=$(shamanops_customer_id)
+          shamanops_customer_token=$(shamanops_customer_token)
+          shamanops_registry_url=$(shamanops_registry_url)
+          shamanops_registry_user=$(shamanops_registry_user)
+          shamanops_registry_password=$(shamanops_registry_password)
+          shamanops_argocd_dynenv_url=$(shamanops_argocd_dev_url)
+          shamanops_argocd_dynenv_user=$(shamanops_argocd_dev_user)
+          shamanops_argocd_dynenv_token=$(shamanops_argocd_dev_token)
+          shamanops_manifest_repository=$(shamanops_manifest_repository)
+          shamanops_manifest_repository_user=$(shamanops_manifest_repository_user)
+          shamanops_manifest_repository_token=$(shamanops_manifest_repository_token)
+          shamanops_chat_webhook=$(shamanops_chat_webhook)
+        containerCommand: '-c "shamanops dynamic-envs"'
+        runInBackground: false
+  - job: approvals_stg
+    dependsOn:
+      - app_create_and_deploy_dev
+      - app_create_and_deploy_dynenv
+    condition: |
+        and(
+          not(contains(variables['environments'], 'minimal')),
+          contains(variables['shamanopsApprovalsStg'], 'true'),
+          in(dependencies.app_create_and_deploy_dev.result, 'Succeeded', 'Skipped'),
+          in(dependencies.app_create_and_deploy_dynenv.result, 'Succeeded', 'Skipped')
         )
     steps:
     - checkout: self 
@@ -697,12 +770,14 @@ stages:
     dependsOn: 
       - approvals_stg
       - app_create_and_deploy_dev
+      - app_create_and_deploy_dynenv
     condition: |
         and(
           not(contains(variables['environments'], 'minimal')),
           contains(variables['db_versioning_enabled'], 'true'),
           in(dependencies.approvals_dev.result, 'Succeeded', 'Skipped'),
-          in(dependencies.app_create_and_deploy_dev.result, 'Succeeded', 'Skipped')
+          in(dependencies.app_create_and_deploy_dev.result, 'Succeeded', 'Skipped'),
+          in(dependencies.app_create_and_deploy_dynenv.result, 'Succeeded', 'Skipped')
         )
     steps:
     - checkout: self 
@@ -750,6 +825,7 @@ stages:
   - job: app_create_and_deploy_stg 
     dependsOn: 
       - app_create_and_deploy_dev
+      - app_create_and_deploy_dynenv
       - approvals_stg
       - db_versioning_stg
     condition: |
@@ -757,7 +833,8 @@ stages:
           not(contains(variables['environments'], 'minimal')),
           in(dependencies.app_create_and_deploy_dev.result, 'Succeeded', 'Skipped'),
           in(dependencies.approvals_stg.result, 'Succeeded', 'Skipped'),
-          in(dependencies.db_versioning_stg.result, 'Succeeded', 'Skipped')
+          in(dependencies.db_versioning_stg.result, 'Succeeded', 'Skipped'),
+          in(dependencies.app_create_and_deploy_dynenv.result, 'Succeeded', 'Skipped')
         )
     steps:
     - checkout: self 
@@ -813,6 +890,7 @@ stages:
       - approvals_dev
       - db_versioning_dev
       - app_create_and_deploy_dev
+      - app_create_and_deploy_dynenv
       - approvals_stg
       - db_versioning_stg
       - app_create_and_deploy_stg
@@ -825,6 +903,7 @@ stages:
           in(dependencies.db_versioning_dev.result, 'Succeeded', 'Skipped'),
           in(dependencies.db_versioning_stg.result, 'Succeeded', 'Skipped'),
           in(dependencies.app_create_and_deploy_dev.result, 'Succeeded', 'Skipped'),
+          in(dependencies.app_create_and_deploy_dynenv.result, 'Succeeded', 'Skipped'),
           in(dependencies.app_create_and_deploy_stg.result, 'Succeeded', 'Skipped')
         )
     steps:
@@ -894,6 +973,7 @@ stages:
       - approvals_dev
       - db_versioning_dev
       - app_create_and_deploy_dev
+      - app_create_and_deploy_dynenv
       - approvals_stg
       - db_versioning_stg
       - app_create_and_deploy_stg
@@ -907,6 +987,7 @@ stages:
           in(dependencies.db_versioning_dev.result, 'Succeeded', 'Skipped'),
           in(dependencies.db_versioning_stg.result, 'Succeeded', 'Skipped'),
           in(dependencies.app_create_and_deploy_dev.result, 'Succeeded', 'Skipped'),
+          in(dependencies.app_create_and_deploy_dynenv.result, 'Succeeded', 'Skipped'),
           in(dependencies.app_create_and_deploy_stg.result, 'Succeeded', 'Skipped'),
           or(
             in(dependencies.functional_analysis.result, 'Succeeded', 'Skipped'),
@@ -976,6 +1057,7 @@ stages:
       - approvals_dev
       - db_versioning_dev
       - app_create_and_deploy_dev
+      - app_create_and_deploy_dynenv
       - approvals_stg
       - db_versioning_stg
       - app_create_and_deploy_stg
@@ -989,6 +1071,7 @@ stages:
           in(dependencies.db_versioning_dev.result, 'Succeeded', 'Skipped'),
           in(dependencies.db_versioning_stg.result, 'Succeeded', 'Skipped'),
           in(dependencies.app_create_and_deploy_dev.result, 'Succeeded', 'Skipped'),
+          in(dependencies.app_create_and_deploy_dynenv.result, 'Succeeded', 'Skipped'),
           in(dependencies.app_create_and_deploy_stg.result, 'Succeeded', 'Skipped'),
           or(
             in(dependencies.functional_analysis.result, 'Succeeded', 'Skipped'),
@@ -1054,6 +1137,7 @@ stages:
       - approvals_dev
       - db_versioning_dev
       - app_create_and_deploy_dev
+      - app_create_and_deploy_dynenv
       - approvals_stg
       - db_versioning_stg
       - app_create_and_deploy_stg
@@ -1069,6 +1153,7 @@ stages:
           in(dependencies.db_versioning_stg.result, 'Succeeded', 'Skipped'),
           in(dependencies.db_versioning_prod.result, 'Succeeded', 'Skipped'),
           in(dependencies.app_create_and_deploy_dev.result, 'Succeeded', 'Skipped'),
+          in(dependencies.app_create_and_deploy_dynenv.result, 'Succeeded', 'Skipped'),
           in(dependencies.app_create_and_deploy_stg.result, 'Succeeded', 'Skipped'),
           or(
             in(dependencies.functional_analysis.result, 'Succeeded', 'Skipped'),
@@ -1127,6 +1212,7 @@ stages:
       - approvals_dev
       - db_versioning_dev
       - app_create_and_deploy_dev
+      - app_create_and_deploy_dynenv
       - approvals_stg
       - db_versioning_stg
       - app_create_and_deploy_stg
@@ -1140,6 +1226,7 @@ stages:
           in(dependencies.approvals_dev.result, 'Succeeded', 'Skipped'),
           in(dependencies.approvals_stg.result, 'Succeeded', 'Skipped'),
           in(dependencies.app_create_and_deploy_dev.result, 'Succeeded', 'Skipped'),
+          in(dependencies.app_create_and_deploy_dynenv.result, 'Succeeded', 'Skipped'),
           in(dependencies.app_create_and_deploy_stg.result, 'Succeeded', 'Skipped'),
           in(dependencies.db_versioning_dev.result, 'Succeeded', 'Skipped'),
           in(dependencies.db_versioning_stg.result, 'Succeeded', 'Skipped'),
@@ -1208,6 +1295,7 @@ stages:
       - approvals_stg
       - approvals_prod
       - app_create_and_deploy_dev
+      - app_create_and_deploy_dynenv
       - app_create_and_deploy_stg
       - functional_analysis
       - stress_check
@@ -1221,6 +1309,7 @@ stages:
           in(dependencies.db_versioning_stg.result, 'Succeeded', 'Skipped'),
           in(dependencies.db_versioning_prod.result, 'Succeeded', 'Skipped'),
           in(dependencies.app_create_and_deploy_dev.result, 'Succeeded', 'Skipped'),
+          in(dependencies.app_create_and_deploy_dynenv.result, 'Succeeded', 'Skipped'),
           in(dependencies.app_create_and_deploy_stg.result, 'Succeeded', 'Skipped'),
           or(
             in(dependencies.functional_analysis.result, 'Succeeded', 'Skipped'),
