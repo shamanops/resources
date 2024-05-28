@@ -193,7 +193,7 @@ on:
       # Application port
       appInternalPort:
         type: string
-        default: '8080'
+        default: ''
       # GIT Submodules
       git_submodules_enabled:
         type: string
