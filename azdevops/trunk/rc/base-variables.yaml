@@ -11,7 +11,7 @@ variables:
   # Client side
   environments: 'full'
   projectName: 'default'
-  appInternalPort: '8080'
+  appInternalPort: ''
   strategyCanaryProd: 'false'
   strategyCanaryStg: 'false'
   strategyCanaryDev: 'false'
