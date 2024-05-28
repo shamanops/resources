@@ -193,7 +193,7 @@ on:
       # Application port
       appInternalPort:
         type: string
-        default: '8080'
+        default: ''
     # Secrets
     secrets:
       shamanops_customer_token:
