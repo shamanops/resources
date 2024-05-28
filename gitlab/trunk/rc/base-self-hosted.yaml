@@ -28,7 +28,7 @@ variables:
   # Project
   projectName: 'default'
   appName: $CI_PROJECT_NAME
-  appInternalPort: '8080'
+  appInternalPort: ''
   strategyCanaryProd: 'false'
   strategyCanaryStg: 'false'
   strategyCanaryDev: 'false'
