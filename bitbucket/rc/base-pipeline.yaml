@@ -380,7 +380,7 @@ definitions:
           - source .bitbucket/envs.yaml
           - echo $shamanops_customer_token | docker login registry.shamanops.com -u $shamanops_customer_id --password-stdin
           - >-
-            if [ "$shamanopsApprovalsProd" == "true" ]; then
+            if [ "$shamanopsApprovalsProd" == "true" && "$environments" != "pre" ]; then
               docker run --user root --privileged -v $(pwd):/home/runner \
                 -e appName=$appName \
                 -e customerURI=$customerURI \
@@ -403,7 +403,7 @@ definitions:
           - source .bitbucket/envs.yaml
           - echo $shamanops_customer_token | docker login registry.shamanops.com -u $shamanops_customer_id --password-stdin
           - >-
-            if [ "$db_versioning_enabled" == "true" ]; then
+            if [ "$db_versioning_enabled" == "true" && "$environments" != "pre" ]; then
               docker run --user root --privileged -v $(pwd):/home/runner \
                 -e appName=$appName \
                 -e customerURI=$customerURI \
@@ -425,14 +425,19 @@ definitions:
           - source base-variables.yaml
           - source .bitbucket/envs.yaml
           - echo $shamanops_customer_token | docker login registry.shamanops.com -u $shamanops_customer_id --password-stdin
-          - docker run --user root --privileged -v $(pwd):/home/runner \
-              -e appName=$appName \
-              -e customerURI=$customerURI \
-              -e repoUrl=$repoUrl \
-              -e pipelineId=$pipelineId \
-              -e jobUrl=$jobUrl \
-              --env-file base-variables.yaml --env-file <(cat .bitbucket/envs.yaml | tr -d "\"") --env-file <(env | grep shamanops) \
-              registry.shamanops.com/runner/fedora:stable -c "shamanops app-create-and-deploy prod"
+          - >-
+            if [ "$environments" != "pre" ]; then
+              docker run --user root --privileged -v $(pwd):/home/runner \
+                -e appName=$appName \
+                -e customerURI=$customerURI \
+                -e repoUrl=$repoUrl \
+                -e pipelineId=$pipelineId \
+                -e jobUrl=$jobUrl \
+                --env-file base-variables.yaml --env-file <(cat .bitbucket/envs.yaml | tr -d "\"") --env-file <(env | grep shamanops) \
+                registry.shamanops.com/runner/fedora:stable -c "shamanops app-create-and-deploy prod"
+            else
+              echo "This step has been skipped due to conditionals!" && exit 0;
+            fi
         services:
           - docker
     - step:
