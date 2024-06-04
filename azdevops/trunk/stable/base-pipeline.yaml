@@ -1065,6 +1065,7 @@ stages:
       - stress_check
     condition: |
         and(
+          not(contains(variables['environments'], 'pre')),
           contains(variables['shamanopsApprovalsProd'], 'true'),
           in(dependencies.approvals_dev.result, 'Succeeded', 'Skipped'),
           in(dependencies.approvals_stg.result, 'Succeeded', 'Skipped'),
@@ -1145,6 +1146,7 @@ stages:
       - stress_check
     condition: |
         and(
+          not(contains(variables['environments'], 'pre')),
           contains(variables['db_versioning_enabled'], 'true'),
           in(dependencies.approvals_dev.result, 'Succeeded', 'Skipped'),
           in(dependencies.approvals_stg.result, 'Succeeded', 'Skipped'),
@@ -1222,6 +1224,7 @@ stages:
       - db_versioning_prod
     condition: |
         and(
+          not(contains(variables['environments'], 'pre')),
           in(dependencies.approvals_prod.result, 'Succeeded', 'Skipped'),
           in(dependencies.approvals_dev.result, 'Succeeded', 'Skipped'),
           in(dependencies.approvals_stg.result, 'Succeeded', 'Skipped'),
@@ -1302,6 +1305,7 @@ stages:
       - app_create_and_deploy_prod
     condition: |
         and(
+          not(contains(variables['environments'], 'pre')),
           in(dependencies.approvals_prod.result, 'Succeeded', 'Skipped'),
           in(dependencies.approvals_dev.result, 'Succeeded', 'Skipped'),
           in(dependencies.approvals_stg.result, 'Succeeded', 'Skipped'),
