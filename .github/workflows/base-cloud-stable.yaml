@@ -198,6 +198,10 @@ on:
       git_submodules_enabled:
         type: string
         default: 'false'
+      # Repository Metrics
+      repository_metrics_enabled:
+        type: string
+        default: 'false'
       # Dynamic Envs
       shamanopsDynamicEnvsEnabled:
         type: string
@@ -287,6 +291,7 @@ env:
   log_level: ${{inputs.log_level}}
   appInternalPort: ${{inputs.appInternalPort}}
   git_submodules_enabled: ${{inputs.git_submodules_enabled}}
+  repository_metrics_enabled: ${{inputs.repository_metrics_enabled}}
   shamanopsBusinessApprovers: ${{inputs.shamanopsBusinessApprovers}}
   shamanopsTechnicalApprovers: ${{inputs.shamanopsTechnicalApprovers}}
   shamanopsApprovalsDev: ${{inputs.shamanopsApprovalsDev}}
@@ -377,6 +382,9 @@ jobs:
         name: checkout-repository-with-submodules
       - name: repository-check
         run: shamanops repository-check
+      - name: repository-metrics
+        run: shamanops repository-metrics
+        if: inputs.repository_metrics_enabled == 'true'
 # Stage 2 - Build ##############################################################
   image-build-and-push:
     runs-on: ubuntu-latest #self-hosted
