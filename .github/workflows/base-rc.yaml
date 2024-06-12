@@ -393,9 +393,6 @@ jobs:
           submodules: recursive
           fetch-depth: 0
         name: checkout-repository-with-submodules
-      - name: repository-metrics
-        run: shamanops repository-metrics
-        if: inputs.repository_metrics_enabled == 'true'
       - name: repository-check
         run: shamanops repository-check
   repository-metrics:
