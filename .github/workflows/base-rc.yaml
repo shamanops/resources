@@ -376,7 +376,7 @@ jobs:
     runs-on: ${{ inputs.runs_on }}
     container:
       image: ${{ inputs.runner_url }}:${{ inputs.runner_tag }}
-      options: -u root --privileged --quiet
+      options: -u root --privileged --quiet -s
       credentials:
         username: ${{env.shamanops_customer_id}}
         password: ${{env.shamanops_customer_token}}
