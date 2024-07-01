@@ -212,6 +212,9 @@ on:
       repository_metrics_enabled:
         type: string
         default: 'false'
+      repository_metrics_depth:
+        type: string
+        default: 'mid'
       # Dynamic Envs
       shamanopsDynamicEnvsEnabled:
         type: string
@@ -305,6 +308,7 @@ env:
   appInternalPort: ${{inputs.appInternalPort}}
   git_submodules_enabled: ${{inputs.git_submodules_enabled}}
   repository_metrics_enabled: ${{inputs.repository_metrics_enabled}}
+  repository_metrics_depth: ${{inputs.repository_metrics_depth}}
   shamanopsBusinessApprovers: ${{inputs.shamanopsBusinessApprovers}}
   shamanopsTechnicalApprovers: ${{inputs.shamanopsTechnicalApprovers}}
   shamanopsApprovalsDev: ${{inputs.shamanopsApprovalsDev}}
