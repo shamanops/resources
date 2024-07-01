@@ -186,6 +186,48 @@ stages:
           shamanops_chat_webhook=$(shamanops_chat_webhook)
         containerCommand: '-c "shamanops repository-check"'
         runInBackground: false
+  - job: repository_metrics
+    condition: |
+        contains(variables['repository_metrics_enabled'], 'true')
+    steps:
+    - checkout: self
+      clean: true
+      fetchDepth: 0
+    - task: Docker@1
+      name: repository_metrics
+      displayName: repository-metrics
+      inputs:
+        containerregistrytype: 'Container Registry'
+        dockerRegistryEndpoint: shamanops-registry
+        command: 'Run an image'
+        arguments: '--privileged -u root --pull=always --quiet'
+        imageName: 'registry.shamanops.com/runner/fedora:stable'
+        volumes: '$(Build.Repository.LocalPath):/home/runner'
+        envVars: |
+          customerName=$(customerName)
+          appName=$(appName)
+          appInternalPort=$(appInternalPort)
+          repoUrl=$(repoUrl)
+          jobUrl=$(jobUrl)
+          pipelineId=$(pipelineId)
+          GIT_STRATEGY=$(GIT_STRATEGY)
+          GIT_DEPTH=$(GIT_DEPTH)
+          environments=$(environments)
+          projectName=$(projectName)
+          code_language_detection_enabled=$(code_language_detection_enabled)
+          log_level=$(log_level)
+          shamanops_customer_id=$(shamanops_customer_id)
+          shamanops_customer_token=$(shamanops_customer_token)
+          shamanops_registry_url=$(shamanops_registry_url)
+          shamanops_registry_user=$(shamanops_registry_user)
+          shamanops_registry_password=$(shamanops_registry_password)
+          shamanops_argocd_drp_token=$(shamanops_argocd_drp_token)
+          shamanops_manifest_repository=$(shamanops_manifest_repository)
+          shamanops_manifest_repository_user=$(shamanops_manifest_repository_user)
+          shamanops_manifest_repository_token=$(shamanops_manifest_repository_token)
+          shamanops_chat_webhook=$(shamanops_chat_webhook)
+        containerCommand: '-c "shamanops repository-metrics"'
+        runInBackground: false
 - stage: build
   dependsOn: 
     - pre_requirements
