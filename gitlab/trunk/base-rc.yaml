@@ -103,6 +103,7 @@ variables:
   shamanopsApprovalsDynamicEnvs: 'false'
   # Repository Metrics
   repository_metrics_enabled: 'false'
+  repository_metrics_depth: 'mid'
 ################################################################################
 # Stages
 # ------------------------------------------------------------------------------
