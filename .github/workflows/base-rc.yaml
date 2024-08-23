@@ -399,7 +399,7 @@ jobs:
           fetch-depth: 0
         name: checkout-repository-with-submodules
       - name: pre-jobs
-        run: shamanops pre-jobs
+        run: shamanops pre-jobs dev
 ##################
 
 # Stage 1 - Requirements #######################################################
