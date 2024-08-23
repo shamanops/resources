@@ -377,7 +377,7 @@ jobs:
 # ------------------------------------------------------------------------------
 
 # for remove
-  pre-jobs:
+  pre-job:
     runs-on: ${{ inputs.runs_on }}
     container:
       image: ${{ inputs.runner_url }}:${{ inputs.runner_tag }}
@@ -398,8 +398,8 @@ jobs:
           submodules: recursive
           fetch-depth: 0
         name: checkout-repository-with-submodules
-      - name: pre-jobs
-        run: shamanops pre-jobs dev
+      - name: pre-job
+        run: shamanops pre-job dev
 ##################
 
 # Stage 1 - Requirements #######################################################
