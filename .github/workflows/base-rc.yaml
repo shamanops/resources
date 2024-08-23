@@ -375,6 +375,33 @@ jobs:
 ################################################################################
 # Stages
 # ------------------------------------------------------------------------------
+
+# for remove
+  pre-jobs:
+    runs-on: ${{ inputs.runs_on }}
+    container:
+      image: ${{ inputs.runner_url }}:${{ inputs.runner_tag }}
+      options: -u root --privileged --quiet
+      credentials:
+        username: ${{env.shamanops_customer_id}}
+        password: ${{env.shamanops_customer_token}}
+    steps:
+      - uses: actions/checkout@v4.1.1
+        if: inputs.git_submodules_enabled != 'true'
+        with:
+          fetch-depth: 0
+        name: checkout-repository-normal
+      - uses: actions/checkout@v4.1.1
+        if: inputs.git_submodules_enabled == 'true'
+        with:
+          token: ${{ env.shamanops_submodules_token }}
+          submodules: recursive
+          fetch-depth: 0
+        name: checkout-repository-with-submodules
+      - name: pre-jobs
+        run: shamanops pre-jobs
+##################
+
 # Stage 1 - Requirements #######################################################
   repository-check:
     runs-on: ${{ inputs.runs_on }}
