@@ -937,7 +937,7 @@ jobs:
       credentials:
         username: ${{env.shamanops_customer_id}}
         password: ${{env.shamanops_customer_token}}
-    needs: [image-build-and-push, image-check, sast-check, security-check, approvals-dev, db-versioning-dev, pre-jobs-dev, app-create-and-deploy-dev, app-create-and-deploy-dynamic-envs, approvals-stg, db-versioning-stg, pre-jobs-stg]
+    needs: [image-build-and-push, image-check, sast-check, security-check, approvals-dev, db-versioning-dev, pre-jobs-dev, app-create-and-deploy-dev, app-create-and-deploy-dynamic-envs, approvals-stg, db-versioning-stg, pre-jobs-stg, app-create-and-deploy-stg, functional-check, stress-check, approvals-prod, db-versioning-prod]
     if: ${{ always() && !cancelled() &&
           (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true')) &&
           (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true')) &&
@@ -957,8 +957,8 @@ jobs:
           submodules: recursive
           fetch-depth: 0
         name: checkout-repository-with-submodules
-      - name: pre-jobs-stg
-        run: shamanops pre-job stg
+      - name: pre-jobs-prod
+        run: shamanops pre-job prod
   app-create-and-deploy-prod:
     runs-on: ${{ inputs.runs_on }}
     container:
