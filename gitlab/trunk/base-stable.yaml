@@ -104,6 +104,9 @@ variables:
   # Repository Metrics
   repository_metrics_enabled: 'false'
   repository_metrics_depth: 'mid'
+  # Pre-deploy Jobs
+  pre_jobs_enabled: 'false'
+  pre_jobs_blocker: 'false'
 ################################################################################
 # Stages
 # ------------------------------------------------------------------------------
@@ -214,6 +217,31 @@ db-versioning-dev:
     - when: never
   script:
     - shamanops db-versioning dev
+pre-jobs-dev:
+  tags:
+    - $runs_on
+  stage: deploy
+  needs:
+    - job: db-versioning-dev
+      optional: true
+    - job: approvals-dev
+      optional: true
+    - job: security_check
+      optional: true
+    - job: sast-check
+      optional: true
+    - job: image-check
+      optional: false
+  rules:
+    - if: $pre_jobs_enabled == 'true' && $pre_jobs_blocker == 'true'
+      when: on_success
+      allow_failure: false
+    - if: $pre_jobs_enabled == 'true' && $pre_jobs_blocker != 'true'
+      when: on_success
+      allow_failure: true
+    - when: never
+  script:
+    - shamanops pre-job dev
 app-create-and-deploy-dev:
   tags:
     - $runs_on
@@ -222,6 +250,8 @@ app-create-and-deploy-dev:
     - job: approvals-dev
       optional: true
     - job: db-versioning-dev
+      optional: true
+    - job: pre-jobs-dev
       optional: true
     - job: image-check
       optional: false
@@ -241,6 +271,8 @@ app-create-and-deploy-dynamic-envs:
     - job: approvals-dev
       optional: true
     - job: db-versioning-dev
+      optional: true
+    - job: pre-jobs-dev
       optional: true
     - job: app-create-and-deploy-dev
       optional: true
@@ -264,6 +296,8 @@ approvals-stg:
       optional: true
     - job: db-versioning-dev
       optional: true
+    - job: pre-jobs-dev
+      optional: true
     - job: app-create-and-deploy-dev
       optional: true
     - job: app-create-and-deploy-dynamic-envs
@@ -286,6 +320,8 @@ db-versioning-stg:
       optional: true
     - job: db-versioning-dev
       optional: true
+    - job: pre-jobs-dev
+      optional: true
     - job: app-create-and-deploy-dev
       optional: true
     - job: app-create-and-deploy-dynamic-envs
@@ -301,6 +337,37 @@ db-versioning-stg:
     - when: never
   script:
     - shamanops db-versioning stg
+pre-jobs-stg:
+  tags:
+    - $runs_on
+  stage: deploy
+  needs:
+    - job: db-versioning-stg
+      optional: true
+    - job: approvals-dev
+      optional: true
+    - job: db-versioning-dev
+      optional: true
+    - job: pre-jobs-dev
+      optional: true
+    - job: app-create-and-deploy-dev
+      optional: true
+    - job: app-create-and-deploy-dynamic-envs
+      optional: true
+    - job: approvals-stg
+      optional: true
+    - job: image-check
+      optional: false
+  rules:
+    - if: $pre_jobs_enabled == 'true' && $pre_jobs_blocker == 'true'
+      when: on_success
+      allow_failure: false
+    - if: $pre_jobs_enabled == 'true' && $pre_jobs_blocker != 'true'
+      when: on_success
+      allow_failure: true
+    - when: never
+  script:
+    - shamanops pre-job stg
 app-create-and-deploy-stg:
   tags:
     - $runs_on
@@ -310,6 +377,8 @@ app-create-and-deploy-stg:
       optional: true
     - job: db-versioning-dev
       optional: true
+    - job: pre-jobs-dev
+      optional: true
     - job: app-create-and-deploy-dev
       optional: true
     - job: app-create-and-deploy-dynamic-envs
@@ -317,6 +386,8 @@ app-create-and-deploy-stg:
     - job: approvals-stg
       optional: true
     - job: db-versioning-stg
+      optional: true
+    - job: pre-jobs-stg
       optional: true
     - job: image-check
       optional: false
@@ -372,6 +443,8 @@ approvals-prod:
       optional: true
     - job: db-versioning-dev
       optional: true
+    - job: pre-jobs-dev
+      optional: true
     - job: app-create-and-deploy-dev
       optional: true
     - job: app-create-and-deploy-dynamic-envs
@@ -379,6 +452,8 @@ approvals-prod:
     - job: approvals-stg
       optional: true
     - job: db-versioning-stg
+      optional: true
+    - job: pre-jobs-stg
       optional: true
     - job: app-create-and-deploy-stg
       optional: true
@@ -404,6 +479,8 @@ db-versioning-prod:
       optional: true
     - job: db-versioning-dev
       optional: true
+    - job: pre-jobs-dev
+      optional: true
     - job: app-create-and-deploy-dev
       optional: true
     - job: app-create-and-deploy-dynamic-envs
@@ -411,6 +488,8 @@ db-versioning-prod:
     - job: approvals-stg
       optional: true
     - job: db-versioning-stg
+      optional: true
+    - job: pre-jobs-stg
       optional: true
     - job: app-create-and-deploy-stg
       optional: true
@@ -429,14 +508,16 @@ db-versioning-prod:
     - when: never
   script:
     - shamanops db-versioning prod
-app-create-and-deploy-prod:
+pre-jobs-prod:
   tags:
     - $runs_on
   stage: deploy
-  needs: 
+  needs:
     - job: approvals-dev
       optional: true
     - job: db-versioning-dev
+      optional: true
+    - job: pre-jobs-dev
       optional: true
     - job: app-create-and-deploy-dev
       optional: true
@@ -446,11 +527,58 @@ app-create-and-deploy-prod:
       optional: true
     - job: db-versioning-stg
       optional: true
+    - job: pre-jobs-stg
+      optional: true
     - job: app-create-and-deploy-stg
       optional: true
     - job: approvals-prod
       optional: true
     - job: db-versioning-prod
+      optional: true
+    - job: image-check
+      optional: false
+    - job: functional_analysis
+      optional: true
+    - job: stress_test
+      optional: true
+  rules:
+    - if: $pre_jobs_enabled == 'true' && $pre_jobs_blocker == 'true'
+      when: on_success
+      allow_failure: false
+    - if: $pre_jobs_enabled == 'true' && $pre_jobs_blocker != 'true'
+      when: on_success
+      allow_failure: true
+    - when: never
+  script:
+    - shamanops pre-job prod
+app-create-and-deploy-prod:
+  tags:
+    - $runs_on
+  stage: deploy
+  needs: 
+    - job: approvals-dev
+      optional: true
+    - job: db-versioning-dev
+      optional: true
+    - job: pre-jobs-dev
+      optional: true
+    - job: app-create-and-deploy-dev
+      optional: true
+    - job: app-create-and-deploy-dynamic-envs
+      optional: true
+    - job: approvals-stg
+      optional: true
+    - job: db-versioning-stg
+      optional: true
+    - job: pre-jobs-stg
+      optional: true
+    - job: app-create-and-deploy-stg
+      optional: true
+    - job: approvals-prod
+      optional: true
+    - job: db-versioning-prod
+      optional: true
+    - job: pre-jobs-prod
       optional: true
     - job: image-check
       optional: false
