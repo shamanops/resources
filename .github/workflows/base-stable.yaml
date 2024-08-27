@@ -754,7 +754,7 @@ jobs:
     if: ${{ always() && !cancelled() &&
           (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true')) &&
           (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true')) &&
-          (needs.pre-jobs-dev.result != 'failure' || (needs.image-check.result == 'success' && inputs.pre-jobs-blocker != 'true')) &&
+          (needs.pre-jobs-dev.result != 'failure' || (needs.image-check.result == 'success' && inputs.pre_jobs_blocker != 'true')) &&
           (inputs.environments != 'minimal' && inputs.pre_jobs_enabled == 'true' && needs.approvals-dev.result != 'failure' && needs.db-versioning-dev.result != 'failure' && needs.app-create-and-deploy-dev.result != 'failure' && needs.app-create-and-deploy-dynamic-envs.result != 'failure' && needs.approvals-stg.result != 'failure')
         }}
     steps:
@@ -941,8 +941,8 @@ jobs:
     if: ${{ always() && !cancelled() &&
           (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true')) &&
           (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true')) &&
-          (needs.pre-jobs-dev.result != 'failure' || (needs.image-check.result == 'success' && inputs.pre-jobs-blocker != 'true')) &&
-          (needs.pre-jobs-stg.result != 'failure' || (needs.image-check.result == 'success' && inputs.pre-jobs-blocker != 'true')) &&
+          (needs.pre-jobs-dev.result != 'failure' || (needs.image-check.result == 'success' && inputs.pre_jobs_blocker != 'true')) &&
+          (needs.pre-jobs-stg.result != 'failure' || (needs.image-check.result == 'success' && inputs.pre_jobs_blocker != 'true')) &&
           (inputs.environments != 'pre' && inputs.pre_jobs_enabled == 'true' && needs.approvals-dev.result != 'failure' && needs.db-versioning-dev.result != 'failure' && needs.app-create-and-deploy-dev.result != 'failure' && needs.app-create-and-deploy-dynamic-envs.result != 'failure' && needs.approvals-stg.result != 'failure' && needs.db-versioning-stg.result != 'failure' && needs.app-create-and-deploy-stg.result != 'failure' && needs.approvals-prod.result != 'failure' && needs.db-versioning-prod != 'failure')
         }}
     steps:
