@@ -233,10 +233,10 @@ pre-jobs-dev:
     - job: image-check
       optional: false
   rules:
-    - if: $pre_jobs_enabled == 'true' && $pre_jobs_blocker == 'true'
+    - if: $environments != 'minimal' && $environments != 'mid' && $pre_jobs_enabled == 'true' && $pre_jobs_blocker == 'true'
       when: on_success
       allow_failure: false
-    - if: $pre_jobs_enabled == 'true' && $pre_jobs_blocker != 'true'
+    - if: $environments != 'minimal' && $environments != 'mid' && $pre_jobs_enabled == 'true' && $pre_jobs_blocker != 'true'
       when: on_success
       allow_failure: true
     - when: never
@@ -359,10 +359,10 @@ pre-jobs-stg:
     - job: image-check
       optional: false
   rules:
-    - if: $pre_jobs_enabled == 'true' && $pre_jobs_blocker == 'true'
+    - if: $environments != 'minimal' && $pre_jobs_enabled == 'true' && $pre_jobs_blocker == 'true'
       when: on_success
       allow_failure: false
-    - if: $pre_jobs_enabled == 'true' && $pre_jobs_blocker != 'true'
+    - if: $environments != 'minimal' && $pre_jobs_enabled == 'true' && $pre_jobs_blocker != 'true'
       when: on_success
       allow_failure: true
     - when: never
