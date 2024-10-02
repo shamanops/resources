@@ -36,7 +36,7 @@ definitions:
               -e repoUrl=$repoUrl \
               -e pipelineId=$pipelineId \
               -e jobUrl=$jobUrl \
-              --env-file base-variables.yaml --env-file <(cat .bitbucket/envs.yaml | tr -d "\"") --env-file <(env | grep shamanops) \
+              --env-file base-variables.yaml --env-file <(sed "s/[\'\"]//g" ".bitbucket/envs.yaml" | grep -v "#") --env-file <(env | grep shamanops) \
               registry.shamanops.com/runner/fedora:stable -c "shamanops repository-check"
         services:
           - docker
