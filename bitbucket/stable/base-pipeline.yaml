@@ -13,6 +13,10 @@ definitions:
           - curl -sSL https://raw.githubusercontent.com/shamanops/resources/main/bitbucket/base-variables.yaml -o base-variables.yaml
           - source base-variables.yaml
           - source .bitbucket/envs.yaml
+          - >-
+            if [ "${git_submodules_enabled}" == "true" ]; then
+              git submodule update --init --recursive
+            fi
         artifacts:
           - base-variables.yaml
         services:
