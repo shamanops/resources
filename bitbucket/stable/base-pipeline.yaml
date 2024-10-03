@@ -15,10 +15,7 @@ definitions:
           - source .bitbucket/envs.yaml
           - >-
             if [ "${git_submodules_enabled}" == "true" ]; then
-              apk add gettext
-              envsubst < .gitmodules > .gitmodules.new
-              mv .gitmodules .gitmodules.original
-              mv .gitmodules.new .gitmodules
+              sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
               git submodule update --init --recursive --remote              
             fi
         artifacts:
