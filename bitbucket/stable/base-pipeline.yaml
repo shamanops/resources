@@ -43,7 +43,7 @@ definitions:
               -e pipelineId=$pipelineId \
               -e jobUrl=$jobUrl \
               --env-file <(sed "s/[\'\"]//g" "base-variables.yaml" | grep -v "#") --env-file <(sed "s/[\'\"]//g" ".bitbucket/envs.yaml" | grep -v "#") --env-file <(env | grep shamanops) \
-              registry.shamanops.com/runner/fedora:stable -c "shamanops repository-check"
+              registry.shamanops.com/runner/fedora:stable -c "shamanops repository-check && printenv && echo $log_level"
         services:
           - docker
     - step:
