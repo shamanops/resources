@@ -10,7 +10,7 @@ definitions:
         runs-on:
           - 'self.hosted'
         script:
-          - curl -sSL https://raw.githubusercontent.com/shamanops/resources/main/bitbucket/base-variables.yaml -o base-variables.yaml
+          - curl -sSL https://raw.githubusercontent.com/shamanops/resources/refs/heads/main/bitbucket/stable/base-variables.yaml -o base-variables.yaml
           - source base-variables.yaml
           - source .bitbucket/envs.yaml
           - >-
@@ -29,11 +29,6 @@ definitions:
         script:
           - source base-variables.yaml
           - source .bitbucket/envs.yaml
-          - >-
-            if [ "${git_submodules_enabled}" == "true" ]; then
-              sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
-              git submodule update --init --recursive --remote    
-            fi
           - echo $shamanops_customer_token | docker login registry.shamanops.com -u $shamanops_customer_id --password-stdin
           - >-
             docker run --user root --privileged -v $(pwd):/home/runner \
@@ -42,8 +37,8 @@ definitions:
               -e repoUrl=$repoUrl \
               -e pipelineId=$pipelineId \
               -e jobUrl=$jobUrl \
-              --env-file <(sed "s/[\'\"]//g" "base-variables.yaml" | grep -v "#") --env-file <(sed "s/[\'\"]//g" ".bitbucket/envs.yaml" | grep -v "#") --env-file <(env | grep shamanops) \
-              registry.shamanops.com/runner/fedora:stable -c "shamanops repository-check && printenv && echo $log_level"
+              --env-file base-variables.yaml --env-file <(sed "s/[\'\"]//g" ".bitbucket/envs.yaml" | grep -v "#") --env-file <(env | grep shamanops) \
+              registry.shamanops.com/runner/fedora:stable -c "shamanops repository-check"
         services:
           - docker
     - step:
@@ -53,11 +48,6 @@ definitions:
         script:
           - source base-variables.yaml
           - source .bitbucket/envs.yaml
-          - >-
-            if [ "${git_submodules_enabled}" == "true" ]; then
-              sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
-              git submodule update --init --recursive --remote    
-            fi
           - echo $shamanops_customer_token | docker login registry.shamanops.com -u $shamanops_customer_id --password-stdin
           - >-
             if ["${repository_metrics_enabled}" == "true"]; then
@@ -81,11 +71,6 @@ definitions:
         script:
           - source base-variables.yaml
           - source .bitbucket/envs.yaml
-          - >-
-            if [ "${git_submodules_enabled}" == "true" ]; then
-              sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
-              git submodule update --init --recursive --remote    
-            fi
           - echo $shamanops_customer_token | docker login registry.shamanops.com -u $shamanops_customer_id --password-stdin
           - >-
             docker run --user root --privileged -v $(pwd):/home/runner \
@@ -105,11 +90,6 @@ definitions:
         script:
           - source base-variables.yaml
           - source .bitbucket/envs.yaml
-          - >-
-            if [ "${git_submodules_enabled}" == "true" ]; then
-              sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
-              git submodule update --init --recursive --remote    
-            fi
           - echo $shamanops_customer_token | docker login registry.shamanops.com -u $shamanops_customer_id --password-stdin
           - >-
             docker run --user root --privileged -v $(pwd):/home/runner \
@@ -129,11 +109,6 @@ definitions:
         script:
           - source base-variables.yaml
           - source .bitbucket/envs.yaml
-          - >-
-            if [ "${git_submodules_enabled}" == "true" ]; then
-              sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
-              git submodule update --init --recursive --remote    
-            fi
           - echo $shamanops_customer_token | docker login registry.shamanops.com -u $shamanops_customer_id --password-stdin
           - >-
             if [ "${security_check_enabled}" == "true" ]; then
@@ -168,11 +143,6 @@ definitions:
         script:
           - source base-variables.yaml
           - source .bitbucket/envs.yaml
-          - >-
-            if [ "${git_submodules_enabled}" == "true" ]; then
-              sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
-              git submodule update --init --recursive --remote    
-            fi
           - echo $shamanops_customer_token | docker login registry.shamanops.com -u $shamanops_customer_id --password-stdin
           - >-
             if [ "${code_quality_check_enabled}" == "true" ]; then
@@ -207,11 +177,6 @@ definitions:
         script:
           - source base-variables.yaml
           - source .bitbucket/envs.yaml
-          - >-
-            if [ "${git_submodules_enabled}" == "true" ]; then
-              sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
-              git submodule update --init --recursive --remote    
-            fi
           - echo $shamanops_customer_token | docker login registry.shamanops.com -u $shamanops_customer_id --password-stdin
           - >-
             if ["$shamanopsApprovalsDev" == "true" && "$environments" != "mid" && "$environments" != "minimal"]; then
@@ -235,11 +200,6 @@ definitions:
         script:
           - source base-variables.yaml
           - source .bitbucket/envs.yaml
-          - >-
-            if [ "${git_submodules_enabled}" == "true" ]; then
-              sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
-              git submodule update --init --recursive --remote    
-            fi
           - echo $shamanops_customer_token | docker login registry.shamanops.com -u $shamanops_customer_id --password-stdin
           - >-
             if ["$db_versioning_enabled" == "true" && "$environments" != "mid" && "$environments" != "minimal"]; then
@@ -263,11 +223,6 @@ definitions:
         script: 
           - source base-variables.yaml
           - source .bitbucket/envs.yaml
-          - >-
-            if [ "${git_submodules_enabled}" == "true" ]; then
-              sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
-              git submodule update --init --recursive --remote    
-            fi
           - echo $shamanops_customer_token | docker login registry.shamanops.com -u $shamanops_customer_id --password-stdin
           - >-
             if [ "$environments" != "mid" && "$environments" != "minimal"]; then
@@ -291,11 +246,6 @@ definitions:
         script: 
           - source base-variables.yaml
           - source .bitbucket/envs.yaml
-          - >-
-            if [ "${git_submodules_enabled}" == "true" ]; then
-              sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
-              git submodule update --init --recursive --remote    
-            fi
           - echo $shamanops_customer_token | docker login registry.shamanops.com -u $shamanops_customer_id --password-stdin
           - >-
             if [ "$shamanopsDynamicEnvsEnabled" == "true" && "$environments" != "minimal"]; then
@@ -319,11 +269,6 @@ definitions:
         script: 
           - source base-variables.yaml
           - source .bitbucket/envs.yaml
-          - >-
-            if [ "${git_submodules_enabled}" == "true" ]; then
-              sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
-              git submodule update --init --recursive --remote    
-            fi
           - echo $shamanops_customer_token | docker login registry.shamanops.com -u $shamanops_customer_id --password-stdin
           - >-
             if [ "$shamanopsApprovalsStg" == "true" && "$environments" != "minimal" ]; then
@@ -347,11 +292,6 @@ definitions:
         script: 
           - source base-variables.yaml
           - source .bitbucket/envs.yaml
-          - >-
-            if [ "${git_submodules_enabled}" == "true" ]; then
-              sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
-              git submodule update --init --recursive --remote    
-            fi
           - echo $shamanops_customer_token | docker login registry.shamanops.com -u $shamanops_customer_id --password-stdin
           - >-
             if [ "$db_versioning_enabled" == "true" && "$environments" != "minimal" ]; then
@@ -375,11 +315,6 @@ definitions:
         script:
           - source base-variables.yaml
           - source .bitbucket/envs.yaml
-          - >-
-            if [ "${git_submodules_enabled}" == "true" ]; then
-              sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
-              git submodule update --init --recursive --remote    
-            fi
           - echo $shamanops_customer_token | docker login registry.shamanops.com -u $shamanops_customer_id --password-stdin
           - >-
             if [ "$environments" != "minimal" ]; then
@@ -403,11 +338,6 @@ definitions:
         script:
           - source base-variables.yaml
           - source .bitbucket/envs.yaml
-          - >-
-            if [ "${git_submodules_enabled}" == "true" ]; then
-              sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
-              git submodule update --init --recursive --remote    
-            fi
           - echo $shamanops_customer_token | docker login registry.shamanops.com -u $shamanops_customer_id --password-stdin
           - >-
             if [ "${functional_analysis_enabled}" == "true" && "${environments}" != "minimal" ]; then 
@@ -442,11 +372,6 @@ definitions:
         script:
           - source base-variables.yaml
           - source .bitbucket/envs.yaml
-          - >-
-            if [ "${git_submodules_enabled}" == "true" ]; then
-              sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
-              git submodule update --init --recursive --remote    
-            fi
           - echo $shamanops_customer_token | docker login registry.shamanops.com -u $shamanops_customer_id --password-stdin
           - >-
             if [ "${stress_check_enabled}" == "true" && "${environments}" != "minimal" ]; then 
@@ -481,11 +406,6 @@ definitions:
         script:
           - source base-variables.yaml
           - source .bitbucket/envs.yaml
-          - >-
-            if [ "${git_submodules_enabled}" == "true" ]; then
-              sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
-              git submodule update --init --recursive --remote    
-            fi
           - echo $shamanops_customer_token | docker login registry.shamanops.com -u $shamanops_customer_id --password-stdin
           - >-
             if [ "$shamanopsApprovalsProd" == "true" && "${environments}" != "pre" ]; then
@@ -509,11 +429,6 @@ definitions:
         script:
           - source base-variables.yaml
           - source .bitbucket/envs.yaml
-          - >-
-            if [ "${git_submodules_enabled}" == "true" ]; then
-              sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
-              git submodule update --init --recursive --remote    
-            fi
           - echo $shamanops_customer_token | docker login registry.shamanops.com -u $shamanops_customer_id --password-stdin
           - >-
             if [ "$db_versioning_enabled" == "true" && "${environments}" != "pre" ]; then
@@ -537,11 +452,6 @@ definitions:
         script:
           - source base-variables.yaml
           - source .bitbucket/envs.yaml
-          - >-
-            if [ "${git_submodules_enabled}" == "true" ]; then
-              sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
-              git submodule update --init --recursive --remote    
-            fi
           - echo $shamanops_customer_token | docker login registry.shamanops.com -u $shamanops_customer_id --password-stdin
           - >-
             if [ "${environments}" != "pre" ]; then
@@ -565,11 +475,6 @@ definitions:
         script:
           - source base-variables.yaml
           - source .bitbucket/envs.yaml
-          - >-
-            if [ "${git_submodules_enabled}" == "true" ]; then
-              sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
-              git submodule update --init --recursive --remote    
-            fi
           - echo $shamanops_customer_token | docker login registry.shamanops.com -u $shamanops_customer_id --password-stdin
           - >-
             if [ "$environments" == "full-with-drp" ]; then
