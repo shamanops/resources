@@ -50,7 +50,7 @@ definitions:
           - source .bitbucket/envs.yaml
           - echo $shamanops_customer_token | docker login registry.shamanops.com -u $shamanops_customer_id --password-stdin
           - >-
-            if ["${repository_metrics_enabled}" == "true"]; then
+            if [[ "${repository_metrics_enabled}" == "true" ]]; then
               docker run --quiet --user root --privileged -v $(pwd):/home/runner \
                 -e appName=$appName \
                 -e customerURI=$customerURI \
