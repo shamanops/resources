@@ -15,7 +15,10 @@ definitions:
           - source .bitbucket/envs.yaml
           - >-
             if [ "${git_submodules_enabled}" == "true" ]; then
-              git submodule update --init --recursive
+              envsubst < .gitmodules > .gitmodules.new
+              mv .gitmodules .gitmodules.original
+              mv .gitmodules.new .gitmodules
+              git submodule update --init --recursive --remote              
             fi
         artifacts:
           - base-variables.yaml
@@ -56,7 +59,7 @@ definitions:
                 -e repoUrl=$repoUrl \
                 -e pipelineId=$pipelineId \
                 -e jobUrl=$jobUrl \
-                --env-file base-variables.yaml --env-file <(cat .bitbucket/envs.yaml | tr -d "\"") --env-file <(env | grep shamanops) \
+                --env-file base-variables.yaml --env-file <(sed "s/[\'\"]//g" ".bitbucket/envs.yaml" | grep -v "#") --env-file <(env | grep shamanops) \
                 registry.shamanops.com/runner/fedora:stable -c "shamanops repository-metrics"
             else
               echo "This step has been skipped due to conditionals!" && exit 0;
@@ -78,7 +81,7 @@ definitions:
               -e repoUrl=$repoUrl \
               -e pipelineId=$pipelineId \
               -e jobUrl=$jobUrl \
-              --env-file base-variables.yaml --env-file <(cat .bitbucket/envs.yaml | tr -d "\"") --env-file <(env | grep shamanops) \
+              --env-file base-variables.yaml --env-file <(sed "s/[\'\"]//g" ".bitbucket/envs.yaml" | grep -v "#") --env-file <(env | grep shamanops) \
               registry.shamanops.com/runner/fedora:stable -c "shamanops image-build"
         services:
           - docker
@@ -97,7 +100,7 @@ definitions:
               -e repoUrl=$repoUrl \
               -e pipelineId=$pipelineId \
               -e jobUrl=$jobUrl \
-              --env-file base-variables.yaml --env-file <(cat .bitbucket/envs.yaml | tr -d "\"") --env-file <(env | grep shamanops) \
+              --env-file base-variables.yaml --env-file <(sed "s/[\'\"]//g" ".bitbucket/envs.yaml" | grep -v "#") --env-file <(env | grep shamanops) \
               registry.shamanops.com/runner/fedora:stable -c "shamanops image-check"
         services:
           - docker
@@ -118,7 +121,7 @@ definitions:
                   -e repoUrl=$repoUrl \
                   -e pipelineId=$pipelineId \
                   -e jobUrl=$jobUrl \
-                  --env-file base-variables.yaml --env-file <(cat .bitbucket/envs.yaml | tr -d "\"") --env-file <(env | grep shamanops) \
+                  --env-file base-variables.yaml --env-file <(sed "s/[\'\"]//g" ".bitbucket/envs.yaml" | grep -v "#") --env-file <(env | grep shamanops) \
                   registry.shamanops.com/runner/fedora:stable -c "shamanops security-check"
               else
                 docker run --user root --privileged -v $(pwd):/home/runner \
@@ -127,7 +130,7 @@ definitions:
                   -e repoUrl=$repoUrl \
                   -e pipelineId=$pipelineId \
                   -e jobUrl=$jobUrl \
-                  --env-file base-variables.yaml --env-file <(cat .bitbucket/envs.yaml | tr -d "\"") --env-file <(env | grep shamanops) \
+                  --env-file base-variables.yaml --env-file <(sed "s/[\'\"]//g" ".bitbucket/envs.yaml" | grep -v "#") --env-file <(env | grep shamanops) \
                   registry.shamanops.com/runner/fedora:stable -c "shamanops security-check || true"
               fi
             else
@@ -152,7 +155,7 @@ definitions:
                   -e repoUrl=$repoUrl \
                   -e pipelineId=$pipelineId \
                   -e jobUrl=$jobUrl \
-                  --env-file base-variables.yaml --env-file <(cat .bitbucket/envs.yaml | tr -d "\"") --env-file <(env | grep shamanops) \
+                  --env-file base-variables.yaml --env-file <(sed "s/[\'\"]//g" ".bitbucket/envs.yaml" | grep -v "#") --env-file <(env | grep shamanops) \
                   registry.shamanops.com/runner/fedora:stable -c "shamanops sast-check"
               else
                 docker run --user root --privileged -v $(pwd):/home/runner \
@@ -161,7 +164,7 @@ definitions:
                   -e repoUrl=$repoUrl \
                   -e pipelineId=$pipelineId \
                   -e jobUrl=$jobUrl \
-                  --env-file base-variables.yaml --env-file <(cat .bitbucket/envs.yaml | tr -d "\"") --env-file <(env | grep shamanops) \
+                  --env-file base-variables.yaml --env-file <(sed "s/[\'\"]//g" ".bitbucket/envs.yaml" | grep -v "#") --env-file <(env | grep shamanops) \
                   registry.shamanops.com/runner/fedora:stable -c "shamanops sast-check || true"
               fi
             else
@@ -185,7 +188,7 @@ definitions:
                 -e repoUrl=$repoUrl \
                 -e pipelineId=$pipelineId \
                 -e jobUrl=$jobUrl \
-                --env-file base-variables.yaml --env-file <(cat .bitbucket/envs.yaml | tr -d "\"") --env-file <(env | grep shamanops) \
+                --env-file base-variables.yaml --env-file <(sed "s/[\'\"]//g" ".bitbucket/envs.yaml" | grep -v "#") --env-file <(env | grep shamanops) \
                 registry.shamanops.com/runner/fedora:stable -c "shamanops approvals dev"
             else
               echo "This step has been skipped due to conditionals!" && exit 0;
@@ -208,7 +211,7 @@ definitions:
                 -e repoUrl=$repoUrl \
                 -e pipelineId=$pipelineId \
                 -e jobUrl=$jobUrl \
-                --env-file base-variables.yaml --env-file <(cat .bitbucket/envs.yaml | tr -d "\"") --env-file <(env | grep shamanops) \
+                --env-file base-variables.yaml --env-file <(sed "s/[\'\"]//g" ".bitbucket/envs.yaml" | grep -v "#") --env-file <(env | grep shamanops) \
                 registry.shamanops.com/runner/fedora:stable -c "shamanops db-versioning dev"
             else
               echo "This step has been skipped due to conditionals!" && exit 0;
@@ -231,7 +234,7 @@ definitions:
                 -e repoUrl=$repoUrl \
                 -e pipelineId=$pipelineId \
                 -e jobUrl=$jobUrl \
-                --env-file base-variables.yaml --env-file <(cat .bitbucket/envs.yaml | tr -d "\"") --env-file <(env | grep shamanops) \
+                --env-file base-variables.yaml --env-file <(sed "s/[\'\"]//g" ".bitbucket/envs.yaml" | grep -v "#") --env-file <(env | grep shamanops) \
                 registry.shamanops.com/runner/fedora:stable -c "shamanops app-create-and-deploy dev"
             else
               echo "This step has been skipped due to conditionals!" && exit 0;
@@ -254,7 +257,7 @@ definitions:
                 -e repoUrl=$repoUrl \
                 -e pipelineId=$pipelineId \
                 -e jobUrl=$jobUrl \
-                --env-file base-variables.yaml --env-file <(cat .bitbucket/envs.yaml | tr -d "\"") --env-file <(env | grep shamanops) \
+                --env-file base-variables.yaml --env-file <(sed "s/[\'\"]//g" ".bitbucket/envs.yaml" | grep -v "#") --env-file <(env | grep shamanops) \
                 registry.shamanops.com/runner/fedora:stable -c "shamanops dynamic-envs"
             else
               echo "This step has been skipped due to conditionals!" && exit 0;
@@ -277,7 +280,7 @@ definitions:
                 -e repoUrl=$repoUrl \
                 -e pipelineId=$pipelineId \
                 -e jobUrl=$jobUrl \
-                --env-file base-variables.yaml --env-file <(cat .bitbucket/envs.yaml | tr -d "\"") --env-file <(env | grep shamanops) \
+                --env-file base-variables.yaml --env-file <(sed "s/[\'\"]//g" ".bitbucket/envs.yaml" | grep -v "#") --env-file <(env | grep shamanops) \
                registry.shamanops.com/runner/fedora:stable -c "shamanops approvals stg"
             else
               echo "This step has been skipped due to conditionals!" && exit 0;
@@ -300,7 +303,7 @@ definitions:
                 -e repoUrl=$repoUrl \
                 -e pipelineId=$pipelineId \
                 -e jobUrl=$jobUrl \
-                --env-file base-variables.yaml --env-file <(cat .bitbucket/envs.yaml | tr -d "\"") --env-file <(env | grep shamanops) \
+                --env-file base-variables.yaml --env-file <(sed "s/[\'\"]//g" ".bitbucket/envs.yaml" | grep -v "#") --env-file <(env | grep shamanops) \
                 registry.shamanops.com/runner/fedora:stable -c "shamanops db-versioning stg"
             else
               echo "This step has been skipped due to conditionals!" && exit 0;
@@ -323,7 +326,7 @@ definitions:
                 -e repoUrl=$repoUrl \
                 -e pipelineId=$pipelineId \
                 -e jobUrl=$jobUrl \
-                --env-file base-variables.yaml --env-file <(cat .bitbucket/envs.yaml | tr -d "\"") --env-file <(env | grep shamanops) \
+                --env-file base-variables.yaml --env-file <(sed "s/[\'\"]//g" ".bitbucket/envs.yaml" | grep -v "#") --env-file <(env | grep shamanops) \
                 registry.shamanops.com/runner/fedora:stable -c "shamanops app-create-and-deploy stg"
             else
               echo "This step has been skipped due to conditionals!" && exit 0;
@@ -347,7 +350,7 @@ definitions:
                   -e repoUrl=$repoUrl \
                   -e pipelineId=$pipelineId \
                   -e jobUrl=$jobUrl \
-                  --env-file base-variables.yaml --env-file <(cat .bitbucket/envs.yaml | tr -d "\"") --env-file <(env | grep shamanops) \
+                  --env-file base-variables.yaml --env-file <(sed "s/[\'\"]//g" ".bitbucket/envs.yaml" | grep -v "#") --env-file <(env | grep shamanops) \
                   registry.shamanops.com/runner/fedora:stable -c "shamanops functional-check"
               else
                 docker run --user root --privileged -v $(pwd):/home/runner \
@@ -356,7 +359,7 @@ definitions:
                   -e repoUrl=$repoUrl \
                   -e pipelineId=$pipelineId \
                   -e jobUrl=$jobUrl \
-                  --env-file base-variables.yaml --env-file <(cat .bitbucket/envs.yaml | tr -d "\"") --env-file <(env | grep shamanops) \
+                  --env-file base-variables.yaml --env-file <(sed "s/[\'\"]//g" ".bitbucket/envs.yaml" | grep -v "#") --env-file <(env | grep shamanops) \
                   registry.shamanops.com/runner/fedora:stable -c "shamanops functional-check || true"
                fi
             else
@@ -381,7 +384,7 @@ definitions:
                   -e repoUrl=$repoUrl \
                   -e pipelineId=$pipelineId \
                   -e jobUrl=$jobUrl \
-                  --env-file base-variables.yaml --env-file <(cat .bitbucket/envs.yaml | tr -d "\"") --env-file <(env | grep shamanops) \
+                  --env-file base-variables.yaml --env-file <(sed "s/[\'\"]//g" ".bitbucket/envs.yaml" | grep -v "#") --env-file <(env | grep shamanops) \
                   registry.shamanops.com/runner/fedora:stable -c "shamanops stress-check"
               else
                 docker run --user root --privileged -v $(pwd):/home/runner \
@@ -390,7 +393,7 @@ definitions:
                   -e repoUrl=$repoUrl \
                   -e pipelineId=$pipelineId \
                   -e jobUrl=$jobUrl \
-                  --env-file base-variables.yaml --env-file <(cat .bitbucket/envs.yaml | tr -d "\"") --env-file <(env | grep shamanops) \
+                  --env-file base-variables.yaml --env-file <(sed "s/[\'\"]//g" ".bitbucket/envs.yaml" | grep -v "#") --env-file <(env | grep shamanops) \
                   registry.shamanops.com/runner/fedora:stable -c "shamanops stress-check || true"
                fi
             else
@@ -414,7 +417,7 @@ definitions:
                 -e repoUrl=$repoUrl \
                 -e pipelineId=$pipelineId \
                 -e jobUrl=$jobUrl \
-                --env-file base-variables.yaml --env-file <(cat .bitbucket/envs.yaml | tr -d "\"") --env-file <(env | grep shamanops) \
+                --env-file base-variables.yaml --env-file <(sed "s/[\'\"]//g" ".bitbucket/envs.yaml" | grep -v "#") --env-file <(env | grep shamanops) \
                 registry.shamanops.com/runner/fedora:stable -c "shamanops approvals prod"
             else
               echo "This step has been skipped due to conditionals!" && exit 0;
@@ -437,7 +440,7 @@ definitions:
                 -e repoUrl=$repoUrl \
                 -e pipelineId=$pipelineId \
                 -e jobUrl=$jobUrl \
-                --env-file base-variables.yaml --env-file <(cat .bitbucket/envs.yaml | tr -d "\"") --env-file <(env | grep shamanops) \
+                --env-file base-variables.yaml --env-file <(sed "s/[\'\"]//g" ".bitbucket/envs.yaml" | grep -v "#") --env-file <(env | grep shamanops) \
                 registry.shamanops.com/runner/fedora:stable -c "shamanops db-versioning prod"
             else
               echo "This step has been skipped due to conditionals!" && exit 0;
@@ -460,7 +463,7 @@ definitions:
                 -e repoUrl=$repoUrl \
                 -e pipelineId=$pipelineId \
                 -e jobUrl=$jobUrl \
-                --env-file base-variables.yaml --env-file <(cat .bitbucket/envs.yaml | tr -d "\"") --env-file <(env | grep shamanops) \
+                --env-file base-variables.yaml --env-file <(sed "s/[\'\"]//g" ".bitbucket/envs.yaml" | grep -v "#") --env-file <(env | grep shamanops) \
                 registry.shamanops.com/runner/fedora:stable -c "shamanops app-create-and-deploy prod"
             else
               echo "This step has been skipped due to conditionals!" && exit 0;
@@ -483,7 +486,7 @@ definitions:
                 -e repoUrl=$repoUrl \
                 -e pipelineId=$pipelineId \
                 -e jobUrl=$jobUrl \
-                --env-file base-variables.yaml --env-file <(cat .bitbucket/envs.yaml | tr -d "\"") --env-file <(env | grep shamanops) \
+                --env-file base-variables.yaml --env-file <(sed "s/[\'\"]//g" ".bitbucket/envs.yaml" | grep -v "#") --env-file <(env | grep shamanops) \
                 registry.shamanops.com/runner/fedora:stable -c "shamanops app-create-and-deploy drp"
             else
               echo "This step has been skipped due to conditionals!" && exit 0;
