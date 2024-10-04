@@ -117,6 +117,11 @@ repository-check:
   stage: requirements
   rules:
     - when: always
+  before_script: |
+    if [ "${git_submodules_enabled}" == "true" ]; then
+      sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
+      git submodule update --init --recursive --remote    
+    fi
   script:
     - shamanops repository-check
 repository-metrics:
