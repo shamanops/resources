@@ -133,6 +133,12 @@ repository-metrics:
     - if: $repository_metrics_enabled == 'true'
       when: on_success
       allow_failure: true
+  before_script: |
+    if [ "${git_submodules_enabled}" == "true" ]; then
+      git config --global --add safe.directory /builds/${projectName}/${appName}
+      sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
+      git submodule update --init --recursive --remote    
+    fi 
   script:
     - shamanops repository-metrics
 # ------------------------------------------------------------------------------
@@ -141,6 +147,12 @@ image-build-and-push:
   tags:
     - $runs_on
   stage: build
+  before_script: |
+    if [ "${git_submodules_enabled}" == "true" ]; then
+      git config --global --add safe.directory /builds/${projectName}/${appName}
+      sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
+      git submodule update --init --recursive --remote    
+    fi 
   script:
     - shamanops image-build
   needs: ["repository-check"]
@@ -148,6 +160,12 @@ image-check:
   tags:
     - $runs_on
   stage: build
+  before_script: |
+    if [ "${git_submodules_enabled}" == "true" ]; then
+      git config --global --add safe.directory /builds/${projectName}/${appName}
+      sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
+      git submodule update --init --recursive --remote    
+    fi 
   script:
     - shamanops image-check
   needs: ["repository-check", "image-build-and-push"]
@@ -166,6 +184,12 @@ security_check:
       when: on_success
       allow_failure: true
     - when: never
+  before_script: |
+    if [ "${git_submodules_enabled}" == "true" ]; then
+      git config --global --add safe.directory /builds/${projectName}/${appName}
+      sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
+      git submodule update --init --recursive --remote    
+    fi 
   script:
     - shamanops security-check
 sast_check:
@@ -181,6 +205,12 @@ sast_check:
       when: on_success
       allow_failure: true
     - when: never
+  before_script: |
+    if [ "${git_submodules_enabled}" == "true" ]; then
+      git config --global --add safe.directory /builds/${projectName}/${appName}
+      sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
+      git submodule update --init --recursive --remote    
+    fi 
   script:
     - shamanops sast-check
 # ------------------------------------------------------------------------------
@@ -201,6 +231,12 @@ approvals-dev:
       when: on_success
       allow_failure: false
     - when: never
+  before_script: |
+    if [ "${git_submodules_enabled}" == "true" ]; then
+      git config --global --add safe.directory /builds/${projectName}/${appName}
+      sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
+      git submodule update --init --recursive --remote    
+    fi 
   script:
     - shamanops approvals dev
 db-versioning-dev:
@@ -221,6 +257,12 @@ db-versioning-dev:
       when: on_success
       allow_failure: false
     - when: never
+  before_script: |
+    if [ "${git_submodules_enabled}" == "true" ]; then
+      git config --global --add safe.directory /builds/${projectName}/${appName}
+      sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
+      git submodule update --init --recursive --remote    
+    fi 
   script:
     - shamanops db-versioning dev
 pre-jobs-dev:
@@ -246,6 +288,12 @@ pre-jobs-dev:
       when: on_success
       allow_failure: true
     - when: never
+  before_script: |
+    if [ "${git_submodules_enabled}" == "true" ]; then
+      git config --global --add safe.directory /builds/${projectName}/${appName}
+      sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
+      git submodule update --init --recursive --remote    
+    fi 
   script:
     - shamanops pre-job dev
 app-create-and-deploy-dev:
@@ -266,6 +314,12 @@ app-create-and-deploy-dev:
       when: on_success
       allow_failure: false
     - when: never
+  before_script: |
+    if [ "${git_submodules_enabled}" == "true" ]; then
+      git config --global --add safe.directory /builds/${projectName}/${appName}
+      sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
+      git submodule update --init --recursive --remote    
+    fi 
   script:
     - shamanops app-create-and-deploy dev
 # Deploy - DYNAMIC environment #############################################
@@ -289,6 +343,12 @@ app-create-and-deploy-dynamic-envs:
       when: on_success
       allow_failure: false
     - when: never
+  before_script: |
+    if [ "${git_submodules_enabled}" == "true" ]; then
+      git config --global --add safe.directory /builds/${projectName}/${appName}
+      sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
+      git submodule update --init --recursive --remote    
+    fi 
   script:
     - shamanops dynamic-envs
 # ------------------------------------------------------------------------------
@@ -315,6 +375,12 @@ approvals-stg:
       when: on_success
       allow_failure: false
     - when: never
+  before_script: |
+    if [ "${git_submodules_enabled}" == "true" ]; then
+      git config --global --add safe.directory /builds/${projectName}/${appName}
+      sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
+      git submodule update --init --recursive --remote    
+    fi 
   script:
     - shamanops approvals stg
 db-versioning-stg:
@@ -341,6 +407,12 @@ db-versioning-stg:
       when: on_success
       allow_failure: false
     - when: never
+  before_script: |
+    if [ "${git_submodules_enabled}" == "true" ]; then
+      git config --global --add safe.directory /builds/${projectName}/${appName}
+      sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
+      git submodule update --init --recursive --remote    
+    fi 
   script:
     - shamanops db-versioning stg
 pre-jobs-stg:
@@ -372,6 +444,12 @@ pre-jobs-stg:
       when: on_success
       allow_failure: true
     - when: never
+  before_script: |
+    if [ "${git_submodules_enabled}" == "true" ]; then
+      git config --global --add safe.directory /builds/${projectName}/${appName}
+      sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
+      git submodule update --init --recursive --remote    
+    fi 
   script:
     - shamanops pre-job stg
 app-create-and-deploy-stg:
@@ -402,6 +480,12 @@ app-create-and-deploy-stg:
       when: on_success
       allow_failure: false
     - when: never
+  before_script: |
+    if [ "${git_submodules_enabled}" == "true" ]; then
+      git config --global --add safe.directory /builds/${projectName}/${appName}
+      sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
+      git submodule update --init --recursive --remote    
+    fi 
   script:
     - shamanops app-create-and-deploy stg
 # ------------------------------------------------------------------------------
@@ -419,6 +503,12 @@ functional_analysis:
       when: on_success
       allow_failure: true
     - when: never
+  before_script: |
+    if [ "${git_submodules_enabled}" == "true" ]; then
+      git config --global --add safe.directory /builds/${projectName}/${appName}
+      sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
+      git submodule update --init --recursive --remote    
+    fi 
   script:
     - shamanops functional-check
 stress_test:
@@ -438,6 +528,12 @@ stress_test:
       when: on_success
       allow_failure: true
     - when: never
+  before_script: |
+    if [ "${git_submodules_enabled}" == "true" ]; then
+      git config --global --add safe.directory /builds/${projectName}/${appName}
+      sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
+      git submodule update --init --recursive --remote    
+    fi 
   script:
     - shamanops stress-check
 approvals-prod:
@@ -474,6 +570,12 @@ approvals-prod:
       when: on_success
       allow_failure: false
     - when: never
+  before_script: |
+    if [ "${git_submodules_enabled}" == "true" ]; then
+      git config --global --add safe.directory /builds/${projectName}/${appName}
+      sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
+      git submodule update --init --recursive --remote    
+    fi 
   script:
     - shamanops approvals prod
 db-versioning-prod:
@@ -512,6 +614,12 @@ db-versioning-prod:
       when: on_success
       allow_failure: false
     - when: never
+  before_script: |
+    if [ "${git_submodules_enabled}" == "true" ]; then
+      git config --global --add safe.directory /builds/${projectName}/${appName}
+      sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
+      git submodule update --init --recursive --remote    
+    fi 
   script:
     - shamanops db-versioning prod
 pre-jobs-prod:
@@ -555,6 +663,12 @@ pre-jobs-prod:
       when: on_success
       allow_failure: true
     - when: never
+  before_script: |
+    if [ "${git_submodules_enabled}" == "true" ]; then
+      git config --global --add safe.directory /builds/${projectName}/${appName}
+      sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
+      git submodule update --init --recursive --remote    
+    fi 
   script:
     - shamanops pre-job prod
 app-create-and-deploy-prod:
@@ -596,6 +710,12 @@ app-create-and-deploy-prod:
     - if: $environments != 'pre'
       when: on_success
       allow_failure: false
+  before_script: |
+    if [ "${git_submodules_enabled}" == "true" ]; then
+      git config --global --add safe.directory /builds/${projectName}/${appName}
+      sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
+      git submodule update --init --recursive --remote    
+    fi 
   script:
     - shamanops app-create-and-deploy prod
 app-create-and-deploy-drp:
@@ -608,6 +728,12 @@ app-create-and-deploy-drp:
       when: on_success
       allow_failure: false
     - when: never
+  before_script: |
+    if [ "${git_submodules_enabled}" == "true" ]; then
+      git config --global --add safe.directory /builds/${projectName}/${appName}
+      sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
+      git submodule update --init --recursive --remote    
+    fi 
   script:
     - shamanops app-create-and-deploy drp
 ################################################################################
