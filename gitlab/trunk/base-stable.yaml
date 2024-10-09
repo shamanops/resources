@@ -107,6 +107,8 @@ variables:
   # Pre-deploy Jobs
   pre_jobs_enabled: 'false'
   pre_jobs_blocker: 'false'
+  # Secrets in Code
+  secrets_in_code_blocker: 'false'
 ################################################################################
 # Stages
 # ------------------------------------------------------------------------------
