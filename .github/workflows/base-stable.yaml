@@ -238,6 +238,10 @@ on:
       pre_jobs_blocker:
         type: string
         default: 'false'
+      # Secrets in Code
+      secrets_in_code_blocker:
+        type: string
+        default: 'false'
     # Secrets
     secrets:
       shamanops_customer_token:
@@ -334,6 +338,7 @@ env:
   shamanopsTechnicalApproversMinimalDynamicEnvs: ${{inputs.shamanopsTechnicalApproversMinimalDynamicEnvs}}
   shamanopsBusinessApproversMinimalDynamicEnvs: ${{inputs.shamanopsBusinessApproversMinimalDynamicEnvs}}
   shamanopsApprovalsDynamicEnvs: ${{inputs.shamanopsApprovalsDynamicEnvs}}
+  secrets_in_code_blocker: ${{inputs.secrets_in_code_blocker}}
 # Global side
   shamanops_argocd_dev_url: ${{vars.shamanops_argocd_dev_url}}
   shamanops_argocd_dev_user: ${{vars.shamanops_argocd_dev_user}}
