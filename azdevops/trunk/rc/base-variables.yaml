@@ -82,3 +82,5 @@ variables:
   shamanopsTechnicalApproversMinimalDynamicEnvs: '1'
   shamanopsBusinessApproversMinimalDynamicEnvs: '1'
   shamanopsApprovalsDynamicEnvs: 'false'
+  # Secrets in Code
+  secrets_in_code_blocker: 'false'
