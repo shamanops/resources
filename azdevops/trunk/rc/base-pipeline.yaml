@@ -159,6 +159,7 @@ stages:
           approvals_timeout=$(approvals_timeout)
           code_language_detection_enabled=$(code_language_detection_enabled)
           log_level=$(log_level)
+          secrets_in_code_blocker=$(secrets_in_code_blocker)
           shamanops_customer_id=$(shamanops_customer_id)
           shamanops_customer_token=$(shamanops_customer_token)
           shamanops_argocd_dev_url=$(shamanops_argocd_dev_url)
