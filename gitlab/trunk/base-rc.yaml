@@ -1,5 +1,5 @@
 ################################################################################
-## ShamanOps Base Pipeline | Github Actions | Runner RC ########################
+## ShamanOps Base Pipeline | Gitlab CI | Runner RC #############################
 ################################################################################
 ##
 image: 
@@ -121,7 +121,7 @@ repository-check:
     - when: always
   before_script: |
     if [ "${git_submodules_enabled}" == "true" ]; then
-      git config --global --add safe.directory /builds/${projectName}/${appName}
+      git config --global --add safe.directory "/builds/*"
       sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
       git submodule update --init --recursive --remote    
     fi
@@ -137,7 +137,7 @@ repository-metrics:
       allow_failure: true
   before_script: |
     if [ "${git_submodules_enabled}" == "true" ]; then
-      git config --global --add safe.directory /builds/${projectName}/${appName}
+      git config --global --add safe.directory "/builds/*"
       sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
       git submodule update --init --recursive --remote    
     fi 
@@ -151,7 +151,7 @@ image-build-and-push:
   stage: build
   before_script: |
     if [ "${git_submodules_enabled}" == "true" ]; then
-      git config --global --add safe.directory /builds/${projectName}/${appName}
+      git config --global --add safe.directory "/builds/*"
       sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
       git submodule update --init --recursive --remote    
     fi 
@@ -164,7 +164,7 @@ image-check:
   stage: build
   before_script: |
     if [ "${git_submodules_enabled}" == "true" ]; then
-      git config --global --add safe.directory /builds/${projectName}/${appName}
+      git config --global --add safe.directory "/builds/*"
       sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
       git submodule update --init --recursive --remote    
     fi 
@@ -188,7 +188,7 @@ security_check:
     - when: never
   before_script: |
     if [ "${git_submodules_enabled}" == "true" ]; then
-      git config --global --add safe.directory /builds/${projectName}/${appName}
+      git config --global --add safe.directory "/builds/*"
       sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
       git submodule update --init --recursive --remote    
     fi 
@@ -209,7 +209,7 @@ sast_check:
     - when: never
   before_script: |
     if [ "${git_submodules_enabled}" == "true" ]; then
-      git config --global --add safe.directory /builds/${projectName}/${appName}
+      git config --global --add safe.directory "/builds/*"
       sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
       git submodule update --init --recursive --remote    
     fi 
@@ -235,7 +235,7 @@ approvals-dev:
     - when: never
   before_script: |
     if [ "${git_submodules_enabled}" == "true" ]; then
-      git config --global --add safe.directory /builds/${projectName}/${appName}
+      git config --global --add safe.directory "/builds/*"
       sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
       git submodule update --init --recursive --remote    
     fi 
@@ -261,7 +261,7 @@ db-versioning-dev:
     - when: never
   before_script: |
     if [ "${git_submodules_enabled}" == "true" ]; then
-      git config --global --add safe.directory /builds/${projectName}/${appName}
+      git config --global --add safe.directory "/builds/*"
       sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
       git submodule update --init --recursive --remote    
     fi 
@@ -292,7 +292,7 @@ pre-jobs-dev:
     - when: never
   before_script: |
     if [ "${git_submodules_enabled}" == "true" ]; then
-      git config --global --add safe.directory /builds/${projectName}/${appName}
+      git config --global --add safe.directory "/builds/*"
       sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
       git submodule update --init --recursive --remote    
     fi 
@@ -318,7 +318,7 @@ app-create-and-deploy-dev:
     - when: never
   before_script: |
     if [ "${git_submodules_enabled}" == "true" ]; then
-      git config --global --add safe.directory /builds/${projectName}/${appName}
+      git config --global --add safe.directory "/builds/*"
       sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
       git submodule update --init --recursive --remote    
     fi 
@@ -347,7 +347,7 @@ app-create-and-deploy-dynamic-envs:
     - when: never
   before_script: |
     if [ "${git_submodules_enabled}" == "true" ]; then
-      git config --global --add safe.directory /builds/${projectName}/${appName}
+      git config --global --add safe.directory "/builds/*"
       sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
       git submodule update --init --recursive --remote    
     fi 
@@ -379,7 +379,7 @@ approvals-stg:
     - when: never
   before_script: |
     if [ "${git_submodules_enabled}" == "true" ]; then
-      git config --global --add safe.directory /builds/${projectName}/${appName}
+      git config --global --add safe.directory "/builds/*"
       sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
       git submodule update --init --recursive --remote    
     fi 
@@ -411,7 +411,7 @@ db-versioning-stg:
     - when: never
   before_script: |
     if [ "${git_submodules_enabled}" == "true" ]; then
-      git config --global --add safe.directory /builds/${projectName}/${appName}
+      git config --global --add safe.directory "/builds/*"
       sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
       git submodule update --init --recursive --remote    
     fi 
@@ -448,7 +448,7 @@ pre-jobs-stg:
     - when: never
   before_script: |
     if [ "${git_submodules_enabled}" == "true" ]; then
-      git config --global --add safe.directory /builds/${projectName}/${appName}
+      git config --global --add safe.directory "/builds/*"
       sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
       git submodule update --init --recursive --remote    
     fi 
@@ -484,7 +484,7 @@ app-create-and-deploy-stg:
     - when: never
   before_script: |
     if [ "${git_submodules_enabled}" == "true" ]; then
-      git config --global --add safe.directory /builds/${projectName}/${appName}
+      git config --global --add safe.directory "/builds/*"
       sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
       git submodule update --init --recursive --remote    
     fi 
@@ -507,7 +507,7 @@ functional_analysis:
     - when: never
   before_script: |
     if [ "${git_submodules_enabled}" == "true" ]; then
-      git config --global --add safe.directory /builds/${projectName}/${appName}
+      git config --global --add safe.directory "/builds/*"
       sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
       git submodule update --init --recursive --remote    
     fi 
@@ -532,7 +532,7 @@ stress_test:
     - when: never
   before_script: |
     if [ "${git_submodules_enabled}" == "true" ]; then
-      git config --global --add safe.directory /builds/${projectName}/${appName}
+      git config --global --add safe.directory "/builds/*"
       sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
       git submodule update --init --recursive --remote    
     fi 
@@ -574,7 +574,7 @@ approvals-prod:
     - when: never
   before_script: |
     if [ "${git_submodules_enabled}" == "true" ]; then
-      git config --global --add safe.directory /builds/${projectName}/${appName}
+      git config --global --add safe.directory "/builds/*"
       sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
       git submodule update --init --recursive --remote    
     fi 
@@ -618,7 +618,7 @@ db-versioning-prod:
     - when: never
   before_script: |
     if [ "${git_submodules_enabled}" == "true" ]; then
-      git config --global --add safe.directory /builds/${projectName}/${appName}
+      git config --global --add safe.directory "/builds/*"
       sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
       git submodule update --init --recursive --remote    
     fi 
@@ -667,7 +667,7 @@ pre-jobs-prod:
     - when: never
   before_script: |
     if [ "${git_submodules_enabled}" == "true" ]; then
-      git config --global --add safe.directory /builds/${projectName}/${appName}
+      git config --global --add safe.directory "/builds/*"
       sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
       git submodule update --init --recursive --remote    
     fi 
@@ -714,7 +714,7 @@ app-create-and-deploy-prod:
       allow_failure: false
   before_script: |
     if [ "${git_submodules_enabled}" == "true" ]; then
-      git config --global --add safe.directory /builds/${projectName}/${appName}
+      git config --global --add safe.directory "/builds/*"
       sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
       git submodule update --init --recursive --remote    
     fi 
@@ -732,7 +732,7 @@ app-create-and-deploy-drp:
     - when: never
   before_script: |
     if [ "${git_submodules_enabled}" == "true" ]; then
-      git config --global --add safe.directory /builds/${projectName}/${appName}
+      git config --global --add safe.directory "/builds/*"
       sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
       git submodule update --init --recursive --remote    
     fi 
