@@ -200,6 +200,10 @@ on:
       log_level:
         type: string
         default: 'normal'
+      # Tags
+      shamanopsTags:
+        type: string
+        default: ''
       # Application port
       appInternalPort:
         type: string
@@ -316,6 +320,7 @@ env:
   functional_analysis_test_path: ${{inputs.functional_analysis_test_path}}
   functional_analysis_test_timeout: ${{inputs.functional_analysis_test_timeout}}
   log_level: ${{inputs.log_level}}
+  shamanopsTags: ${{inputs.shamanopsTags}}
   appInternalPort: ${{inputs.appInternalPort}}
   git_submodules_enabled: ${{inputs.git_submodules_enabled}}
   repository_metrics_enabled: ${{inputs.repository_metrics_enabled}}
