@@ -2,7 +2,7 @@
 ## ShamanOps Base Pipeline | Github Actions | RC ###############################
 ################################################################################
 ##
-name: shamanops-base-pipeline-rc
+name: shamanops-base-pipeline-stable
 on:
   workflow_call:
     inputs:
@@ -200,6 +200,10 @@ on:
       log_level:
         type: string
         default: 'normal'
+      # Tags
+      shamanopsTags:
+        type: string
+        default: ''
       # Application port
       appInternalPort:
         type: string
@@ -238,7 +242,7 @@ on:
       pre_jobs_blocker:
         type: string
         default: 'false'
-      # Secrets in code
+      # Secrets in Code
       secrets_in_code_blocker:
         type: string
         default: 'false'
@@ -316,6 +320,7 @@ env:
   functional_analysis_test_path: ${{inputs.functional_analysis_test_path}}
   functional_analysis_test_timeout: ${{inputs.functional_analysis_test_timeout}}
   log_level: ${{inputs.log_level}}
+  shamanopsTags: ${{inputs.shamanopsTags}}
   appInternalPort: ${{inputs.appInternalPort}}
   git_submodules_enabled: ${{inputs.git_submodules_enabled}}
   repository_metrics_enabled: ${{inputs.repository_metrics_enabled}}
@@ -946,6 +951,8 @@ jobs:
     if: ${{ always() && !cancelled() &&
           (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true')) &&
           (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true')) &&
+          (!failure() || (needs.image-check.result == 'success' && inputs.functional_analysis_blocker != 'true')) &&
+          (!failure() || (needs.image-check.result == 'success' && inputs.stress_check_blocker != 'true')) &&
           (needs.pre-jobs-dev.result != 'failure' || (needs.image-check.result == 'success' && inputs.pre_jobs_blocker != 'true')) &&
           (needs.pre-jobs-stg.result != 'failure' || (needs.image-check.result == 'success' && inputs.pre_jobs_blocker != 'true')) &&
           (inputs.environments != 'pre' && inputs.pre_jobs_enabled == 'true' && needs.approvals-dev.result != 'failure' && needs.db-versioning-dev.result != 'failure' && needs.app-create-and-deploy-dev.result != 'failure' && needs.app-create-and-deploy-dynamic-envs.result != 'failure' && needs.approvals-stg.result != 'failure' && needs.db-versioning-stg.result != 'failure' && needs.app-create-and-deploy-stg.result != 'failure' && needs.approvals-prod.result != 'failure' && needs.db-versioning-prod != 'failure')
