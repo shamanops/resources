@@ -1,0 +1,98 @@
+################################################################################
+## ShamanOps Base Pretrunk Pipeline | Github Actions | Cloud runner ############
+################################################################################
+##
+name: shamanops-base-pretrunk-pipeline-stable-cloud
+on:
+  workflow_call:
+    inputs:
+      # Project
+      projectName:
+        type: string
+        default: 'default'
+      # Code language Auto-detection
+      code_language_detection_enabled:
+        type: string
+        default: 'false'
+      # Verbosity level
+      log_level:
+        type: string
+        default: 'normal'
+      # Application port
+      appInternalPort:
+        type: string
+        default: '8080'
+      # Days to live
+      appDaysToLive:
+        type: string
+        default: '0'
+    # Secrets
+    secrets:
+      shamanops_customer_token:
+        required: true
+      shamanops_argocd_dev_token:
+        required: true
+      shamanops_manifest_repository_token:
+        required: true
+      shamanops_chat_webhook:
+      shamanops_registry_password:
+        required: true
+      shamanops_dockerfile_token:
+      # For AWS credentials
+      AWS_ACCESS_KEY_ID:
+      AWS_SECRET_ACCESS_KEY:
+      AWS_REGION:
+env:
+# Client side
+  projectName: ${{inputs.projectName}}
+  code_language_detection_enabled: ${{inputs.code_language_detection_enabled}}
+  log_level: ${{inputs.log_level}}
+  appInternalPort: ${{inputs.appInternalPort}}
+  appDaysToLive: ${{inputs.appDaysToLive}}
+# Global side
+  shamanops_argocd_dev_url: ${{vars.shamanops_argocd_dev_url}}
+  shamanops_argocd_dev_user: ${{vars.shamanops_argocd_dev_user}}
+  shamanops_argocd_dev_token: ${{secrets.shamanops_argocd_dev_token}}
+  shamanops_chat_webhook: ${{secrets.shamanops_chat_webhook}}
+  shamanops_registry_name: ${{vars.shamanops_registry_name}}
+  shamanops_registry_url: ${{vars.shamanops_registry_url}}
+  shamanops_registry_user: ${{vars.shamanops_registry_user}}
+  shamanops_registry_password: ${{secrets.shamanops_registry_password}}
+  shamanops_manifest_repository: ${{vars.shamanops_manifest_repository}}
+  shamanops_manifest_repository_user: ${{vars.shamanops_manifest_repository_user}}
+  shamanops_manifest_repository_token: ${{secrets.shamanops_manifest_repository_token}}
+  shamanops_customer_id: ${{vars.shamanops_customer_id}}
+  shamanops_customer_token: ${{secrets.shamanops_customer_token}}
+  shamanops_dockerfile_token: ${{secrets.shamanops_dockerfile_token}}
+  # For AWS credentials
+  AWS_ACCESS_KEY_ID: ${{secrets.AWS_ACCESS_KEY_ID}}
+  AWS_SECRET_ACCESS_KEY: ${{secrets.AWS_SECRET_ACCESS_KEY}}
+  AWS_REGION: ${{secrets.AWS_REGION}}
+# For CI Platform:
+  # Global variables
+  customerName: ${{github.repository_owner}}
+  appName: ${{github.event.repository.name}}
+  repoUrl: ${{github.server_url}}/${{github.repository}}
+  jobUrl: ${{ github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}
+  var2: ${CI_REGISTRY_IMAGE%/*}
+  pipelineId: ${{github.run_id}}
+jobs:
+################################################################################
+# Stages
+# ------------------------------------------------------------------------------
+# Stage 1 - Pretrunk ###########################################################
+  pretrunk:
+    runs-on: ubuntu-latest #self-hosted
+    container:
+      image: registry.shamanops.com/runner/fedora:stable
+      options: -u root --privileged --quiet
+      credentials:
+        username: ${{env.shamanops_customer_id}}
+        password: ${{env.shamanops_customer_token}}
+    steps:
+      - uses: actions/checkout@v4.1.1
+        with:
+          fetch-depth: 0
+      - name: pretrunk
+        run: shamanops pretrunk
+################################################################################
