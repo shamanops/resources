@@ -35,7 +35,7 @@ stages:
         echo "##vso[task.setvariable variable=shamanops_testing_api_url;isOutput=true]$(echo "$(shamanops_testing_api_url)" | tr -d "{}")"
         echo "##vso[task.setvariable variable=shamanops_testing_git_user;isOutput=true]$(echo "$(shamanops_testing_api_user)" | tr -d "{}")"
         # Export secrets
-        echo "##vso[task.setvariable variable=shamanops_customer_token;isOutput=true]$(shamanops-customer-token)"
+        echo "##vso[task.setvariable variable=shamanops_customer_token;isOutput=true;issecret=true]$(shamanops-customer-token)"
         echo "##vso[task.setvariable variable=shamanops_argocd_dev_token;isOutput=true;issecret=true]$(shamanops-argocd-dev-token)"
         echo "##vso[task.setvariable variable=shamanops_argocd_dynenv_token;isOutput=true;issecret=true]$(shamanops-argocd-dynenv-token)"
         echo "##vso[task.setvariable variable=shamanops_argocd_stg_token;isOutput=true;issecret=true]$(shamanops-argocd-stg-token)"
