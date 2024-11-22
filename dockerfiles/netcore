@@ -1,23 +1,17 @@
-# syntax=docker/dockerfile:1
-# Start from the .NET SDK image as building base
-FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
+FROM cgr.dev/chainguard/dotnet-sdk:latest AS build
 
-# Set the Current Working Directory inside the container
+COPY --chown=nonroot:nonroot . /source
+
+# If your project resides in a sub directory, make sure you are pointing to that directory. ex: If your project resided in a directory called 'app', you would set the destination to /source/app
 WORKDIR /source
 
-# Copy everything from the current directory to the Working Directory inside the container
-COPY . ./app/
-WORKDIR /source/app
-RUN dotnet publish -c release -o /app 
+RUN dotnet publish --use-current-runtime --self-contained false -o Release
 
-# Final image
-FROM mcr.microsoft.com/dotnet/aspnet:6.0
-WORKDIR /app
-COPY --from=build /app ./
+# If you are running an ASPNET project, you can instead pull our ASPNET image cgr.dev/chainguard/aspnet-runtime:latest
+FROM cgr.dev/chainguard/dotnet-runtime:latest AS final
+WORKDIR /
 
-# Expose port 8080 to listens on specified network ports at runtime
-ENV PORT 8080
-EXPOSE 8080
+# Copy everything needed to run the app from the "build" stage.
+COPY --from=build source .
 
-# Command to run the executable
-ENTRYPOINT ["dotnet", "dotnet-app.dll"]
+ENTRYPOINT ["dotnet", "Release/dotnet.dll"]

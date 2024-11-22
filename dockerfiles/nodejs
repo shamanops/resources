@@ -1,13 +1,10 @@
-FROM node:14-alpine
+FROM cgr.dev/chainguard/node:latest
+ENV NODE_ENV=production
 
 WORKDIR /app
 
-COPY package*.json ./
-
+COPY --chown=node:node package.json .
+ADD ./bin ./bin
 RUN npm install
 
-COPY . .
-
-EXPOSE 8080
-
-CMD [ "npm", "run", "dev" ]
+ENTRYPOINT ["node", "bin/index.js"]
