@@ -723,6 +723,9 @@ stages:
           shamanopsApprovalsDev=$(shamanopsApprovalsDev)
           shamanopsBusinessApproversMinimalDev=$(shamanopsBusinessApproversMinimalDev)
           shamanopsTechnicalApproversMinimalDev=$(shamanopsTechnicalApproversMinimalDev)
+          shamanopsApprovalsDynamicEnvs=$(shamanopsApprovalsDynamicEnvs)
+          shamanopsBusinessApproversMinimalDynamicEnvs=$(shamanopsBusinessApproversMinimalDynamicEnvs)
+          shamanopsTechnicalApproversMinimalDynamicEnvs=$(shamanopsTechnicalApproversMinimalDynamicEnvs)
           shamanopsApprovalsStg=$(shamanopsApprovalsStg)
           shamanopsBusinessApproversMinimalStg=$(shamanopsBusinessApproversMinimalStg)
           shamanopsTechnicalApproversMinimalStg=$(shamanopsTechnicalApproversMinimalStg)
@@ -1445,3 +1448,4 @@ stages:
           shamanops_chat_webhook=$(shamanops_chat_webhook)
         containerCommand: '-c "shamanops app-create-and-deploy drp"'
         runInBackground: false
+
