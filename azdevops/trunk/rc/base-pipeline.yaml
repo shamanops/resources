@@ -748,7 +748,7 @@ stages:
           shamanops_manifest_repository_user=$(shamanops_manifest_repository_user)
           shamanops_manifest_repository_token=$(shamanops_manifest_repository_token)
           shamanops_chat_webhook=$(shamanops_chat_webhook)
-        containerCommand: '-c "shamanops dynamic-env"'
+        containerCommand: '-c "shamanops dynamic-envs"'
         runInBackground: false
   - job: approvals_stg
     dependsOn:
