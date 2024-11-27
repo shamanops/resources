@@ -4,7 +4,7 @@ stages:
   - job: azdevops
     steps:
     - checkout: none
-    - task: AzureKeyVault@1
+    - task: AzureKeyVault@2
       name: azKeyVault
       displayName: azure-keyvault
       inputs:
@@ -13,82 +13,43 @@ stages:
         SecretsFilter: '*' 
         RunAsPreJob: false
     - script: |
-        # Variables
-        customerName=$(echo $(customerURI) | cut -d "/" -f 4)
-        shamanops_customer_id=$(echo "$(shamanops-customer-id)" | tr -d "{}")
-        shamanops_argocd_dev_url=$(echo "$(shamanops-argocd-dev-url)" | tr -d "{}")
-        shamanops_argocd_dev_user=$(echo "$(shamanops-argocd-dev-user)" | tr -d "{}")
-        shamanops_argocd_dynenv_url=$(echo "$(shamanops-argocd-dynenv-url)" | tr -d "{}")
-        shamanops_argocd_dynenv_user=$(echo "$(shamanops-argocd-dynenv-user)" | tr -d "{}")
-        shamanops_argocd_stg_url=$(echo "$(shamanops-argocd-stg-url)" | tr -d "{}")
-        shamanops_argocd_stg_user=$(echo "$(shamanops-argocd-stg-user)" | tr -d "{}")
-        shamanops_argocd_prod_url=$(echo "$(shamanops-argocd-prod-url)" | tr -d "{}")
-        shamanops_argocd_prod_user=$(echo "$(shamanops-argocd-prod-user)" | tr -d "{}")
-        shamanops_argocd_drp_url=$(echo "$(shamanops-argocd-drp-url)" | tr -d "{}")
-        shamanops_argocd_drp_user=$(echo "$(shamanops-argocd-drp-user)" | tr -d "{}")
-        shamanops_manifest_repository=$(echo "$(shamanops-manifest-repository)" | tr -d "{}")
-        shamanops_manifest_repository_user=$(echo "$(shamanops-manifest-repository-user)" | tr -d "{}")
-        shamanops_registry_url=$(echo "$(shamanops-registry-url)" | tr -d "{}")
-        shamanops_registry_user=$(echo "$(shamanops-registry-user)" | tr -d "{}")
-        shamanops_code_quality_url=$(echo "$(shamanops-code-quality-url)" | tr -d "{}")
-        shamanops_chat_webhook=$(echo "$(shamanops-chat-webhook)" | tr -d "{}")
-        shamanops_testing_api_url=$(echo "$(shamanops_testing_api_url)" | tr -d "{}")
-        shamanops_testing_git_user=$(echo "$(shamanops_testing_api_user)" | tr -d "{}")
-        # Secrets
-        shamanops_customer_token=$(shamanops-customer-token)
-        shamanops_argocd_dev_token=$(shamanops-argocd-dev-token)
-        shamanops_argocd_dynenv_token=$(shamanops-argocd-dynenv-token)
-        shamanops_argocd_stg_token=$(shamanops-argocd-stg-token)
-        shamanops_argocd_prod_token=$(shamanops-argocd-prod-token)
-        shamanops_argocd_drp_token=$(shamanops-argocd-drp-token)
-        shamanops_code_quality_token=$(shamanops-code-quality-token)
-        shamanops_manifest_repository_token=$(shamanops-manifest-repository-token)
-        shamanops_registry_password=$(shamanops-registry-password)
-        shamanops_dockerfile_token=$(shamanops_dockerfile_token)
-        shamanops_testing_git_token=$(shamanops_testing_git_token)
-        AWS_ACCESS_KEY_ID=$(AWS_ACCESS_KEY_ID)
-        AWS_SECRET_ACCESS_KEY=$(AWS_SECRET_ACCESS_KEY)
-        AWS_REGION=$(AWS_REGION)
         # Export variables
-        echo "##vso[task.setvariable variable=customerName;isOutput=true]$customerName"
-        echo "##vso[task.setvariable variable=shamanops_customer_id;isOutput=true]$shamanops_customer_id" >> /dev/null 2>&1
-        echo "##vso[task.setvariable variable=shamanops_argocd_dev_url;isOutput=true]$shamanops_argocd_dev_url" >> /dev/null 2>&1
-        echo "##vso[task.setvariable variable=shamanops_argocd_dev_user;isOutput=true]$shamanops_argocd_dev_user" >> /dev/null 2>&1
-        echo "##vso[task.setvariable variable=shamanops_argocd_dynenv_url;isOutput=true]$shamanops_argocd_dynenv_url" >> /dev/null 2>&1 
-        echo "##vso[task.setvariable variable=shamanops_argocd_dynenv_user;isOutput=true]$shamanops_argocd_dynenv_user" >> /dev/null 2>&1 
-        echo "##vso[task.setvariable variable=shamanops_argocd_stg_url;isOutput=true]$shamanops_argocd_stg_url" >> /dev/null 2>&1
-        echo "##vso[task.setvariable variable=shamanops_argocd_stg_user;isOutput=true]$shamanops_argocd_stg_user" >> /dev/null 2>&1
-        echo "##vso[task.setvariable variable=shamanops_argocd_prod_url;isOutput=true]$shamanops_argocd_prod_url" >> /dev/null 2>&1
-        echo "##vso[task.setvariable variable=shamanops_argocd_prod_user;isOutput=true]$shamanops_argocd_prod_user" >> /dev/null 2>&1
-        echo "##vso[task.setvariable variable=shamanops_argocd_drp_url;isOutput=true]$shamanops_argocd_drp_url" >> /dev/null 2>&1
-        echo "##vso[task.setvariable variable=shamanops_argocd_drp_user;isOutput=true]$shamanops_argocd_drp_user" >> /dev/null 2>&1
-        echo "##vso[task.setvariable variable=shamanops_code_quality_url;isOutput=true]$shamanops_code_quality_url" >> /dev/null 2>&1
-        echo "##vso[task.setvariable variable=shamanops_code_quality_token;isOutput=true;issecret=true]$shamanops_code_quality_token" >> /dev/null 2>&1
-        echo "##vso[task.setvariable variable=shamanops_manifest_repository;isOutput=true]$shamanops_manifest_repository" >> /dev/null 2>&1
-        echo "##vso[task.setvariable variable=shamanops_manifest_repository_user;isOutput=true]$shamanops_manifest_repository_user" >> /dev/null 2>&1
-        echo "##vso[task.setvariable variable=shamanops_manifest_repository_token;isOutput=true;issecret=true]$shamanops_manifest_repository_token" >> /dev/null 2>&1
-        echo "##vso[task.setvariable variable=shamanops_registry_url;isOutput=true]$shamanops_registry_url" >> /dev/null 2>&1
-        echo "##vso[task.setvariable variable=shamanops_registry_user;isOutput=true]$shamanops_registry_user" >> /dev/null 2>&1
-        echo "##vso[task.setvariable variable=shamanops_registry_password;isOutput=true;issecret=true]$shamanops_registry_password" >> /dev/null 2>&1
-        echo "##vso[task.setvariable variable=shamanops_chat_webhook;isOutput=true;issecret=true]$shamanops_chat_webhook" >> /dev/null 2>&1
-        echo "##vso[task.setvariable variable=shamanops_testing_api_url;isOutput=true;issecret=true]$shamanops_testing_api_url" >> /dev/null 2>&1
-        echo "##vso[task.setvariable variable=shamanops_testing_git_user;isOutput=true;issecret=true]$shamanops_testing_git_user" >> /dev/null 2>&1
+        echo "##vso[task.setvariable variable=customerName;isOutput=true]$(echo $(customerURI) | cut -d "/" -f 4)"
+        echo "##vso[task.setvariable variable=shamanops_customer_id;isOutput=true]$(echo "$(shamanops-customer-id)" | tr -d "{}")"
+        echo "##vso[task.setvariable variable=shamanops_argocd_dev_url;isOutput=true]$(echo "$(shamanops-argocd-dev-url)" | tr -d "{}")"
+        echo "##vso[task.setvariable variable=shamanops_argocd_dev_user;isOutput=true]$(echo "$(shamanops-argocd-dev-user)" | tr -d "{}")"
+        echo "##vso[task.setvariable variable=shamanops_argocd_dynenv_url;isOutput=true]$(echo "$(shamanops-argocd-dynenv-url)" | tr -d "{}")"
+        echo "##vso[task.setvariable variable=shamanops_argocd_dynenv_user;isOutput=true]$(echo "$(shamanops-argocd-dynenv-user)" | tr -d "{}")"
+        echo "##vso[task.setvariable variable=shamanops_argocd_stg_url;isOutput=true]$(echo "$(shamanops-argocd-stg-url)" | tr -d "{}")"
+        echo "##vso[task.setvariable variable=shamanops_argocd_stg_user;isOutput=true]$(echo "$(shamanops-argocd-stg-user)" | tr -d "{}")"
+        echo "##vso[task.setvariable variable=shamanops_argocd_prod_url;isOutput=true]$(echo "$(shamanops-argocd-prod-url)" | tr -d "{}")"
+        echo "##vso[task.setvariable variable=shamanops_argocd_prod_user;isOutput=true]$(echo "$(shamanops-argocd-prod-user)" | tr -d "{}")"
+        echo "##vso[task.setvariable variable=shamanops_argocd_drp_url;isOutput=true]$(echo "$(shamanops-argocd-drp-url)" | tr -d "{}")"
+        echo "##vso[task.setvariable variable=shamanops_argocd_drp_user;isOutput=true]$(echo "$(shamanops-argocd-drp-user)" | tr -d "{}")"
+        echo "##vso[task.setvariable variable=shamanops_code_quality_url;isOutput=true]$(echo "$(shamanops-code-quality-url)" | tr -d "{}")"
+        echo "##vso[task.setvariable variable=shamanops_code_quality_token;isOutput=true;issecret=true]$(shamanops-code-quality-token)"
+        echo "##vso[task.setvariable variable=shamanops_manifest_repository;isOutput=true]$(echo "$(shamanops-manifest-repository)" | tr -d "{}")"
+        echo "##vso[task.setvariable variable=shamanops_manifest_repository_user;isOutput=true]$(echo "$(shamanops-manifest-repository-user)" | tr -d "{}")"
+        echo "##vso[task.setvariable variable=shamanops_registry_url;isOutput=true]$(echo "$(shamanops-registry-url)" | tr -d "{}")"
+        echo "##vso[task.setvariable variable=shamanops_registry_user;isOutput=true]$(echo "$(shamanops-registry-user)" | tr -d "{}")"
+        echo "##vso[task.setvariable variable=shamanops_testing_api_url;isOutput=true]$(echo "$(shamanops_testing_api_url)" | tr -d "{}")"
+        echo "##vso[task.setvariable variable=shamanops_testing_git_user;isOutput=true]$(echo "$(shamanops_testing_api_user)" | tr -d "{}")"
         # Export secrets
-        echo "##vso[task.setvariable variable=shamanops_customer_token;isOutput=true;issecret=true]$shamanops_customer_token" >> /dev/null 2>&1
-        echo "##vso[task.setvariable variable=shamanops_argocd_dev_token;isOutput=true;issecret=true]$shamanops_argocd_dev_token" >> /dev/null 2>&1
-        echo "##vso[task.setvariable variable=shamanops_argocd_dynenv_token;isOutput=true;issecret=true]$shamanops_argocd_dynenv_token" >> /dev/null 2>&1
-        echo "##vso[task.setvariable variable=shamanops_argocd_stg_token;isOutput=true;issecret=true]$shamanops_argocd_stg_token" >> /dev/null 2>&1
-        echo "##vso[task.setvariable variable=shamanops_argocd_prod_token;isOutput=true;issecret=true]$shamanops_argocd_prod_token" >> /dev/null 2>&1
-        echo "##vso[task.setvariable variable=shamanops_argocd_drp_token;isOutput=true;issecret=true]$shamanops_argocd_drp_token" >> /dev/null 2>&1
-        echo "##vso[task.setvariable variable=shamanops_code_quality_token;isOutput=true;issecret=true]$shamanops_code_quality_token" >> /dev/null 2>&1
-        echo "##vso[task.setvariable variable=shamanops_manifest_repository_token;isOutput=true;issecret=true]$shamanops_manifest_repository_token" >> /dev/null 2>&1
-        echo "##vso[task.setvariable variable=shamanops_registry_password;isOutput=true;issecret=true]$shamanops_registry_password" >> /dev/null 2>&1
-        echo "##vso[task.setvariable variable=shamanops_chat_webhook;isOutput=true;issecret=true]$shamanops_chat_webhook" >> /dev/null 2>&1
-        echo "##vso[task.setvariable variable=shamanops_dockerfile_token;isOutput=true;issecret=true]$shamanops_dockerfile_token" >> /dev/null 2>&1
-        echo "##vso[task.setvariable variable=shamanops_testing_git_token;isOutput=true;issecret=true]$shamanops_testing_git_token" >> /dev/null 2>&1
-        echo "##vso[task.setvariable variable=AWS_ACCESS_KEY_ID;isOutput=true;issecret=true]$AWS_ACCESS_KEY_ID" >> /dev/null 2>&1
-        echo "##vso[task.setvariable variable=AWS_SECRET_ACCESS_KEY;isOutput=true;issecret=true]$AWS_SECRET_ACCESS_KEY" >> /dev/null 2>&1
-        echo "##vso[task.setvariable variable=AWS_REGION;isOutput=true;issecret=true]$AWS_REGION" >> /dev/null 2>&1
+        echo "##vso[task.setvariable variable=shamanops_customer_token;isOutput=true;issecret=true]$(shamanops-customer-token)"
+        echo "##vso[task.setvariable variable=shamanops_argocd_dev_token;isOutput=true;issecret=true]$(shamanops-argocd-dev-token)"
+        echo "##vso[task.setvariable variable=shamanops_argocd_dynenv_token;isOutput=true;issecret=true]$(shamanops-argocd-dynenv-token)"
+        echo "##vso[task.setvariable variable=shamanops_argocd_stg_token;isOutput=true;issecret=true]$(shamanops-argocd-stg-token)"
+        echo "##vso[task.setvariable variable=shamanops_argocd_prod_token;isOutput=true;issecret=true]$(shamanops-argocd-prod-token)"
+        echo "##vso[task.setvariable variable=shamanops_argocd_drp_token;isOutput=true;issecret=true]$(shamanops-argocd-drp-token)"
+        echo "##vso[task.setvariable variable=shamanops_code_quality_token;isOutput=true;issecret=true]$(shamanops-code-quality-token)"
+        echo "##vso[task.setvariable variable=shamanops_manifest_repository_token;isOutput=true;issecret=true]$(shamanops-manifest-repository-token)"
+        echo "##vso[task.setvariable variable=shamanops_registry_password;isOutput=true;issecret=true]$(shamanops-registry-password)"
+        echo "##vso[task.setvariable variable=shamanops_chat_webhook;isOutput=true;issecret=true]$(echo "$(shamanops-chat-webhook)" | tr -d "{}")"
+        echo "##vso[task.setvariable variable=shamanops_dockerfile_token;isOutput=true;issecret=true]$(shamanops-dockerfile-token)"
+        echo "##vso[task.setvariable variable=shamanops_testing_git_token;isOutput=true;issecret=true]$(shamanops-testing-git-token)"
+        echo "##vso[task.setvariable variable=AWS_ACCESS_KEY_ID;isOutput=true;issecret=true]$(AWS-ACCESS-KEY-ID)"
+        echo "##vso[task.setvariable variable=AWS_SECRET_ACCESS_KEY;isOutput=true;issecret=true]$(AWS-SECRET-ACCESS-KEY)"
+        echo "##vso[task.setvariable variable=AWS_REGION;isOutput=true;issecret=true]$(AWS-REGION)"
       displayName: cicd-variables-and-secrets
       name: globalVars
     - task: Docker@2
@@ -159,6 +120,17 @@ stages:
           approvals_timeout=$(approvals_timeout)
           code_language_detection_enabled=$(code_language_detection_enabled)
           log_level=$(log_level)
+          shamanopsBusinessApprovers=$(shamanopsBusinessApprovers)
+          shamanopsTechnicalApprovers=$(shamanopsTechnicalApprovers)
+          shamanopsApprovalsDev=$(shamanopsApprovalsDev)
+          shamanopsBusinessApproversMinimalDev=$(shamanopsBusinessApproversMinimalDev)
+          shamanopsTechnicalApproversMinimalDev=$(shamanopsTechnicalApproversMinimalDev)
+          shamanopsApprovalsStg=$(shamanopsApprovalsStg)
+          shamanopsBusinessApproversMinimalStg=$(shamanopsBusinessApproversMinimalStg)
+          shamanopsTechnicalApproversMinimalStg=$(shamanopsTechnicalApproversMinimalStg)
+          shamanopsApprovalsProd=$(shamanopsApprovalsProd)
+          shamanopsBusinessApproversMinimalProd=$(shamanopsBusinessApproversMinimalProd)
+          shamanopsTechnicalApproversMinimalProd=$(shamanopsTechnicalApproversMinimalProd)
           secrets_in_code_blocker=$(secrets_in_code_blocker)
           shamanops_customer_id=$(shamanops_customer_id)
           shamanops_customer_token=$(shamanops_customer_token)
@@ -687,6 +659,17 @@ stages:
           environments=$(environments)
           projectName=$(projectName)
           log_level=$(log_level)
+          shamanopsBusinessApprovers=$(shamanopsBusinessApprovers)
+          shamanopsTechnicalApprovers=$(shamanopsTechnicalApprovers)
+          shamanopsApprovalsDev=$(shamanopsApprovalsDev)
+          shamanopsBusinessApproversMinimalDev=$(shamanopsBusinessApproversMinimalDev)
+          shamanopsTechnicalApproversMinimalDev=$(shamanopsTechnicalApproversMinimalDev)
+          shamanopsApprovalsStg=$(shamanopsApprovalsStg)
+          shamanopsBusinessApproversMinimalStg=$(shamanopsBusinessApproversMinimalStg)
+          shamanopsTechnicalApproversMinimalStg=$(shamanopsTechnicalApproversMinimalStg)
+          shamanopsApprovalsProd=$(shamanopsApprovalsProd)
+          shamanopsBusinessApproversMinimalProd=$(shamanopsBusinessApproversMinimalProd)
+          shamanopsTechnicalApproversMinimalProd=$(shamanopsTechnicalApproversMinimalProd)
           shamanops_customer_id=$(shamanops_customer_id)
           shamanops_customer_token=$(shamanops_customer_token)
           shamanops_registry_url=$(shamanops_registry_url)
@@ -735,6 +718,17 @@ stages:
           environments=$(environments)
           projectName=$(projectName)
           log_level=$(log_level)
+          shamanopsBusinessApprovers=$(shamanopsBusinessApprovers)
+          shamanopsTechnicalApprovers=$(shamanopsTechnicalApprovers)
+          shamanopsApprovalsDev=$(shamanopsApprovalsDev)
+          shamanopsBusinessApproversMinimalDev=$(shamanopsBusinessApproversMinimalDev)
+          shamanopsTechnicalApproversMinimalDev=$(shamanopsTechnicalApproversMinimalDev)
+          shamanopsApprovalsStg=$(shamanopsApprovalsStg)
+          shamanopsBusinessApproversMinimalStg=$(shamanopsBusinessApproversMinimalStg)
+          shamanopsTechnicalApproversMinimalStg=$(shamanopsTechnicalApproversMinimalStg)
+          shamanopsApprovalsProd=$(shamanopsApprovalsProd)
+          shamanopsBusinessApproversMinimalProd=$(shamanopsBusinessApproversMinimalProd)
+          shamanopsTechnicalApproversMinimalProd=$(shamanopsTechnicalApproversMinimalProd)
           shamanops_customer_id=$(shamanops_customer_id)
           shamanops_customer_token=$(shamanops_customer_token)
           shamanops_registry_url=$(shamanops_registry_url)
@@ -905,6 +899,17 @@ stages:
           environments=$(environments)
           projectName=$(projectName)
           log_level=$(log_level)
+          shamanopsBusinessApprovers=$(shamanopsBusinessApprovers)
+          shamanopsTechnicalApprovers=$(shamanopsTechnicalApprovers)
+          shamanopsApprovalsDev=$(shamanopsApprovalsDev)
+          shamanopsBusinessApproversMinimalDev=$(shamanopsBusinessApproversMinimalDev)
+          shamanopsTechnicalApproversMinimalDev=$(shamanopsTechnicalApproversMinimalDev)
+          shamanopsApprovalsStg=$(shamanopsApprovalsStg)
+          shamanopsBusinessApproversMinimalStg=$(shamanopsBusinessApproversMinimalStg)
+          shamanopsTechnicalApproversMinimalStg=$(shamanopsTechnicalApproversMinimalStg)
+          shamanopsApprovalsProd=$(shamanopsApprovalsProd)
+          shamanopsBusinessApproversMinimalProd=$(shamanopsBusinessApproversMinimalProd)
+          shamanopsTechnicalApproversMinimalProd=$(shamanopsTechnicalApproversMinimalProd)
           shamanops_customer_id=$(shamanops_customer_id)
           shamanops_customer_token=$(shamanops_customer_token)
           shamanops_registry_url=$(shamanops_registry_url)
@@ -1108,8 +1113,8 @@ stages:
       - stress_check
     condition: |
         and(
-          contains(variables['shamanopsApprovalsProd'], 'true'),
           not(contains(variables['environments'], 'pre')),
+          contains(variables['shamanopsApprovalsProd'], 'true'),
           in(dependencies.approvals_dev.result, 'Succeeded', 'Skipped'),
           in(dependencies.approvals_stg.result, 'Succeeded', 'Skipped'),
           in(dependencies.db_versioning_dev.result, 'Succeeded', 'Skipped'),
@@ -1189,8 +1194,8 @@ stages:
       - stress_check
     condition: |
         and(
-          contains(variables['db_versioning_enabled'], 'true'),
           not(contains(variables['environments'], 'pre')),
+          contains(variables['db_versioning_enabled'], 'true'),
           in(dependencies.approvals_dev.result, 'Succeeded', 'Skipped'),
           in(dependencies.approvals_stg.result, 'Succeeded', 'Skipped'),
           in(dependencies.approvals_prod.result, 'Succeeded', 'Skipped'),
@@ -1312,6 +1317,17 @@ stages:
           environments=$(environments)
           projectName=$(projectName)
           log_level=$(log_level)
+          shamanopsBusinessApprovers=$(shamanopsBusinessApprovers)
+          shamanopsTechnicalApprovers=$(shamanopsTechnicalApprovers)
+          shamanopsApprovalsDev=$(shamanopsApprovalsDev)
+          shamanopsBusinessApproversMinimalDev=$(shamanopsBusinessApproversMinimalDev)
+          shamanopsTechnicalApproversMinimalDev=$(shamanopsTechnicalApproversMinimalDev)
+          shamanopsApprovalsStg=$(shamanopsApprovalsStg)
+          shamanopsBusinessApproversMinimalStg=$(shamanopsBusinessApproversMinimalStg)
+          shamanopsTechnicalApproversMinimalStg=$(shamanopsTechnicalApproversMinimalStg)
+          shamanopsApprovalsProd=$(shamanopsApprovalsProd)
+          shamanopsBusinessApproversMinimalProd=$(shamanopsBusinessApproversMinimalProd)
+          shamanopsTechnicalApproversMinimalProd=$(shamanopsTechnicalApproversMinimalProd)
           shamanops_customer_id=$(shamanops_customer_id)
           shamanops_customer_token=$(shamanops_customer_token)
           shamanops_registry_url=$(shamanops_registry_url)
@@ -1429,4 +1445,3 @@ stages:
           shamanops_chat_webhook=$(shamanops_chat_webhook)
         containerCommand: '-c "shamanops app-create-and-deploy drp"'
         runInBackground: false
-
