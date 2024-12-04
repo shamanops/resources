@@ -246,6 +246,10 @@ on:
       secrets_in_code_blocker:
         type: string
         default: 'false'
+      # Confidential Containers
+      confidential_containers_enabled:
+        type: string
+        default: 'false'
     # Secrets
     secrets:
       shamanops_customer_token:
@@ -344,6 +348,7 @@ env:
   shamanopsBusinessApproversMinimalDynamicEnvs: ${{inputs.shamanopsBusinessApproversMinimalDynamicEnvs}}
   shamanopsApprovalsDynamicEnvs: ${{inputs.shamanopsApprovalsDynamicEnvs}}
   secrets_in_code_blocker: ${{inputs.secrets_in_code_blocker}}
+  confidential_containers_enabled: ${{inputs.confidential_containers_enabled}}
 # Global side
   shamanops_argocd_dev_url: ${{vars.shamanops_argocd_dev_url}}
   shamanops_argocd_dev_user: ${{vars.shamanops_argocd_dev_user}}
