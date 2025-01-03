@@ -22,6 +22,7 @@ variables:
   GIT_STRATEGY: fetch
   GIT_DEPTH: 0
   runs_on: 'docker'
+  runs_on_build: 'docker'
   # Environments: full-with-drp (dev/stg/prod/drp) | full (dev/stg/prod) | mid (stg/prod) | minimal (prod)
   environments: 'full'
   # Global variables
@@ -115,7 +116,7 @@ variables:
 # Stage 1 - Requirements #######################################################
 repository-check:
   tags:
-    - $runs_on
+    - $runs_on_build
   stage: requirements
   rules:
     - when: always
@@ -129,7 +130,7 @@ repository-check:
     - shamanops repository-check
 repository-metrics:
   tags:
-    - $runs_on
+    - $runs_on_build
   stage: requirements
   rules:
     - if: $repository_metrics_enabled == 'true'
@@ -147,7 +148,7 @@ repository-metrics:
 # Stage 2 - Build ##############################################################
 image-build-and-push:
   tags:
-    - $runs_on
+    - $runs_on_build
   stage: build
   before_script: |
     if [ "${git_submodules_enabled}" == "true" ]; then
@@ -160,7 +161,7 @@ image-build-and-push:
   needs: ["repository-check"]
 image-check:
   tags:
-    - $runs_on
+    - $runs_on_build
   stage: build
   before_script: |
     if [ "${git_submodules_enabled}" == "true" ]; then
@@ -175,7 +176,7 @@ image-check:
 # Stage 3 - Analysis ###########################################################
 security_check:
   tags:
-    - $runs_on
+    - $runs_on_build
   stage: analysis
   needs: ["image-check"]
   rules:
@@ -219,7 +220,7 @@ sast_check:
 # Stage 5 - Deploy - DEV environment #########################################################
 approvals-dev:
   tags:
-    - $runs_on
+    - $runs_on_build
   stage: deploy
   needs: 
     - job: security_check
@@ -357,7 +358,7 @@ app-create-and-deploy-dynamic-envs:
 # Stage 5 - Deploy - STG environment #########################################################
 approvals-stg:
   tags:
-    - $runs_on
+    - $runs_on_build
   stage: deploy
   needs: 
     - job: approvals-dev
@@ -540,7 +541,7 @@ stress_test:
     - shamanops stress-check
 approvals-prod:
   tags:
-    - $runs_on
+    - $runs_on_build
   stage: deploy
   needs: 
     - job: approvals-dev
