@@ -10,6 +10,9 @@ on:
       runs_on:
         type: string
         default: 'ubuntu-latest'
+      runs_on_build:
+        type: string
+        default: 'ubuntu-latest'
       runner_url:
         type: string
         default: 'registry.shamanops.com/runner/fedora'
@@ -272,6 +275,7 @@ on:
 env:
 # Client side
   runs_on: ${{inputs.runs_on}}
+  runs_on_build: ${{inputs.runs_on_build}}
   runner_url: ${{inputs.runner_url}}
   runner_tag: ${{inputs.runner_tag}}
   environments: ${{inputs.environments}}
@@ -396,7 +400,7 @@ jobs:
 # ------------------------------------------------------------------------------
 # Stage 1 - Requirements #######################################################
   repository-check:
-    runs-on: ${{ inputs.runs_on }}
+    runs-on: ${{ inputs.runs_on_build }}
     container:
       image: ${{ inputs.runner_url }}:${{ inputs.runner_tag }}
       options: -u root --privileged --quiet
@@ -419,7 +423,7 @@ jobs:
       - name: repository-check
         run: shamanops repository-check
   repository-metrics:
-    runs-on: ${{ inputs.runs_on }}
+    runs-on: ${{ inputs.runs_on_build }}
     container:
       image: ${{ inputs.runner_url }}:${{ inputs.runner_tag }}
       options: -u root --privileged --quiet
@@ -447,7 +451,7 @@ jobs:
         run: shamanops repository-metrics
 # Stage 2 - Build ##############################################################
   image-build-and-push:
-    runs-on: ${{ inputs.runs_on }}
+    runs-on: ${{ inputs.runs_on_build }}
     container:
       image: ${{ inputs.runner_url }}:${{ inputs.runner_tag }}
       options: -u root --privileged --quiet
@@ -472,7 +476,7 @@ jobs:
       - name: image-build-and-push
         run: shamanops image-build
   image-check:
-    runs-on: ${{ inputs.runs_on }}
+    runs-on: ${{ inputs.runs_on_build }}
     container:
       image: ${{ inputs.runner_url }}:${{ inputs.runner_tag }}
       options: -u root --privileged --quiet
@@ -525,7 +529,7 @@ jobs:
       - name: sast-check
         run: shamanops sast-check
   security-check:
-    runs-on: ${{ inputs.runs_on }}
+    runs-on: ${{ inputs.runs_on_build }}
     container:
       image: ${{ inputs.runner_url }}:${{ inputs.runner_tag }}
       options: -u root --privileged --quiet
