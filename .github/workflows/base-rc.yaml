@@ -2,12 +2,15 @@
 ## ShamanOps Base Pipeline | Github Actions | RC ###############################
 ################################################################################
 ##
-name: shamanops-base-pipeline-stable
+name: shamanops-base-pipeline-rc
 on:
   workflow_call:
     inputs:
       # Pipeline exec
       runs_on:
+        type: string
+        default: 'ubuntu-latest'
+      runs_on_build:
         type: string
         default: 'ubuntu-latest'
       runner_url:
@@ -246,10 +249,6 @@ on:
       secrets_in_code_blocker:
         type: string
         default: 'false'
-      # Confidential Containers
-      confidential_containers_enabled:
-        type: string
-        default: 'false'
     # Secrets
     secrets:
       shamanops_customer_token:
@@ -276,6 +275,7 @@ on:
 env:
 # Client side
   runs_on: ${{inputs.runs_on}}
+  runs_on_build: ${{inputs.runs_on_build}}
   runner_url: ${{inputs.runner_url}}
   runner_tag: ${{inputs.runner_tag}}
   environments: ${{inputs.environments}}
@@ -348,7 +348,6 @@ env:
   shamanopsBusinessApproversMinimalDynamicEnvs: ${{inputs.shamanopsBusinessApproversMinimalDynamicEnvs}}
   shamanopsApprovalsDynamicEnvs: ${{inputs.shamanopsApprovalsDynamicEnvs}}
   secrets_in_code_blocker: ${{inputs.secrets_in_code_blocker}}
-  confidential_containers_enabled: ${{inputs.confidential_containers_enabled}}
 # Global side
   shamanops_argocd_dev_url: ${{vars.shamanops_argocd_dev_url}}
   shamanops_argocd_dev_user: ${{vars.shamanops_argocd_dev_user}}
@@ -401,7 +400,7 @@ jobs:
 # ------------------------------------------------------------------------------
 # Stage 1 - Requirements #######################################################
   repository-check:
-    runs-on: ${{ inputs.runs_on }}
+    runs-on: ${{ inputs.runs_on_build }}
     container:
       image: ${{ inputs.runner_url }}:${{ inputs.runner_tag }}
       options: -u root --privileged --quiet
@@ -424,7 +423,7 @@ jobs:
       - name: repository-check
         run: shamanops repository-check
   repository-metrics:
-    runs-on: ${{ inputs.runs_on }}
+    runs-on: ${{ inputs.runs_on_build }}
     container:
       image: ${{ inputs.runner_url }}:${{ inputs.runner_tag }}
       options: -u root --privileged --quiet
@@ -452,7 +451,7 @@ jobs:
         run: shamanops repository-metrics
 # Stage 2 - Build ##############################################################
   image-build-and-push:
-    runs-on: ${{ inputs.runs_on }}
+    runs-on: ${{ inputs.runs_on_build }}
     container:
       image: ${{ inputs.runner_url }}:${{ inputs.runner_tag }}
       options: -u root --privileged --quiet
@@ -477,7 +476,7 @@ jobs:
       - name: image-build-and-push
         run: shamanops image-build
   image-check:
-    runs-on: ${{ inputs.runs_on }}
+    runs-on: ${{ inputs.runs_on_build }}
     container:
       image: ${{ inputs.runner_url }}:${{ inputs.runner_tag }}
       options: -u root --privileged --quiet
@@ -530,7 +529,7 @@ jobs:
       - name: sast-check
         run: shamanops sast-check
   security-check:
-    runs-on: ${{ inputs.runs_on }}
+    runs-on: ${{ inputs.runs_on_build }}
     container:
       image: ${{ inputs.runner_url }}:${{ inputs.runner_tag }}
       options: -u root --privileged --quiet
