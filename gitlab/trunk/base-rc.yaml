@@ -522,7 +522,7 @@ stress_test:
     - job: app-create-and-deploy-stg
       optional: false
     - job: functional_analysis
-      optional: false
+      optional: true
   rules:
     - if: $stress_check_enabled == 'true' && $stress_check_blocker == 'true' && $environments != 'minimal'
       when: on_success
