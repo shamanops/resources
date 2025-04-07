@@ -89,6 +89,7 @@ stages:
           projectName=$(projectName)
           code_language_detection_enabled=$(code_language_detection_enabled)
           log_level=$(log_level)
+          forward_metrics_enabled=$(forward_metrics_enabled)
           shamanops_customer_id=$(shamanops_customer_id)
           shamanops_customer_token=$(shamanops_customer_token)
           shamanops_registry_url=$(shamanops_registry_url)
