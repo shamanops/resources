@@ -249,6 +249,10 @@ on:
       secrets_in_code_blocker:
         type: string
         default: 'false'
+      # CI Metrics forward
+      forward_metrics_enabled:
+        type: string
+        default: 'false'
     # Secrets
     secrets:
       shamanops_customer_token:
@@ -329,6 +333,7 @@ env:
   git_submodules_enabled: ${{inputs.git_submodules_enabled}}
   repository_metrics_enabled: ${{inputs.repository_metrics_enabled}}
   repository_metrics_depth: ${{inputs.repository_metrics_depth}}
+  forward_metrics_enabled: ${{inputs.forward_metrics_enabled}}
   pre_jobs_enabled: ${{inputs.pre_jobs_enabled}}
   pre_jobs_blocker: ${{inputs.pre_jobs_blocker}}
   shamanopsBusinessApprovers: ${{inputs.shamanopsBusinessApprovers}}
