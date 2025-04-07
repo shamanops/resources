@@ -389,6 +389,7 @@ env:
   shamanops_testing_git_token: ${{secrets.shamanops_testing_git_token}}
   shamanops_testing_api_url: ${{vars.shamanops_testing_api_url}}
   shamanops_submodules_token: ${{secrets.shamanops_submodules_token}}
+  shamanops_forward_metrics_endpoint: ${{vars.shamanops_forward_metrics_endpoint}}
   #shamanops_testing_api_token: ${{secrets.shamanops_testing_api_token}}
   # For AWS credentials
   AWS_ACCESS_KEY_ID: ${{secrets.AWS_ACCESS_KEY_ID}}
