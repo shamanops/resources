@@ -55,6 +55,7 @@ on:
       shamanops_chat_webhook:
       shamanops_registry_password:
         required: true
+      shamanops_secondary_registry_password:
       shamanops_dockerfile_token:
       # For AWS credentials
       AWS_ACCESS_KEY_ID:
@@ -81,6 +82,9 @@ env:
   shamanops_registry_url: ${{vars.shamanops_registry_url}}
   shamanops_registry_user: ${{vars.shamanops_registry_user}}
   shamanops_registry_password: ${{secrets.shamanops_registry_password}}
+  shamanops_secondary_registry_url: ${{vars.shamanops_secondary_registry_url}}
+  shamanops_secondary_registry_user: ${{vars.shamanops_secondary_registry_user}}
+  shamanops_secondary_registry_password: ${{secrets.shamanops_secondary_registry_password}}
   shamanops_manifest_repository: ${{vars.shamanops_manifest_repository}}
   shamanops_manifest_repository_user: ${{vars.shamanops_manifest_repository_user}}
   shamanops_manifest_repository_token: ${{secrets.shamanops_manifest_repository_token}}
