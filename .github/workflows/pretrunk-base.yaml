@@ -40,6 +40,10 @@ on:
       appDaysToLive:
         type: string
         default: '0'
+      # CI Metrics forward
+      forward_metrics_enabled:
+        type: string
+        default: 'false'
     # Secrets
     secrets:
       shamanops_customer_token:
@@ -67,6 +71,7 @@ env:
   appInternalPort: ${{inputs.appInternalPort}}
   exposeEnabled: ${{inputs.exposeEnabled}}
   appDaysToLive: ${{inputs.appDaysToLive}}
+  forward_metrics_enabled: ${{inputs.forward_metrics_enabled}}
 # Global side
   shamanops_argocd_dev_url: ${{vars.shamanops_argocd_dev_url}}
   shamanops_argocd_dev_user: ${{vars.shamanops_argocd_dev_user}}
