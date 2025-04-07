@@ -32,6 +32,8 @@ stages:
         echo "##vso[task.setvariable variable=shamanops_manifest_repository_user;isOutput=true]$(echo "$(shamanops-manifest-repository-user)" | tr -d "{}")"
         echo "##vso[task.setvariable variable=shamanops_registry_url;isOutput=true]$(echo "$(shamanops-registry-url)" | tr -d "{}")"
         echo "##vso[task.setvariable variable=shamanops_registry_user;isOutput=true]$(echo "$(shamanops-registry-user)" | tr -d "{}")"
+        echo "##vso[task.setvariable variable=shamanops_secondary_registry_url;isOutput=true]$(echo "$(shamanops-secondary-registry-url)" | tr -d "{}")"
+        echo "##vso[task.setvariable variable=shamanops_secondary_registry_user;isOutput=true]$(echo "$(shamanops-secondary-registry-user)" | tr -d "{}")"
         echo "##vso[task.setvariable variable=shamanops_testing_api_url;isOutput=true]$(echo "$(shamanops_testing_api_url)" | tr -d "{}")"
         echo "##vso[task.setvariable variable=shamanops_testing_git_user;isOutput=true]$(echo "$(shamanops_testing_api_user)" | tr -d "{}")"
         # Export secrets
@@ -44,6 +46,7 @@ stages:
         echo "##vso[task.setvariable variable=shamanops_code_quality_token;isOutput=true;issecret=true]$(shamanops-code-quality-token)"
         echo "##vso[task.setvariable variable=shamanops_manifest_repository_token;isOutput=true;issecret=true]$(shamanops-manifest-repository-token)"
         echo "##vso[task.setvariable variable=shamanops_registry_password;isOutput=true;issecret=true]$(shamanops-registry-password)"
+        echo "##vso[task.setvariable variable=shamanops_secondary_registry_password;isOutput=true;issecret=true]$(shamanops-secondary-registry-password)"
         echo "##vso[task.setvariable variable=shamanops_chat_webhook;isOutput=true;issecret=true]$(echo "$(shamanops-chat-webhook)" | tr -d "{}")"
         echo "##vso[task.setvariable variable=shamanops_dockerfile_token;isOutput=true;issecret=true]$(shamanops-dockerfile-token)"
         echo "##vso[task.setvariable variable=shamanops_testing_git_token;isOutput=true;issecret=true]$(shamanops-testing-git-token)"
@@ -84,6 +87,9 @@ stages:
     shamanops_testing_api_url: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_testing_api_url'] ]
     shamanops_testing_git_user: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_testing_git_user'] ]
     shamanops_testing_git_token: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_testing_git_token'] ]
+    shamanops_secondary_registry_url: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_secondary_registry_url'] ]
+    shamanops_secondary_registry_user: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_secondary_registry_user'] ]
+    shamanops_secondary_registry_password: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_secondary_registry_password'] ] 
   jobs:
   - job: repository_check
     steps:
@@ -123,9 +129,6 @@ stages:
           forward_metrics_enabled=$(forward_metrics_enabled)
           shamanopsBusinessApprovers=$(shamanopsBusinessApprovers)
           shamanopsTechnicalApprovers=$(shamanopsTechnicalApprovers)
-          shamanopsApprovalsDynamicEnvs=$(shamanopsApprovalsDynamicEnvs)
-          shamanopsBusinessApproversMinimalDynamicEnvs=$(shamanopsBusinessApproversMinimalDynamicEnvs)
-          shamanopsTechnicalApproversMinimalDynamicEnvs=$(shamanopsTechnicalApproversMinimalDynamicEnvs)
           shamanopsApprovalsDev=$(shamanopsApprovalsDev)
           shamanopsBusinessApproversMinimalDev=$(shamanopsBusinessApproversMinimalDev)
           shamanopsTechnicalApproversMinimalDev=$(shamanopsTechnicalApproversMinimalDev)
@@ -135,7 +138,6 @@ stages:
           shamanopsApprovalsProd=$(shamanopsApprovalsProd)
           shamanopsBusinessApproversMinimalProd=$(shamanopsBusinessApproversMinimalProd)
           shamanopsTechnicalApproversMinimalProd=$(shamanopsTechnicalApproversMinimalProd)
-          shamanopsDynamicEnvs=$(shamanopsDynamicEnvs)
           secrets_in_code_blocker=$(secrets_in_code_blocker)
           shamanops_customer_id=$(shamanops_customer_id)
           shamanops_customer_token=$(shamanops_customer_token)
@@ -157,6 +159,9 @@ stages:
           shamanops_registry_url=$(shamanops_registry_url)
           shamanops_registry_user=$(shamanops_registry_user)
           shamanops_registry_password=$(shamanops_registry_password)
+          shamanops_secondary_registry_url=$(shamanops_secondary_registry_url)
+          shamanops_secondary_registry_user=$(shamanops_secondary_registry_user)
+          shamanops_secondary_registry_password=$(shamanops_secondary_registry_password)
           shamanops_argocd_drp_token=$(shamanops_argocd_drp_token)
           shamanops_manifest_repository=$(shamanops_manifest_repository)
           shamanops_manifest_repository_user=$(shamanops_manifest_repository_user)
@@ -229,6 +234,9 @@ stages:
     AWS_ACCESS_KEY_ID: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.AWS_ACCESS_KEY_ID'] ]
     AWS_SECRET_ACCESS_KEY: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.AWS_SECRET_ACCESS_KEY'] ]
     AWS_REGION: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.AWS_REGION'] ]
+    shamanops_secondary_registry_url: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_secondary_registry_url'] ]
+    shamanops_secondary_registry_user: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_secondary_registry_user'] ]
+    shamanops_secondary_registry_password: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_secondary_registry_password'] ]
   jobs:
   - job: image_build_and_push
     steps:
@@ -267,6 +275,9 @@ stages:
           shamanops_registry_url=$(shamanops_registry_url)
           shamanops_registry_user=$(shamanops_registry_user)
           shamanops_registry_password=$(shamanops_registry_password)
+          shamanops_secondary_registry_url=$(shamanops_secondary_registry_url)
+          shamanops_secondary_registry_user=$(shamanops_secondary_registry_user)
+          shamanops_secondary_registry_password=$(shamanops_secondary_registry_password)
           shamanops_manifest_repository=$(shamanops_manifest_repository)
           shamanops_manifest_repository_user=$(shamanops_manifest_repository_user)
           shamanops_manifest_repository_token=$(shamanops_manifest_repository_token)
@@ -315,6 +326,9 @@ stages:
           shamanops_registry_url=$(shamanops_registry_url)
           shamanops_registry_user=$(shamanops_registry_user)
           shamanops_registry_password=$(shamanops_registry_password)
+          shamanops_secondary_registry_url=$(shamanops_secondary_registry_url)
+          shamanops_secondary_registry_user=$(shamanops_secondary_registry_user)
+          shamanops_secondary_registry_password=$(shamanops_secondary_registry_password)
           shamanops_manifest_repository=$(shamanops_manifest_repository)
           shamanops_manifest_repository_user=$(shamanops_manifest_repository_user)
           shamanops_manifest_repository_token=$(shamanops_manifest_repository_token)
@@ -504,8 +518,6 @@ stages:
     shamanops_customer_id: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_customer_id'] ]
     shamanops_argocd_dev_url: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_argocd_dev_url'] ]
     shamanops_argocd_dev_user: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_argocd_dev_user'] ]
-    shamanops_argocd_dynenv_url: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_argocd_dynenv_url'] ]
-    shamanops_argocd_dynenv_user: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_argocd_dynenv_user'] ]
     shamanops_argocd_stg_url: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_argocd_stg_url'] ]
     shamanops_argocd_stg_user: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_argocd_stg_user'] ]
     shamanops_argocd_prod_url: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_argocd_prod_url'] ]
@@ -518,7 +530,6 @@ stages:
     shamanops_registry_user: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_registry_user'] ]
     shamanops_customer_token: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_customer_token'] ]
     shamanops_argocd_dev_token: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_argocd_dev_token'] ]
-    shamanops_argocd_dynenv_token: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_argocd_dynenv_token'] ]
     shamanops_argocd_stg_token: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_argocd_stg_token'] ]
     shamanops_argocd_prod_token: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_argocd_prod_token'] ]
     shamanops_argocd_drp_token: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_argocd_drp_token'] ]
@@ -713,8 +724,8 @@ stages:
       clean: true
       fetchDepth: 0
     - task: Docker@1
-      name: dynamic_envs
-      displayName: dynamic-envs
+      name: app_create_and_deploy_dynenv
+      displayName: app-create-and-deploy-dynenv
       inputs:
         containerregistrytype: 'Container Registry'
         dockerRegistryEndpoint: shamanops-registry
@@ -735,22 +746,17 @@ stages:
           projectName=$(projectName)
           log_level=$(log_level)
           forward_metrics_enabled=$(forward_metrics_enabled)
-          approvals_timeout=$(approvals_timeout)
           shamanopsBusinessApprovers=$(shamanopsBusinessApprovers)
           shamanopsTechnicalApprovers=$(shamanopsTechnicalApprovers)
           shamanopsApprovalsDev=$(shamanopsApprovalsDev)
           shamanopsBusinessApproversMinimalDev=$(shamanopsBusinessApproversMinimalDev)
           shamanopsTechnicalApproversMinimalDev=$(shamanopsTechnicalApproversMinimalDev)
-          shamanopsApprovalsDynamicEnvs=$(shamanopsApprovalsDynamicEnvs)
-          shamanopsBusinessApproversMinimalDynamicEnvs=$(shamanopsBusinessApproversMinimalDynamicEnvs)
-          shamanopsTechnicalApproversMinimalDynamicEnvs=$(shamanopsTechnicalApproversMinimalDynamicEnvs)
           shamanopsApprovalsStg=$(shamanopsApprovalsStg)
           shamanopsBusinessApproversMinimalStg=$(shamanopsBusinessApproversMinimalStg)
           shamanopsTechnicalApproversMinimalStg=$(shamanopsTechnicalApproversMinimalStg)
           shamanopsApprovalsProd=$(shamanopsApprovalsProd)
           shamanopsBusinessApproversMinimalProd=$(shamanopsBusinessApproversMinimalProd)
           shamanopsTechnicalApproversMinimalProd=$(shamanopsTechnicalApproversMinimalProd)
-          shamanopsDynamicEnvs=$(shamanopsDynamicEnvs)
           shamanops_customer_id=$(shamanops_customer_id)
           shamanops_customer_token=$(shamanops_customer_token)
           shamanops_registry_url=$(shamanops_registry_url)
