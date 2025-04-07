@@ -84,3 +84,5 @@ variables:
   shamanopsApprovalsDynamicEnvs: 'false'
   # Secrets in code
   secrets_in_code_blocker: 'false'
+  # CI Metrics forward
+  forward_metrics_enabled: 'false'
