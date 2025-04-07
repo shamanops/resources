@@ -25,6 +25,7 @@ variables:
   appInternalPort: '8080'
   exposeEnabled: 'false'
   appDaysToLive: '0'
+  forward_metrics_enabled: 'false'
   appName: $CI_PROJECT_NAME
   repoUrl: $CI_REPOSITORY_URL
   jobUrl: $CI_JOB_URL
