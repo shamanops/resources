@@ -282,9 +282,9 @@ on:
       AWS_SECRET_ACCESS_KEY:
       AWS_REGION:
       # For MultiCluster
-      shamanops_argocd_dev-plus_token:
-      shamanops_argocd_stg-plus_token:
-      shamanops_argocd_prod-plus_token:
+      shamanops_argocd_dev_plus_token:
+      shamanops_argocd_stg_plus_token:
+      shamanops_argocd_prod_plus_token:
 env:
 # Client side
   runs_on: ${{inputs.runs_on}}
@@ -367,24 +367,24 @@ env:
   shamanops_argocd_dev_url: ${{vars.shamanops_argocd_dev_url}}
   shamanops_argocd_dev_user: ${{vars.shamanops_argocd_dev_user}}
   shamanops_argocd_dev_token: ${{secrets.shamanops_argocd_dev_token}}
-  shamanops_argocd_dev-plus_url: ${{vars.shamanops_argocd_dev_url}}
-  shamanops_argocd_dev-plus_user: ${{vars.shamanops_argocd_dev_user}}
-  shamanops_argocd_dev-plus_token: ${{secrets.shamanops_argocd_dev_token}}
+  shamanops_argocd_dev_plus_url: ${{vars.shamanops_argocd_dev_plus_url}}
+  shamanops_argocd_dev_plus_user: ${{vars.shamanops_argocd_dev_plus_user}}
+  shamanops_argocd_dev_plus_token: ${{secrets.shamanops_argocd_dev_plus_token}}
   shamanops_argocd_stg_url: ${{vars.shamanops_argocd_stg_url}}
   shamanops_argocd_stg_user: ${{vars.shamanops_argocd_stg_user}}
   shamanops_argocd_stg_token: ${{secrets.shamanops_argocd_stg_token}}
-  shamanops_argocd_stg-plus_url: ${{vars.shamanops_argocd_stg_url}}
-  shamanops_argocd_stg-plus_user: ${{vars.shamanops_argocd_stg_user}}
-  shamanops_argocd_stg-plus_token: ${{secrets.shamanops_argocd_stg_token}}
+  shamanops_argocd_stg_plus_url: ${{vars.shamanops_argocd_stg_plus_url}}
+  shamanops_argocd_stg_plus_user: ${{vars.shamanops_argocd_stg_plus_user}}
+  shamanops_argocd_stg_plus_token: ${{secrets.shamanops_argocd_stg_plus_token}}
   shamanops_argocd_dynenv_url: ${{vars.shamanops_argocd_dynenv_url}}
   shamanops_argocd_dynenv_user: ${{vars.shamanops_argocd_dynenv_user}}
   shamanops_argocd_dynenv_token: ${{secrets.shamanops_argocd_dynenv_token}}
   shamanops_argocd_prod_url: ${{vars.shamanops_argocd_prod_url}}
   shamanops_argocd_prod_user: ${{vars.shamanops_argocd_prod_user}}
   shamanops_argocd_prod_token: ${{secrets.shamanops_argocd_prod_token}}
-  shamanops_argocd_prod-plus_url: ${{vars.shamanops_argocd_prod_url}}
-  shamanops_argocd_prod-plus_user: ${{vars.shamanops_argocd_prod_user}}
-  shamanops_argocd_prod-plus_token: ${{secrets.shamanops_argocd_prod_token}}
+  shamanops_argocd_prod_plus_url: ${{vars.shamanops_argocd_prod_plus_url}}
+  shamanops_argocd_prod_plus_user: ${{vars.shamanops_argocd_prod_plus_user}}
+  shamanops_argocd_prod_plus_token: ${{secrets.shamanops_argocd_prod_plus_token}}
   shamanops_argocd_drp_url: ${{vars.shamanops_argocd_drp_url}}
   shamanops_argocd_drp_user: ${{vars.shamanops_argocd_drp_user}}
   shamanops_argocd_drp_token: ${{secrets.shamanops_argocd_drp_token}}
