@@ -685,7 +685,7 @@ jobs:
           (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true')) &&
           (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true')) &&
           (!failure() || (needs.image-check.result == 'success' && inputs.pre_jobs_blocker != 'true')) &&
-          (inputs.environments != 'minimal' && inputs.environments != 'mid' && needs.approvals-dev.result != 'failure' && needs.db-versioning-dev.result != 'failure' )
+          (env.environments != 'minimal' && env.environments != 'mid' && needs.approvals-dev.result != 'failure' && needs.db-versioning-dev.result != 'failure' )
         }}
     steps:
       - uses: actions/checkout@v4.1.1
