@@ -291,8 +291,8 @@ env:
   runs_on_build: ${{inputs.runs_on_build}}
   runner_url: ${{inputs.runner_url}}
   runner_tag: ${{inputs.runner_tag}}
-  environments: ${{ vars.shamanops_global_pipeline_environments || inputs.environments }}
-  environmentsGlobal: ${{ vars.shamanops_global_pipeline_environments }}
+  environments: ${{inputs.environments}}
+  environmentsGlobal: ${{vars.shamanops_global_pipeline_environments}}
   multiclusterTag: ${{inputs.multiclusterTag}}
   projectName: ${{inputs.projectName}}
   approvals_timeout: ${{inputs.approvals_timeout}}
@@ -597,7 +597,7 @@ jobs:
     if: ${{ always() && !cancelled() && 
           (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true')) &&
           (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true')) &&
-          (env.environments != 'minimal' && env.environments != 'mid' && inputs.shamanopsApprovalsDev == 'true')
+          (inputs.environments != 'minimal' && inputs.environments != 'mid' && inputs.shamanopsApprovalsDev == 'true')
         }}
     steps:
       - uses: actions/checkout@v4.1.1
@@ -685,7 +685,8 @@ jobs:
           (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true')) &&
           (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true')) &&
           (!failure() || (needs.image-check.result == 'success' && inputs.pre_jobs_blocker != 'true')) &&
-          (env.environments != 'minimal' && env.environments != 'mid' && needs.approvals-dev.result != 'failure' && needs.db-versioning-dev.result != 'failure' )
+          (inputs.environments == 'full' || environmentsGlobal == 'full') &&
+          (needs.approvals-dev.result != 'failure' && needs.db-versioning-dev.result != 'failure')
         }}
     steps:
       - uses: actions/checkout@v4.1.1
