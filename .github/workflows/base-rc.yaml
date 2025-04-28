@@ -597,7 +597,7 @@ jobs:
     if: ${{ always() && !cancelled() && 
           (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true')) &&
           (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true')) &&
-          (inputs.environments != 'minimal' && inputs.environments != 'mid' && inputs.shamanopsApprovalsDev == 'true')
+          (env.environments != 'minimal' && env.environments != 'mid' && inputs.shamanopsApprovalsDev == 'true')
         }}
     steps:
       - uses: actions/checkout@v4.1.1
