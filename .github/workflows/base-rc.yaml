@@ -291,7 +291,8 @@ env:
   runs_on_build: ${{inputs.runs_on_build}}
   runner_url: ${{inputs.runner_url}}
   runner_tag: ${{inputs.runner_tag}}
-  environments: ${{inputs.environments}}
+  environments: ${{ vars.shamanops_global_pipeline_environments || inputs.environments }}
+  environmentsGlobal: ${{ vars.shamanops_global_pipeline_environments }}
   multiclusterTag: ${{inputs.multiclusterTag}}
   projectName: ${{inputs.projectName}}
   approvals_timeout: ${{inputs.approvals_timeout}}
