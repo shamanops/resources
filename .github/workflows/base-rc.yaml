@@ -685,7 +685,7 @@ jobs:
           (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true')) &&
           (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true')) &&
           (!failure() || (needs.image-check.result == 'success' && inputs.pre_jobs_blocker != 'true')) &&
-          (inputs.environments == 'full' || environmentsGlobal == 'full') &&
+          (inputs.environments == 'full' || env.environmentsGlobal == 'full') &&
           (needs.approvals-dev.result != 'failure' && needs.db-versioning-dev.result != 'failure')
         }}
     steps:
