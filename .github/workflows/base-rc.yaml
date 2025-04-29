@@ -584,7 +584,7 @@ jobs:
         password: ${{env.shamanops_customer_token}}
     needs: [image-build-and-push, image-check]
     if: ${{ always() && !cancelled() && !failure() &&
-          (inputs.security_check_enabled == 'true' || shamanops_global_pipeline_sca_enabled == 'true)
+          (inputs.security_check_enabled == 'true' || vars.shamanops_global_pipeline_sca_enabled == 'true)
         }}
     steps:
       - uses: actions/checkout@v4.1.1
