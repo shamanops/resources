@@ -762,7 +762,8 @@ jobs:
           (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true' && vars.shamanops_global_pipeline_sca_blocker != 'true')) &&
           (!failure() || (needs.image-check.result == 'success' && inputs.pre_jobs_blocker != 'true')) &&
           (inputs.environments != 'minimal' || inputs.environments == 'available' || vars.shamanops_global_pipeline_environments != 'minimal') &&
-          (inputs.shamanopsApprovalsStg == 'true' && needs.approvals-dev.result != 'failure' && needs.db-versioning-dev.result != 'failure' && needs.app-create-and-deploy-dev.result != 'failure' && needs.app-create-and-deploy-dynamic-envs.result != 'failure')
+          (inputs.shamanopsApprovalsStg == 'true' || vars.shamanops_global_pipeline_approvals_stg == 'true') && 
+          (needs.approvals-dev.result != 'failure' && needs.db-versioning-dev.result != 'failure' && needs.app-create-and-deploy-dev.result != 'failure' && needs.app-create-and-deploy-dynamic-envs.result != 'failure')
         }}
     steps:
       - uses: actions/checkout@v4.1.1
@@ -887,7 +888,8 @@ jobs:
           (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true' && vars.shamanops_global_pipeline_sca_blocker != 'true')) &&
           (!failure() || (needs.image-check.result == 'success' && inputs.pre_jobs_blocker != 'true')) &&
           (inputs.environments != 'minimal' || inputs.environments == 'available' || vars.shamanops_global_pipeline_environments != 'minimal') &&
-          (inputs.functional_analysis_enabled == 'true' && needs.approvals-dev.result != 'failure' && needs.db-versioning-dev.result != 'failure' && needs.app-create-and-deploy-dev.result != 'failure' && needs.app-create-and-deploy-dynamic-envs.result != 'failure' && needs.approvals-stg.result != 'failure' && needs.db-versioning-stg.result != 'failure' && needs.app-create-and-deploy-stg.result != 'failure')
+          (inputs.functional_analysis_enabled == 'true' || vars.shamanops_global_pipeline_functional_analysis_enabled == 'true') && 
+          (needs.approvals-dev.result != 'failure' && needs.db-versioning-dev.result != 'failure' && needs.app-create-and-deploy-dev.result != 'failure' && needs.app-create-and-deploy-dynamic-envs.result != 'failure' && needs.approvals-stg.result != 'failure' && needs.db-versioning-stg.result != 'failure' && needs.app-create-and-deploy-stg.result != 'failure')
         }}
     steps:
       - uses: actions/checkout@v4.1.1
@@ -919,7 +921,7 @@ jobs:
           (!failure() || (needs.image-check.result == 'success' && inputs.functional_analysis_blocker != 'true' && vars.shamanops_global_pipeline_functional_analysis_blocker != 'true')) &&
           (!failure() || (needs.image-check.result == 'success' && inputs.pre_jobs_blocker != 'true')) &&
           (inputs.environments != 'minimal' || inputs.environments == 'available' || vars.shamanops_global_pipeline_environments != 'minimal') &&
-          (inputs.stress_check_enabled == 'true' || vars.shamanops_global_pipeline_functional_analysis_enabled == 'true') &&
+          (inputs.stress_check_enabled == 'true' || vars.shamanops_global_pipeline_stress_enabled == 'true') &&
           (needs.approvals-dev.result != 'failure' && needs.db-versioning-dev.result != 'failure' && needs.app-create-and-deploy-dev.result != 'failure' && needs.app-create-and-deploy-dynamic-envs.result != 'failure' && needs.approvals-stg.result != 'failure' && needs.db-versioning-stg.result != 'failure' && needs.app-create-and-deploy-stg.result != 'failure')
         }}
     steps:
@@ -953,7 +955,8 @@ jobs:
           (!failure() || (needs.image-check.result == 'success' && inputs.functional_analysis_blocker != 'true' && vars.shamanops_global_pipeline_functional_analysis_blocker != 'true')) &&
           (!failure() || (needs.image-check.result == 'success' && inputs.stress_check_blocker != 'true' && vars.shamanops_global_pipeline_stress_blocker != 'true')) &&
           (!failure() || (needs.image-check.result == 'success' && inputs.pre_jobs_blocker != 'true')) &&
-          (inputs.shamanopsApprovalsProd == 'true' && inputs.environments != 'pre' && needs.approvals-dev.result != 'failure' && needs.db-versioning-dev.result != 'failure' && needs.app-create-and-deploy-dev.result != 'failure' && needs.app-create-and-deploy-dynamic-envs.result != 'failure' && needs.approvals-stg.result != 'failure' && needs.db-versioning-stg.result != 'failure' && needs.app-create-and-deploy-stg.result != 'failure')
+          (inputs.shamanopsApprovalsProd == 'true' || vars.shamanops_global_pipeline_approvals_prod == 'true') &&
+          (inputs.environments != 'pre' && needs.approvals-dev.result != 'failure' && needs.db-versioning-dev.result != 'failure' && needs.app-create-and-deploy-dev.result != 'failure' && needs.app-create-and-deploy-dynamic-envs.result != 'failure' && needs.approvals-stg.result != 'failure' && needs.db-versioning-stg.result != 'failure' && needs.app-create-and-deploy-stg.result != 'failure')
         }}
     steps:
       - uses: actions/checkout@v4.1.1
