@@ -478,7 +478,7 @@ jobs:
         password: ${{env.shamanops_customer_token}}
     needs: [repository-check]
     if: ${{ always() && !cancelled() && !failure() &&
-          (inputs.repository_metrics_enabled == 'true' || shamanops_global_pipeline_repository_metrics_enabled == 'true')
+          (inputs.repository_metrics_enabled == 'true' || vars.shamanops_global_pipeline_repository_metrics_enabled == 'true')
         }}
     steps:
       - uses: actions/checkout@v4.1.1
