@@ -292,7 +292,6 @@ env:
   runner_url: ${{inputs.runner_url}}
   runner_tag: ${{inputs.runner_tag}}
   environments: ${{inputs.environments}}
-  environmentsGlobal: ${{vars.shamanops_global_pipeline_environments}}
   multiclusterTag: ${{inputs.multiclusterTag}}
   projectName: ${{inputs.projectName}}
   approvals_timeout: ${{inputs.approvals_timeout}}
@@ -410,6 +409,24 @@ env:
   shamanops_submodules_token: ${{secrets.shamanops_submodules_token}}
   #shamanops_testing_api_token: ${{secrets.shamanops_testing_api_token}}
   shamanops_forward_metrics_endpoint: ${{vars.shamanops_forward_metrics_endpoint}}
+  # Global Pipeline
+  shamanops_global_pipeline_environments: ${{vars.shamanops_global_pipeline_environments}}
+  shamanops_global_pipeline_canary_dev: ${{vars.shamanops_global_pipeline_canary_dev}}
+  shamanops_global_pipeline_canary_stg: ${{vars.shamanops_global_pipeline_canary_stg}}
+  shamanops_global_pipeline_canary_prod: ${{vars.shamanops_global_pipeline_canary_prod}}
+  shamanops_global_pipeline_approvals_dev: ${{vars.shamanops_global_pipeline_approvals_dev}}
+  shamanops_global_pipeline_approvals_stg: ${{vars.shamanops_global_pipeline_approvals_stg}}
+  shamanops_global_pipeline_approvals_prod: ${{vars.shamanops_global_pipeline_approvals_prod}}
+  shamanops_global_pipeline_sca_enabled: ${{vars.shamanops_global_pipeline_sca_enabled}}
+  shamanops_global_pipeline_sca_blocker: ${{vars.shamanops_global_pipeline_sca_blocker}}
+  shamanops_global_pipeline_sast_enabled: ${{vars.shamanops_global_pipeline_sast_enabled}}
+  shamanops_global_pipeline_sast_blocker: ${{vars.shamanops_global_pipeline_sast_blocker}}
+  shamanops_global_pipeline_stress_enabled: ${{vars.shamanops_global_pipeline_stress_enabled}}
+  shamanops_global_pipeline_stress_blocker: ${{vars.shamanops_global_pipeline_stress_blocker}}
+  shamanops_global_pipeline_functional_analysis_enabled: ${{vars.shamanops_global_pipeline_functional_analysis_enabled}}
+  shamanops_global_pipeline_functional_analysis_blocker: ${{vars.shamanops_global_pipeline_functional_analysis_blocker}}
+  shamanops_global_pipeline_secrets_in_code_blocker: ${{vars.shamanops_global_pipeline_secrets_in_code_blocker}}
+  shamanops_global_pipeline_repository_metrics_enabled: ${{vars.shamanops_global_pipeline_repository_metrics_enabled}}
   # For AWS credentials
   AWS_ACCESS_KEY_ID: ${{secrets.AWS_ACCESS_KEY_ID}}
   AWS_SECRET_ACCESS_KEY: ${{secrets.AWS_SECRET_ACCESS_KEY}}
@@ -461,7 +478,7 @@ jobs:
         password: ${{env.shamanops_customer_token}}
     needs: [repository-check]
     if: ${{ always() && !cancelled() && !failure() &&
-          inputs.repository_metrics_enabled == 'true'
+          (inputs.repository_metrics_enabled == 'true' || shamanops_global_pipeline_repository_metrics_enabled == 'true')
         }}
     steps:
       - uses: actions/checkout@v4.1.1
@@ -540,7 +557,7 @@ jobs:
         password: ${{env.shamanops_customer_token}}
     needs: [image-build-and-push, image-check]
     if: ${{ always() && !cancelled() && !failure() &&
-          inputs.code_quality_check_enabled == 'true'
+          (inputs.code_quality_check_enabled == 'true' || vars.shamanops_global_pipeline_sast_enabled == 'true')
         }}
     steps:
       - uses: actions/checkout@v4.1.1
@@ -567,7 +584,7 @@ jobs:
         password: ${{env.shamanops_customer_token}}
     needs: [image-build-and-push, image-check]
     if: ${{ always() && !cancelled() && !failure() &&
-          inputs.security_check_enabled == 'true'
+          (inputs.security_check_enabled == 'true' || shamanops_global_pipeline_sca_enabled == 'true)
         }}
     steps:
       - uses: actions/checkout@v4.1.1
@@ -595,9 +612,10 @@ jobs:
         password: ${{env.shamanops_customer_token}}
     needs: [image-build-and-push, image-check, sast-check, security-check]
     if: ${{ always() && !cancelled() && 
-          (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true')) &&
-          (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true')) &&
-          (inputs.environments != 'minimal' && inputs.environments != 'mid' && inputs.shamanopsApprovalsDev == 'true')
+          (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true' && vars.shamanops_global_pipeline_sast_blocker != 'true')) &&
+          (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true' && vars.shamanops_global_pipeline_sca_blocker != 'true')) &&
+          (inputs.environments == 'full' || inputs.environments == 'available' || vars.shamanops_global_pipeline_environments == 'full') &&
+          (inputs.shamanopsApprovalsDev == 'true' || vars.shamanops_global_pipeline_approvals_dev == 'true')
         }}
     steps:
       - uses: actions/checkout@v4.1.1
@@ -624,9 +642,10 @@ jobs:
         password: ${{env.shamanops_customer_token}}
     needs: [image-build-and-push, image-check, sast-check, security-check, approvals-dev]
     if: ${{ always() && !cancelled() &&
-          (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true')) &&
-          (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true')) &&
-          (inputs.environments != 'minimal' && inputs.environments != 'mid' && needs.approvals-dev.result != 'failure' && inputs.db_versioning_enabled == 'true')
+          (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true' && vars.shamanops_global_pipeline_sast_blocker != 'true')) &&
+          (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true' && vars.shamanops_global_pipeline_sca_blocker != 'true')) &&
+          (inputs.environments == 'full' || inputs.environments == 'available' || vars.shamanops_global_pipeline_environments == 'full') &&
+          (needs.approvals-dev.result != 'failure' && inputs.db_versioning_enabled == 'true')
         }}
     steps:
       - uses: actions/checkout@v4.1.1
@@ -653,9 +672,10 @@ jobs:
         password: ${{env.shamanops_customer_token}}
     needs: [image-build-and-push, image-check, sast-check, security-check, approvals-dev, db-versioning-dev]
     if: ${{ always() && !cancelled() &&
-          (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true')) &&
-          (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true')) &&
-          (inputs.environments != 'minimal' && inputs.environments != 'mid' && needs.approvals-dev.result != 'failure' && needs.db-versioning-devresult != 'failure' && inputs.pre_jobs_enabled == 'true')
+          (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true' && vars.shamanops_global_pipeline_sast_blocker != 'true')) &&
+          (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true' && vars.shamanops_global_pipeline_sca_blocker != 'true')) &&
+          (inputs.environments == 'full' || inputs.environments == 'available' || vars.shamanops_global_pipeline_environments == 'full') &&
+          (needs.db-versioning-devresult != 'failure' && inputs.pre_jobs_enabled == 'true')
         }}
     steps:
       - uses: actions/checkout@v4.1.1
@@ -681,11 +701,11 @@ jobs:
         username: ${{env.shamanops_customer_id}}
         password: ${{env.shamanops_customer_token}}
     needs: [image-build-and-push, image-check, sast-check, security-check, approvals-dev, db-versioning-dev, pre-jobs-dev]
-    if: ${{ always() && !cancelled() && 
-          (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true')) &&
-          (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true')) &&
+    if: ${{ always() && !cancelled() &&
+          (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true' && vars.shamanops_global_pipeline_sast_blocker != 'true')) &&
+          (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true' && vars.shamanops_global_pipeline_sca_blocker != 'true')) &&
           (!failure() || (needs.image-check.result == 'success' && inputs.pre_jobs_blocker != 'true')) &&
-          (inputs.environments == 'full' || vars.shamanops_global_pipeline_environments == 'full') &&
+          (inputs.environments == 'full' || inputs.environments == 'available' || vars.shamanops_global_pipeline_environments == 'full') &&
           (needs.approvals-dev.result != 'failure' && needs.db-versioning-dev.result != 'failure')
         }}
     steps:
@@ -714,10 +734,12 @@ jobs:
         password: ${{env.shamanops_customer_token}}
     needs: [image-build-and-push, image-check, sast-check, security-check, approvals-dev, db-versioning-dev, pre-jobs-dev, app-create-and-deploy-dev]
     if: ${{ always() && !cancelled() &&
-          (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true')) &&
-          (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true')) &&
+          (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true' && vars.shamanops_global_pipeline_sast_blocker != 'true')) &&
+          (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true' && vars.shamanops_global_pipeline_sca_blocker != 'true')) &&
           (!failure() || (needs.image-check.result == 'success' && inputs.pre_jobs_blocker != 'true')) &&
-          (inputs.environments != 'minimal' && inputs.shamanopsDynamicEnvsEnabled == 'true' && needs.approvals-dev.result != 'failure' && needs.db-versioning-dev.result != 'failure' && needs.app-create-and-deploy-dev != 'failure')
+          (inputs.environments != 'minimal' || inputs.environments == 'available' || vars.shamanops_global_pipeline_environments != 'minimal') &&
+          (needs.approvals-dev.result != 'failure' && needs.db-versioning-dev.result != 'failure' && needs.app-create-and-deploy-dev != 'failure') &&
+          (inputs.shamanopsDynamicEnvsEnabled == 'true')
         }}
     steps:
       - uses: actions/checkout@v4.1.1
@@ -736,10 +758,11 @@ jobs:
         password: ${{env.shamanops_customer_token}}
     needs: [image-build-and-push, image-check, sast-check, security-check, approvals-dev, db-versioning-dev, pre-jobs-dev, app-create-and-deploy-dev, app-create-and-deploy-dynamic-envs]
     if: ${{ always() && !cancelled() && 
-          (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true')) &&
-          (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true')) &&
+          (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true' && vars.shamanops_global_pipeline_sast_blocker != 'true')) &&
+          (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true' && vars.shamanops_global_pipeline_sca_blocker != 'true')) &&
           (!failure() || (needs.image-check.result == 'success' && inputs.pre_jobs_blocker != 'true')) &&
-          (inputs.environments != 'minimal' && inputs.shamanopsApprovalsStg == 'true' && needs.approvals-dev.result != 'failure' && needs.db-versioning-dev.result != 'failure' && needs.app-create-and-deploy-dev.result != 'failure' && needs.app-create-and-deploy-dynamic-envs.result != 'failure')
+          (inputs.environments != 'minimal' || inputs.environments == 'available' || vars.shamanops_global_pipeline_environments != 'minimal') &&
+          (inputs.shamanopsApprovalsStg == 'true' && needs.approvals-dev.result != 'failure' && needs.db-versioning-dev.result != 'failure' && needs.app-create-and-deploy-dev.result != 'failure' && needs.app-create-and-deploy-dynamic-envs.result != 'failure')
         }}
     steps:
       - uses: actions/checkout@v4.1.1
@@ -766,10 +789,11 @@ jobs:
         password: ${{env.shamanops_customer_token}}
     needs: [image-build-and-push, image-check, sast-check, security-check, approvals-dev, db-versioning-dev, pre-jobs-dev, app-create-and-deploy-dev, app-create-and-deploy-dynamic-envs, approvals-stg]
     if: ${{ always() && !cancelled() &&
-          (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true')) &&
-          (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true')) &&
+          (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true' && vars.shamanops_global_pipeline_sast_blocker != 'true')) &&
+          (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true' && vars.shamanops_global_pipeline_sca_blocker != 'true')) &&
           (!failure() || (needs.image-check.result == 'success' && inputs.pre_jobs_blocker != 'true')) &&
-          (inputs.environments != 'minimal' && inputs.db_versioning_enabled == 'true' && needs.approvals-dev.result != 'failure' && needs.db-versioning-dev.result != 'failure' && needs.app-create-and-deploy-dev.result != 'failure' && needs.app-create-and-deploy-dynamic-envs.result != 'failure' && needs.approvals-stg.result != 'failure')
+          (inputs.environments != 'minimal' || inputs.environments == 'available' || vars.shamanops_global_pipeline_environments != 'minimal') &&
+          (inputs.db_versioning_enabled == 'true' && needs.approvals-dev.result != 'failure' && needs.db-versioning-dev.result != 'failure' && needs.app-create-and-deploy-dev.result != 'failure' && needs.app-create-and-deploy-dynamic-envs.result != 'failure' && needs.approvals-stg.result != 'failure')
         }}
     steps:
       - uses: actions/checkout@v4.1.1
@@ -796,10 +820,11 @@ jobs:
         password: ${{env.shamanops_customer_token}}
     needs: [image-build-and-push, image-check, sast-check, security-check, approvals-dev, db-versioning-dev, pre-jobs-dev, app-create-and-deploy-dev, app-create-and-deploy-dynamic-envs, approvals-stg, db-versioning-stg]
     if: ${{ always() && !cancelled() &&
-          (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true')) &&
-          (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true')) &&
+          (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true' && vars.shamanops_global_pipeline_sast_blocker != 'true')) &&
+          (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true' && vars.shamanops_global_pipeline_sca_blocker != 'true')) &&      
           (needs.pre-jobs-dev.result != 'failure' || (needs.image-check.result == 'success' && inputs.pre_jobs_blocker != 'true')) &&
-          (inputs.environments != 'minimal' && inputs.pre_jobs_enabled == 'true' && needs.approvals-dev.result != 'failure' && needs.db-versioning-dev.result != 'failure' && needs.app-create-and-deploy-dev.result != 'failure' && needs.app-create-and-deploy-dynamic-envs.result != 'failure' && needs.approvals-stg.result != 'failure')
+          (inputs.environments != 'minimal' || inputs.environments == 'available' || vars.shamanops_global_pipeline_environments != 'minimal') &&
+          (inputs.pre_jobs_enabled == 'true' && needs.approvals-dev.result != 'failure' && needs.db-versioning-dev.result != 'failure' && needs.app-create-and-deploy-dev.result != 'failure' && needs.app-create-and-deploy-dynamic-envs.result != 'failure' && needs.approvals-stg.result != 'failure')
         }}
     steps:
       - uses: actions/checkout@v4.1.1
@@ -826,10 +851,11 @@ jobs:
         password: ${{env.shamanops_customer_token}}
     needs: [image-build-and-push, image-check, sast-check, security-check, approvals-dev, db-versioning-dev, pre-jobs-dev, app-create-and-deploy-dev, app-create-and-deploy-dynamic-envs, approvals-stg, db-versioning-stg, pre-jobs-stg]
     if: ${{ always() && !cancelled() && 
-          (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true')) &&
-          (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true')) &&
+          (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true' && vars.shamanops_global_pipeline_sast_blocker != 'true')) &&
+          (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true' && vars.shamanops_global_pipeline_sca_blocker != 'true')) &&      
           (!failure() || (needs.image-check.result == 'success' && inputs.pre_jobs_blocker != 'true')) &&
-          (inputs.environments != 'minimal' && needs.approvals-dev.result != 'failure' && needs.db-versioning-dev.result != 'failure' && needs.app-create-and-deploy-dev.result != 'failure' && needs.app-create-and-deploy-dynamic-envs.result != 'failure' && needs.approvals-stg.result != 'failure' && needs.db-versioning-stg.result != 'failure')
+          (inputs.environments != 'minimal' || inputs.environments == 'available' || vars.shamanops_global_pipeline_environments != 'minimal') &&
+          (needs.approvals-dev.result != 'failure' && needs.db-versioning-dev.result != 'failure' && needs.app-create-and-deploy-dev.result != 'failure' && needs.app-create-and-deploy-dynamic-envs.result != 'failure' && needs.approvals-stg.result != 'failure' && needs.db-versioning-stg.result != 'failure')
         }}
     steps:
       - uses: actions/checkout@v4.1.1
@@ -857,10 +883,11 @@ jobs:
         password: ${{env.shamanops_customer_token}}
     needs: [image-build-and-push, image-check, sast-check, security-check, approvals-dev, db-versioning-dev, pre-jobs-dev, app-create-and-deploy-dev, app-create-and-deploy-dynamic-envs, approvals-stg, db-versioning-stg, pre-jobs-stg, app-create-and-deploy-stg]
     if: ${{ always() && !cancelled() && 
-          (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true')) &&
-          (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true')) &&
+          (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true' && vars.shamanops_global_pipeline_sast_blocker != 'true')) &&
+          (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true' && vars.shamanops_global_pipeline_sca_blocker != 'true')) &&
           (!failure() || (needs.image-check.result == 'success' && inputs.pre_jobs_blocker != 'true')) &&
-          (inputs.functional_analysis_enabled == 'true' && inputs.environments != 'minimal' && needs.approvals-dev.result != 'failure' && needs.db-versioning-dev.result != 'failure' && needs.app-create-and-deploy-dev.result != 'failure' && needs.app-create-and-deploy-dynamic-envs.result != 'failure' && needs.approvals-stg.result != 'failure' && needs.db-versioning-stg.result != 'failure' && needs.app-create-and-deploy-stg.result != 'failure')
+          (inputs.environments != 'minimal' || inputs.environments == 'available' || vars.shamanops_global_pipeline_environments != 'minimal') &&
+          (inputs.functional_analysis_enabled == 'true' && needs.approvals-dev.result != 'failure' && needs.db-versioning-dev.result != 'failure' && needs.app-create-and-deploy-dev.result != 'failure' && needs.app-create-and-deploy-dynamic-envs.result != 'failure' && needs.approvals-stg.result != 'failure' && needs.db-versioning-stg.result != 'failure' && needs.app-create-and-deploy-stg.result != 'failure')
         }}
     steps:
       - uses: actions/checkout@v4.1.1
@@ -887,11 +914,13 @@ jobs:
         password: ${{env.shamanops_customer_token}}
     needs: [image-build-and-push, image-check, sast-check, security-check, approvals-dev, db-versioning-dev, pre-jobs-dev, app-create-and-deploy-dev, app-create-and-deploy-dynamic-envs, approvals-stg, db-versioning-stg, pre-jobs-stg, app-create-and-deploy-stg, functional-check]
     if: ${{ always() && !cancelled() &&
-          (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true')) &&
-          (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true')) &&
-          (!failure() || (needs.image-check.result == 'success' && inputs.functional_analysis_blocker != 'true')) &&
+          (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true' && vars.shamanops_global_pipeline_sast_blocker != 'true')) &&
+          (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true' && vars.shamanops_global_pipeline_sca_blocker != 'true')) &&
+          (!failure() || (needs.image-check.result == 'success' && inputs.functional_analysis_blocker != 'true' && vars.shamanops_global_pipeline_functional_analysis_blocker != 'true')) &&
           (!failure() || (needs.image-check.result == 'success' && inputs.pre_jobs_blocker != 'true')) &&
-          (inputs.stress_check_enabled == 'true' && inputs.environments != 'minimal' && needs.approvals-dev.result != 'failure' && needs.db-versioning-dev.result != 'failure' && needs.app-create-and-deploy-dev.result != 'failure' && needs.app-create-and-deploy-dynamic-envs.result != 'failure' && needs.approvals-stg.result != 'failure' && needs.db-versioning-stg.result != 'failure' && needs.app-create-and-deploy-stg.result != 'failure')
+          (inputs.environments != 'minimal' || inputs.environments == 'available' || vars.shamanops_global_pipeline_environments != 'minimal') &&
+          (inputs.stress_check_enabled == 'true' || vars.shamanops_global_pipeline_functional_analysis_enabled == 'true') &&
+          (needs.approvals-dev.result != 'failure' && needs.db-versioning-dev.result != 'failure' && needs.app-create-and-deploy-dev.result != 'failure' && needs.app-create-and-deploy-dynamic-envs.result != 'failure' && needs.approvals-stg.result != 'failure' && needs.db-versioning-stg.result != 'failure' && needs.app-create-and-deploy-stg.result != 'failure')
         }}
     steps:
       - uses: actions/checkout@v4.1.1
@@ -919,10 +948,10 @@ jobs:
         password: ${{env.shamanops_customer_token}}
     needs: [image-build-and-push, image-check, sast-check, security-check, approvals-dev, db-versioning-dev, pre-jobs-dev, app-create-and-deploy-dev, app-create-and-deploy-dynamic-envs, approvals-stg, db-versioning-stg, pre-jobs-stg, app-create-and-deploy-stg, functional-check, stress-check]
     if: ${{ always() && !cancelled() && 
-          (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true')) &&
-          (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true')) &&
-          (!failure() || (needs.image-check.result == 'success' && inputs.functional_analysis_blocker != 'true')) &&
-          (!failure() || (needs.image-check.result == 'success' && inputs.stress_check_blocker != 'true')) &&
+          (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true' && vars.shamanops_global_pipeline_sast_blocker != 'true')) &&
+          (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true' && vars.shamanops_global_pipeline_sca_blocker != 'true')) &&
+          (!failure() || (needs.image-check.result == 'success' && inputs.functional_analysis_blocker != 'true' && vars.shamanops_global_pipeline_functional_analysis_blocker != 'true')) &&
+          (!failure() || (needs.image-check.result == 'success' && inputs.stress_check_blocker != 'true' && vars.shamanops_global_pipeline_stress_blocker != 'true')) &&
           (!failure() || (needs.image-check.result == 'success' && inputs.pre_jobs_blocker != 'true')) &&
           (inputs.shamanopsApprovalsProd == 'true' && inputs.environments != 'pre' && needs.approvals-dev.result != 'failure' && needs.db-versioning-dev.result != 'failure' && needs.app-create-and-deploy-dev.result != 'failure' && needs.app-create-and-deploy-dynamic-envs.result != 'failure' && needs.approvals-stg.result != 'failure' && needs.db-versioning-stg.result != 'failure' && needs.app-create-and-deploy-stg.result != 'failure')
         }}
@@ -951,10 +980,10 @@ jobs:
         password: ${{env.shamanops_customer_token}}
     needs: [image-build-and-push, image-check, sast-check, security-check, approvals-dev, db-versioning-dev, pre-jobs-dev, app-create-and-deploy-dev, app-create-and-deploy-dynamic-envs, approvals-stg, db-versioning-stg, pre-jobs-stg, app-create-and-deploy-stg, functional-check, stress-check, approvals-prod]
     if: ${{ always() && !cancelled() &&
-          (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true')) &&
-          (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true')) &&
-          (!failure() || (needs.image-check.result == 'success' && inputs.functional_analysis_blocker != 'true')) &&
-          (!failure() || (needs.image-check.result == 'success' && inputs.stress_check_blocker != 'true')) &&
+          (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true' && vars.shamanops_global_pipeline_sast_blocker != 'true')) &&
+          (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true' && vars.shamanops_global_pipeline_sca_blocker != 'true')) &&
+          (!failure() || (needs.image-check.result == 'success' && inputs.functional_analysis_blocker != 'true' && vars.shamanops_global_pipeline_functional_analysis_blocker != 'true')) &&
+          (!failure() || (needs.image-check.result == 'success' && inputs.stress_check_blocker != 'true' && vars.shamanops_global_pipeline_stress_blocker != 'true')) &&
           (!failure() || (needs.image-check.result == 'success' && inputs.pre_jobs_blocker != 'true')) &&
           (inputs.db_versioning_enabled == 'true' && inputs.environments != 'pre' && needs.approvals-dev.result != 'failure' && needs.db-versioning-dev.result != 'failure' && needs.app-create-and-deploy-dev.result != 'failure' && needs.app-create-and-deploy-dynamic-envs.result != 'failure' && needs.approvals-stg.result != 'failure' && needs.db-versioning-stg.result != 'failure' && needs.app-create-and-deploy-stg.result != 'failure' && needs.approvals-prod.result != 'failure')
         }}
@@ -983,10 +1012,10 @@ jobs:
         password: ${{env.shamanops_customer_token}}
     needs: [image-build-and-push, image-check, sast-check, security-check, approvals-dev, db-versioning-dev, pre-jobs-dev, app-create-and-deploy-dev, app-create-and-deploy-dynamic-envs, approvals-stg, db-versioning-stg, pre-jobs-stg, app-create-and-deploy-stg, functional-check, stress-check, approvals-prod, db-versioning-prod]
     if: ${{ always() && !cancelled() &&
-          (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true')) &&
-          (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true')) &&
-          (!failure() || (needs.image-check.result == 'success' && inputs.functional_analysis_blocker != 'true')) &&
-          (!failure() || (needs.image-check.result == 'success' && inputs.stress_check_blocker != 'true')) &&
+          (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true' && vars.shamanops_global_pipeline_sast_blocker != 'true')) &&
+          (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true' && vars.shamanops_global_pipeline_sca_blocker != 'true')) &&      
+          (!failure() || (needs.image-check.result == 'success' && inputs.functional_analysis_blocker != 'true' && vars.shamanops_global_pipeline_functional_analysis_blocker != 'true')) &&
+          (!failure() || (needs.image-check.result == 'success' && inputs.stress_check_blocker != 'true' && vars.shamanops_global_pipeline_stress_blocker != 'true')) &&
           (needs.pre-jobs-dev.result != 'failure' || (needs.image-check.result == 'success' && inputs.pre_jobs_blocker != 'true')) &&
           (needs.pre-jobs-stg.result != 'failure' || (needs.image-check.result == 'success' && inputs.pre_jobs_blocker != 'true')) &&
           (inputs.environments != 'pre' && inputs.pre_jobs_enabled == 'true' && needs.approvals-dev.result != 'failure' && needs.db-versioning-dev.result != 'failure' && needs.app-create-and-deploy-dev.result != 'failure' && needs.app-create-and-deploy-dynamic-envs.result != 'failure' && needs.approvals-stg.result != 'failure' && needs.db-versioning-stg.result != 'failure' && needs.app-create-and-deploy-stg.result != 'failure' && needs.approvals-prod.result != 'failure' && needs.db-versioning-prod != 'failure')
@@ -1016,10 +1045,10 @@ jobs:
         password: ${{env.shamanops_customer_token}}
     needs: [image-build-and-push, image-check, sast-check, security-check, approvals-dev, db-versioning-dev, pre-jobs-dev, app-create-and-deploy-dev, app-create-and-deploy-dynamic-envs, approvals-stg, db-versioning-stg, pre-jobs-stg, app-create-and-deploy-stg, functional-check, stress-check, approvals-prod, db-versioning-prod, pre-jobs-prod]
     if: ${{ always() && !cancelled() && 
-          (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true')) &&
-          (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true')) &&
-          (!failure() || (needs.image-check.result == 'success' && inputs.functional_analysis_blocker != 'true')) &&
-          (!failure() || (needs.image-check.result == 'success' && inputs.stress_check_blocker != 'true')) &&
+          (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true' && vars.shamanops_global_pipeline_sast_blocker != 'true')) &&
+          (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true' && vars.shamanops_global_pipeline_sca_blocker != 'true')) &&
+          (!failure() || (needs.image-check.result == 'success' && inputs.functional_analysis_blocker != 'true' && vars.shamanops_global_pipeline_functional_analysis_blocker != 'true')) &&
+          (!failure() || (needs.image-check.result == 'success' && inputs.stress_check_blocker != 'true' && vars.shamanops_global_pipeline_stress_blocker != 'true')) &&
           (!failure() || (needs.image-check.result == 'success' && inputs.pre_jobs_blocker != 'true')) &&
           (needs.approvals-dev.result != 'failure' && inputs.environments != 'pre' && needs.db-versioning-dev.result != 'failure' && needs.app-create-and-deploy-dev.result != 'failure' && needs.app-create-and-deploy-dynamic-envs.result != 'failure' && needs.approvals-stg.result != 'failure' && needs.db-versioning-stg.result != 'failure' && needs.app-create-and-deploy-stg.result != 'failure' && needs.approvals-prod.result != 'failure' && needs.db-versioning-prod.result != 'failure')
         }}
@@ -1049,12 +1078,13 @@ jobs:
         password: ${{env.shamanops_customer_token}}
     needs: [image-build-and-push, image-check, sast-check, security-check, approvals-dev, db-versioning-dev, pre-jobs-dev, app-create-and-deploy-dev, app-create-and-deploy-dynamic-envs, approvals-stg, db-versioning-stg, pre-jobs-stg, app-create-and-deploy-stg, functional-check, stress-check, approvals-prod, db-versioning-prod, pre-jobs-prod, app-create-and-deploy-prod]
     if: ${{ always() && !cancelled() && 
-          (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true')) &&
-          (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true')) &&
-          (!failure() || (needs.image-check.result == 'success' && inputs.functional_analysis_blocker != 'true')) &&
-          (!failure() || (needs.image-check.result == 'success' && inputs.stress_check_blocker != 'true')) &&
+          (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true' && vars.shamanops_global_pipeline_sast_blocker != 'true')) &&
+          (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true' && vars.shamanops_global_pipeline_sca_blocker != 'true')) &&
+          (!failure() || (needs.image-check.result == 'success' && inputs.functional_analysis_blocker != 'true' && vars.shamanops_global_pipeline_functional_analysis_blocker != 'true')) &&
+          (!failure() || (needs.image-check.result == 'success' && inputs.stress_check_blocker != 'true' && vars.shamanops_global_pipeline_stress_blocker != 'true')) &&
           (!failure() || (needs.image-check.result == 'success' && inputs.pre_jobs_blocker != 'true')) &&
-          (inputs.environments == 'full-with-drp' && inputs.environments != 'pre' && needs.approvals-dev.result != 'failure' && needs.db-versioning-dev.result != 'failure' && needs.app-create-and-deploy-dev.result != 'failure' && needs.app-create-and-deploy-dynamic-envs.result != 'failure' && needs.approvals-stg.result != 'failure' && needs.db-versioning-stg.result != 'failure' && needs.app-create-and-deploy-stg.result != 'failure' && needs.approvals-prod.result != 'failure' && needs.db-versioning-prod.result != 'failure' && needs.app-create-and-deploy-prod.result != 'failure')
+          (inputs.environments == 'full-with-drp' || vars.shamanops_global_pipeline_environments == 'full-with-drp') &&
+          (inputs.environments != 'pre' && needs.approvals-dev.result != 'failure' && needs.db-versioning-dev.result != 'failure' && needs.app-create-and-deploy-dev.result != 'failure' && needs.app-create-and-deploy-dynamic-envs.result != 'failure' && needs.approvals-stg.result != 'failure' && needs.db-versioning-stg.result != 'failure' && needs.app-create-and-deploy-stg.result != 'failure' && needs.approvals-prod.result != 'failure' && needs.db-versioning-prod.result != 'failure' && needs.app-create-and-deploy-prod.result != 'failure')
         }}
     steps:
       - uses: actions/checkout@v4.1.1
