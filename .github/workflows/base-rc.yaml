@@ -737,7 +737,7 @@ jobs:
           (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true' && vars.shamanops_global_pipeline_sast_blocker != 'true')) &&
           (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true' && vars.shamanops_global_pipeline_sca_blocker != 'true')) &&
           (!failure() || (needs.image-check.result == 'success' && inputs.pre_jobs_blocker != 'true')) &&
-          (inputs.environments != 'minimal' || inputs.environments == 'available' || vars.shamanops_global_pipeline_environments != 'minimal') &&
+          (inputs.environments != 'minimal' || inputs.environments == 'available' || (vars.shamanops_global_pipeline_environments != 'minimal' && vars.shamanops_global_pipeline_environments)) &&
           (needs.approvals-dev.result != 'failure' && needs.db-versioning-dev.result != 'failure' && needs.app-create-and-deploy-dev != 'failure') &&
           (inputs.shamanopsDynamicEnvsEnabled == 'true')
         }}
@@ -761,7 +761,7 @@ jobs:
           (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true' && vars.shamanops_global_pipeline_sast_blocker != 'true')) &&
           (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true' && vars.shamanops_global_pipeline_sca_blocker != 'true')) &&
           (!failure() || (needs.image-check.result == 'success' && inputs.pre_jobs_blocker != 'true')) &&
-          (inputs.environments != 'minimal' || inputs.environments == 'available' || vars.shamanops_global_pipeline_environments != 'minimal') &&
+          (inputs.environments != 'minimal' || inputs.environments == 'available' || (vars.shamanops_global_pipeline_environments != 'minimal' && vars.shamanops_global_pipeline_environments)) &&
           (inputs.shamanopsApprovalsStg == 'true' || vars.shamanops_global_pipeline_approvals_stg == 'true') && 
           (needs.approvals-dev.result != 'failure' && needs.db-versioning-dev.result != 'failure' && needs.app-create-and-deploy-dev.result != 'failure' && needs.app-create-and-deploy-dynamic-envs.result != 'failure')
         }}
@@ -793,7 +793,7 @@ jobs:
           (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true' && vars.shamanops_global_pipeline_sast_blocker != 'true')) &&
           (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true' && vars.shamanops_global_pipeline_sca_blocker != 'true')) &&
           (!failure() || (needs.image-check.result == 'success' && inputs.pre_jobs_blocker != 'true')) &&
-          (inputs.environments != 'minimal' || inputs.environments == 'available' || vars.shamanops_global_pipeline_environments != 'minimal') &&
+          (inputs.environments != 'minimal' || inputs.environments == 'available' || (vars.shamanops_global_pipeline_environments != 'minimal' && vars.shamanops_global_pipeline_environments)) &&
           (inputs.db_versioning_enabled == 'true' && needs.approvals-dev.result != 'failure' && needs.db-versioning-dev.result != 'failure' && needs.app-create-and-deploy-dev.result != 'failure' && needs.app-create-and-deploy-dynamic-envs.result != 'failure' && needs.approvals-stg.result != 'failure')
         }}
     steps:
@@ -824,7 +824,7 @@ jobs:
           (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true' && vars.shamanops_global_pipeline_sast_blocker != 'true')) &&
           (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true' && vars.shamanops_global_pipeline_sca_blocker != 'true')) &&      
           (needs.pre-jobs-dev.result != 'failure' || (needs.image-check.result == 'success' && inputs.pre_jobs_blocker != 'true')) &&
-          (inputs.environments != 'minimal' || inputs.environments == 'available' || vars.shamanops_global_pipeline_environments != 'minimal') &&
+          (inputs.environments != 'minimal' || inputs.environments == 'available' || (vars.shamanops_global_pipeline_environments != 'minimal' && vars.shamanops_global_pipeline_environments)) &&
           (inputs.pre_jobs_enabled == 'true' && needs.approvals-dev.result != 'failure' && needs.db-versioning-dev.result != 'failure' && needs.app-create-and-deploy-dev.result != 'failure' && needs.app-create-and-deploy-dynamic-envs.result != 'failure' && needs.approvals-stg.result != 'failure')
         }}
     steps:
@@ -855,7 +855,7 @@ jobs:
           (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true' && vars.shamanops_global_pipeline_sast_blocker != 'true')) &&
           (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true' && vars.shamanops_global_pipeline_sca_blocker != 'true')) &&      
           (!failure() || (needs.image-check.result == 'success' && inputs.pre_jobs_blocker != 'true')) &&
-          (inputs.environments != 'minimal' || inputs.environments == 'available' || vars.shamanops_global_pipeline_environments != 'minimal') &&
+          (inputs.environments != 'minimal' || inputs.environments == 'available' || (vars.shamanops_global_pipeline_environments != 'minimal' && vars.shamanops_global_pipeline_environments)) &&
           (needs.approvals-dev.result != 'failure' && needs.db-versioning-dev.result != 'failure' && needs.app-create-and-deploy-dev.result != 'failure' && needs.app-create-and-deploy-dynamic-envs.result != 'failure' && needs.approvals-stg.result != 'failure' && needs.db-versioning-stg.result != 'failure')
         }}
     steps:
@@ -887,7 +887,7 @@ jobs:
           (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true' && vars.shamanops_global_pipeline_sast_blocker != 'true')) &&
           (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true' && vars.shamanops_global_pipeline_sca_blocker != 'true')) &&
           (!failure() || (needs.image-check.result == 'success' && inputs.pre_jobs_blocker != 'true')) &&
-          (inputs.environments != 'minimal' || inputs.environments == 'available' || vars.shamanops_global_pipeline_environments != 'minimal') &&
+          (inputs.environments != 'minimal' || inputs.environments == 'available' || (vars.shamanops_global_pipeline_environments != 'minimal' && vars.shamanops_global_pipeline_environments)) &&
           (inputs.functional_analysis_enabled == 'true' || vars.shamanops_global_pipeline_functional_analysis_enabled == 'true') && 
           (needs.approvals-dev.result != 'failure' && needs.db-versioning-dev.result != 'failure' && needs.app-create-and-deploy-dev.result != 'failure' && needs.app-create-and-deploy-dynamic-envs.result != 'failure' && needs.approvals-stg.result != 'failure' && needs.db-versioning-stg.result != 'failure' && needs.app-create-and-deploy-stg.result != 'failure')
         }}
@@ -920,7 +920,7 @@ jobs:
           (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true' && vars.shamanops_global_pipeline_sca_blocker != 'true')) &&
           (!failure() || (needs.image-check.result == 'success' && inputs.functional_analysis_blocker != 'true' && vars.shamanops_global_pipeline_functional_analysis_blocker != 'true')) &&
           (!failure() || (needs.image-check.result == 'success' && inputs.pre_jobs_blocker != 'true')) &&
-          (inputs.environments != 'minimal' || inputs.environments == 'available' || vars.shamanops_global_pipeline_environments != 'minimal') &&
+          (inputs.environments != 'minimal' || inputs.environments == 'available' || (vars.shamanops_global_pipeline_environments != 'minimal' && vars.shamanops_global_pipeline_environments)) &&
           (inputs.stress_check_enabled == 'true' || vars.shamanops_global_pipeline_stress_enabled == 'true') &&
           (needs.approvals-dev.result != 'failure' && needs.db-versioning-dev.result != 'failure' && needs.app-create-and-deploy-dev.result != 'failure' && needs.app-create-and-deploy-dynamic-envs.result != 'failure' && needs.approvals-stg.result != 'failure' && needs.db-versioning-stg.result != 'failure' && needs.app-create-and-deploy-stg.result != 'failure')
         }}
