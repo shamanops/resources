@@ -25,6 +25,7 @@ variables:
   runs_on_build: 'docker'
   # Environments: full-with-drp (dev/stg/prod/drp) | full (dev/stg/prod) | mid (stg/prod) | minimal (prod)
   environments: 'full'
+  multiclusterTag: ''
   # Global variables
   customerName: $CI_PROJECT_ROOT_NAMESPACE
   # Project
@@ -135,7 +136,7 @@ repository-metrics:
     - $runs_on_build
   stage: requirements
   rules:
-    - if: $repository_metrics_enabled == 'true'
+    - if: $repository_metrics_enabled == 'true' || $shamanops_global_pipeline_repository_metrics_enabled == 'true'
       when: on_success
       allow_failure: true
   before_script: |
@@ -182,10 +183,12 @@ security_check:
   stage: analysis
   needs: ["image-check"]
   rules:
-    - if: $security_check_enabled == 'true' && $security_check_blocker == 'true'
+    - if: ($security_check_enabled == 'true' || $shamanops_global_pipeline_sca_enabled == 'true') && 
+          ($security_check_blocker == 'true' || $shamanops_global_pipeline_sca_blocker == 'true')
       when: on_success
       allow_failure: false
-    - if: $security_check_enabled == 'true' && $security_check_blocker != 'true'
+    - if: ($security_check_enabled == 'true' || $shamanops_global_pipeline_sca_enabled == 'true') && 
+          ($security_check_blocker != 'true' || $shamanops_global_pipeline_sca_blocker != 'true')
       when: on_success
       allow_failure: true
     - when: never
@@ -203,10 +206,12 @@ sast_check:
   stage: analysis
   needs: ["image-check"]
   rules:
-    - if: $code_quality_check_enabled == 'true' && $code_quality_check_blocker == 'true'
+    - if: ($code_quality_check_enabled == 'true' || $shamanops_global_pipeline_sast_enabled == 'true') && 
+          ($code_quality_check_blocker == 'true' || $shamanops_global_pipeline_sast_blocker == 'true')
       when: on_success
       allow_failure: false
-    - if: $code_quality_check_enabled == 'true' && $code_quality_check_blocker != 'true'
+    - if: ($code_quality_check_enabled == 'true' || $shamanops_global_pipeline_sast_enabled == 'true') && 
+          ($code_quality_check_blocker != 'true' || $shamanops_global_pipeline_sast_blocker != 'true')
       when: on_success
       allow_failure: true
     - when: never
@@ -232,7 +237,9 @@ approvals-dev:
     - job: image-check
       optional: false
   rules:
-    - if: $environments != 'minimal' && $environments != 'mid' && $shamanopsApprovalsDev == 'true'
+    - if: ($environments == 'full' || $environments == 'full-with-drp' || $environments == 'available' ||
+           $shamanops_global_pipeline_environments == 'full' || $shamanops_global_pipeline_environments  == 'full-with-drp' || $shamanops_global_pipeline_environments == 'available' ) &&
+          ($shamanopsApprovalsDev == 'true' || $shamanops_global_pipeline_approvals_dev == 'true')
       when: on_success
       allow_failure: false
     - when: never
@@ -258,7 +265,9 @@ db-versioning-dev:
     - job: image-check
       optional: false
   rules:
-    - if: $environments != 'minimal' && $environments != 'mid' && $db_versioning_enabled == 'true'
+    - if: ($environments == 'full' || $environments == 'full-with-drp' || $environments == 'available' ||
+          $shamanops_global_pipeline_environments == 'full' || $shamanops_global_pipeline_environments  == 'full-with-drp' || $shamanops_global_pipeline_environments == 'available' ) && 
+          $db_versioning_enabled == 'true'
       when: on_success
       allow_failure: false
     - when: never
@@ -286,10 +295,14 @@ pre-jobs-dev:
     - job: image-check
       optional: false
   rules:
-    - if: $environments != 'minimal' && $environments != 'mid' && $pre_jobs_enabled == 'true' && $pre_jobs_blocker == 'true'
+    - if: ($environments == 'full' || $environments == 'full-with-drp' || $environments == 'available' || 
+          $shamanops_global_pipeline_environments == 'full' || $shamanops_global_pipeline_environments  == 'full-with-drp' || $shamanops_global_pipeline_environments == 'available' ) && 
+          $pre_jobs_enabled == 'true' && $pre_jobs_blocker == 'true'
       when: on_success
       allow_failure: false
-    - if: $environments != 'minimal' && $environments != 'mid' && $pre_jobs_enabled == 'true' && $pre_jobs_blocker != 'true'
+    - if: ($environments == 'full' || $environments == 'full-with-drp' || $environments == 'available' || 
+          $shamanops_global_pipeline_environments == 'full' || $shamanops_global_pipeline_environments  == 'full-with-drp' || $shamanops_global_pipeline_environments == 'available' ) && 
+          $pre_jobs_enabled == 'true' && $pre_jobs_blocker != 'true'
       when: on_success
       allow_failure: true
     - when: never
@@ -315,7 +328,8 @@ app-create-and-deploy-dev:
     - job: image-check
       optional: false
   rules:
-    - if: $environments != 'minimal' && $environments != 'mid'
+    - if: $environments == 'full' || $environments == 'full-with-drp' || $environments == 'available' || 
+          $shamanops_global_pipeline_environments == 'full' || $shamanops_global_pipeline_environments  == 'full-with-drp' || $shamanops_global_pipeline_environments == 'available'
       when: on_success
       allow_failure: false
     - when: never
@@ -344,7 +358,10 @@ app-create-and-deploy-dynamic-envs:
     - job: image-check
       optional: false
   rules:
-    - if: $environments != 'minimal' && $shamanopsDynamicEnvsEnabled == 'true'
+    - if: ($environments == 'full' || $environments == 'full-with-drp' || $environments == 'available' || $environments == 'mid' ||
+          $shamanops_global_pipeline_environments == 'full' || $shamanops_global_pipeline_environments  == 'full-with-drp' || $shamanops_global_pipeline_environments == 'available' || 
+          $shamanops_global_pipeline_environments == 'mid') &&       
+          $shamanopsDynamicEnvsEnabled == 'true'
       when: on_success
       allow_failure: false
     - when: never
@@ -376,7 +393,10 @@ approvals-stg:
     - job: image-check
       optional: false
   rules:
-    - if: $environments != 'minimal' && $shamanopsApprovalsStg == 'true'
+    - if: ($environments == 'full' || $environments == 'full-with-drp' || $environments == 'available' || $environments == 'mid' ||
+          $shamanops_global_pipeline_environments == 'full' || $shamanops_global_pipeline_environments  == 'full-with-drp' || $shamanops_global_pipeline_environments == 'available' ||
+          $shamanops_global_pipeline_environments == 'mid') &&
+          ($shamanopsApprovalsStg == 'true' || $shamanops_global_pipeline_approvals_stg == 'true')
       when: on_success
       allow_failure: false
     - when: never
@@ -408,7 +428,10 @@ db-versioning-stg:
     - job: image-check
       optional: false
   rules:
-    - if: $environments != 'minimal' && $db_versioning_enabled == 'true'
+    - if: ($environments == 'full' || $environments == 'full-with-drp' || $environments == 'available' || $environments == 'mid' ||
+          $shamanops_global_pipeline_environments == 'full' || $shamanops_global_pipeline_environments  == 'full-with-drp' || $shamanops_global_pipeline_environments == 'available' ||
+          $shamanops_global_pipeline_environments == 'mid') &&
+          $db_versioning_enabled == 'true'
       when: on_success
       allow_failure: false
     - when: never
@@ -442,10 +465,16 @@ pre-jobs-stg:
     - job: image-check
       optional: false
   rules:
-    - if: $environments != 'minimal' && $pre_jobs_enabled == 'true' && $pre_jobs_blocker == 'true'
+    - if: ($environments == 'full' || $environments == 'full-with-drp' || $environments == 'available' || $environments == 'mid' ||
+          $shamanops_global_pipeline_environments == 'full' || $shamanops_global_pipeline_environments  == 'full-with-drp' || $shamanops_global_pipeline_environments == 'available' ||
+          $shamanops_global_pipeline_environments == 'mid') &&
+          $pre_jobs_enabled == 'true' && $pre_jobs_blocker == 'true'
       when: on_success
       allow_failure: false
-    - if: $environments != 'minimal' && $pre_jobs_enabled == 'true' && $pre_jobs_blocker != 'true'
+    - if: ($environments == 'full' || $environments == 'full-with-drp' || $environments == 'available' || $environments == 'mid' ||
+          $shamanops_global_pipeline_environments == 'full' || $shamanops_global_pipeline_environments  == 'full-with-drp' || $shamanops_global_pipeline_environments == 'available' ||
+          $shamanops_global_pipeline_environments == 'mid') &&
+          $pre_jobs_enabled == 'true' && $pre_jobs_blocker != 'true'
       when: on_success
       allow_failure: true
     - when: never
@@ -501,10 +530,16 @@ functional_analysis:
   stage: deploy
   needs: ["app-create-and-deploy-stg"]
   rules:
-    - if: $functional_analysis_enabled == 'true' && $functional_analysis_blocker == 'true' && $environments != 'minimal'
+    - if: ($environments == 'full' || $environments == 'full-with-drp' || $environments == 'available' || $environments == 'mid' ||
+          $shamanops_global_pipeline_environments == 'full' || $shamanops_global_pipeline_environments  == 'full-with-drp' || $shamanops_global_pipeline_environments == 'available' ||
+          $shamanops_global_pipeline_environments == 'mid') &&
+          $functional_analysis_enabled == 'true' && $functional_analysis_blocker == 'true'
       when: on_success
       allow_failure: false
-    - if: $functional_analysis_enabled == 'true' && $functional_analysis_blocker != 'true' && $environments != 'minimal'
+    - if: ($environments == 'full' || $environments == 'full-with-drp' || $environments == 'available' || $environments == 'mid' ||
+          $shamanops_global_pipeline_environments == 'full' || $shamanops_global_pipeline_environments  == 'full-with-drp' || $shamanops_global_pipeline_environments == 'available' ||
+          $shamanops_global_pipeline_environments == 'mid') &&
+          $functional_analysis_enabled == 'true' && $functional_analysis_blocker != 'true'
       when: on_success
       allow_failure: true
     - when: never
@@ -526,10 +561,18 @@ stress_test:
     - job: functional_analysis
       optional: true
   rules:
-    - if: $stress_check_enabled == 'true' && $stress_check_blocker == 'true' && $environments != 'minimal'
+    - if: ($environments == 'full' || $environments == 'full-with-drp' || $environments == 'available' || $environments == 'mid' ||
+          $shamanops_global_pipeline_environments == 'full' || $shamanops_global_pipeline_environments  == 'full-with-drp' || $shamanops_global_pipeline_environments == 'available' ||
+          $shamanops_global_pipeline_environments == 'mid') &&
+          ($stress_check_enabled == 'true' || $shamanops_global_pipeline_stress_enabled == 'true') && 
+          ($stress_check_blocker == 'true' || $shamanops_global_pipeline_stress_blocker == 'true')
       when: on_success
       allow_failure: false
-    - if: $stress_check_enabled == 'true' && $stress_check_blocker != 'true' && $environments != 'minimal'
+    - if: ($environments == 'full' || $environments == 'full-with-drp' || $environments == 'available' || $environments == 'mid' ||
+          $shamanops_global_pipeline_environments == 'full' || $shamanops_global_pipeline_environments  == 'full-with-drp' || $shamanops_global_pipeline_environments == 'available' ||
+          $shamanops_global_pipeline_environments == 'mid') &&
+          ($stress_check_enabled == 'true' || $shamanops_global_pipeline_stress_enabled == 'true') && 
+          ($stress_check_blocker != 'true' || $shamanops_global_pipeline_stress_blocker == 'false')
       when: on_success
       allow_failure: true
     - when: never
@@ -571,7 +614,7 @@ approvals-prod:
     - job: image-check
       optional: false
   rules:
-    - if: $shamanopsApprovalsProd == 'true' && $environments != 'pre'
+    - if: $shamanopsApprovalsProd == 'true' || $shamanops_global_pipeline_approvals_prod == 'true' 
       when: on_success
       allow_failure: false
     - when: never
@@ -615,7 +658,7 @@ db-versioning-prod:
     - job: stress_test
       optional: true
   rules:
-    - if: $db_versioning_enabled == 'true' && $environments != 'pre'
+    - if: $db_versioning_enabled == 'true'
       when: on_success
       allow_failure: false
     - when: never
@@ -729,7 +772,7 @@ app-create-and-deploy-drp:
   stage: deploy
   needs: ["app-create-and-deploy-prod"]
   rules:
-    - if: $environments == 'full-with-drp' && $environments != 'pre'
+    - if: $environments == 'full-with-drp' || $shamanops_global_pipeline_environments == 'full-with-drp'
       when: on_success
       allow_failure: false
     - when: never
