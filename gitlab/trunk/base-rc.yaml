@@ -512,7 +512,7 @@ app-create-and-deploy-stg:
   rules:
     - if: $environments == 'full' || $environments == 'full-with-drp' || $environments == 'available' || $environments == 'mid' ||
           $shamanops_global_pipeline_environments == 'full' || $shamanops_global_pipeline_environments  == 'full-with-drp' || $shamanops_global_pipeline_environments == 'available' ||
-          $shamanops_global_pipeline_environments == 'mid')
+          $shamanops_global_pipeline_environments == 'mid'
       when: on_success
       allow_failure: false
     - when: never
