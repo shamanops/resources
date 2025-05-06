@@ -614,7 +614,8 @@ jobs:
     if: ${{ always() && !cancelled() && 
           (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true' && vars.shamanops_global_pipeline_sast_blocker != 'true')) &&
           (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true' && vars.shamanops_global_pipeline_sca_blocker != 'true')) &&
-          (inputs.environments == 'full' || inputs.environments == 'available' || vars.shamanops_global_pipeline_environments == 'full') &&
+          (inputs.environments == 'full' || inputs.environments == 'available' || inputs.environments == 'full-with-drp' || 
+           vars.shamanops_global_pipeline_environments == 'full' || vars.shamanops_global_pipeline_environments == 'available' || vars.shamanops_global_pipeline_environments == 'full-with-drp') &&
           (inputs.shamanopsApprovalsDev == 'true' || vars.shamanops_global_pipeline_approvals_dev == 'true')
         }}
     steps:
@@ -644,7 +645,8 @@ jobs:
     if: ${{ always() && !cancelled() &&
           (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true' && vars.shamanops_global_pipeline_sast_blocker != 'true')) &&
           (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true' && vars.shamanops_global_pipeline_sca_blocker != 'true')) &&
-          (inputs.environments == 'full' || inputs.environments == 'available' || vars.shamanops_global_pipeline_environments == 'full') &&
+          (inputs.environments == 'full' || inputs.environments == 'available' || inputs.environments == 'full-with-drp' || 
+           vars.shamanops_global_pipeline_environments == 'full' || vars.shamanops_global_pipeline_environments == 'available' || vars.shamanops_global_pipeline_environments == 'full-with-drp') &&
           (needs.approvals-dev.result != 'failure' && inputs.db_versioning_enabled == 'true')
         }}
     steps:
@@ -674,7 +676,8 @@ jobs:
     if: ${{ always() && !cancelled() &&
           (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true' && vars.shamanops_global_pipeline_sast_blocker != 'true')) &&
           (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true' && vars.shamanops_global_pipeline_sca_blocker != 'true')) &&
-          (inputs.environments == 'full' || inputs.environments == 'available' || vars.shamanops_global_pipeline_environments == 'full') &&
+          (inputs.environments == 'full' || inputs.environments == 'available' || inputs.environments == 'full-with-drp' || 
+           vars.shamanops_global_pipeline_environments == 'full' || vars.shamanops_global_pipeline_environments == 'available' || vars.shamanops_global_pipeline_environments == 'full-with-drp') &&
           (needs.db-versioning-devresult != 'failure' && inputs.pre_jobs_enabled == 'true')
         }}
     steps:
@@ -705,7 +708,8 @@ jobs:
           (!failure() || (needs.image-check.result == 'success' && inputs.code_quality_check_blocker != 'true' && vars.shamanops_global_pipeline_sast_blocker != 'true')) &&
           (!failure() || (needs.image-check.result == 'success' && inputs.security_check_blocker != 'true' && vars.shamanops_global_pipeline_sca_blocker != 'true')) &&
           (!failure() || (needs.image-check.result == 'success' && inputs.pre_jobs_blocker != 'true')) &&
-          (inputs.environments == 'full' || inputs.environments == 'available' || vars.shamanops_global_pipeline_environments == 'full') &&
+          (inputs.environments == 'full' || inputs.environments == 'available' || inputs.environments == 'full-with-drp' || 
+           vars.shamanops_global_pipeline_environments == 'full' || vars.shamanops_global_pipeline_environments == 'available' || vars.shamanops_global_pipeline_environments == 'full-with-drp') &&
           (needs.approvals-dev.result != 'failure' && needs.db-versioning-dev.result != 'failure')
         }}
     steps:
