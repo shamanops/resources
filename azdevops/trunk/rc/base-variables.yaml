@@ -25,8 +25,12 @@ variables:
   shamanopsApprovalsDev: 'false'
   shamanopsApprovalsStg: 'false'
   shamanopsApprovalsProd: 'true'
-  shamanopsBusinessApproversMinimalProd: '0'
-  shamanopsTechnicalApproversMinimalProd: '0' 
+  shamanopsBusinessApproversMinimalDev: '0'
+  shamanopsTechnicalApproversMinimalDev: '1'
+  shamanopsBusinessApproversMinimalStg: '0'
+  shamanopsTechnicalApproversMinimalStg: '1'
+  shamanopsBusinessApproversMinimalProd: '1'
+  shamanopsTechnicalApproversMinimalProd: '1' 
   # Code language Auto-detection
   code_language_detection_enabled: 'false'
   # Dependency and OS security checker
