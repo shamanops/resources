@@ -72,7 +72,7 @@ on:
         default: '0'
       shamanopsTechnicalApproversMinimalDev:
         type: string
-        default: '0'
+        default: '1'
       shamanopsApprovalsStg:
         type: string
         default: 'false'
@@ -81,7 +81,7 @@ on:
         default: '0'
       shamanopsTechnicalApproversMinimalStg:
         type: string
-        default: '0'
+        default: '1'
       shamanopsApprovalsProd:
         type: string
         default: 'true'
