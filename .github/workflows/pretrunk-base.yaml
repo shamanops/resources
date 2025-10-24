@@ -1,0 +1,126 @@
+################################################################################
+## ShamanOps Base Pretrunk Pipeline | Github Actions ###########################
+################################################################################
+##
+name: shamanops-base-pretrunk-pipeline
+on:
+  workflow_call:
+    inputs:
+      # Pipeline exec
+      runs_on:
+        type: string
+        default: 'ubuntu-latest'
+      runner_url:
+        type: string
+        default: 'registry.shamanops.com/runner/fedora'
+      runner_tag:
+        type: string
+        default: 'stable'
+      # Project
+      projectName:
+        type: string
+        default: 'default'
+      # Code language Auto-detection
+      code_language_detection_enabled:
+        type: string
+        default: 'false'
+      # Verbosity level
+      log_level:
+        type: string
+        default: 'normal'
+      # Application expose
+      exposeEnabled:
+        type: string
+        default: 'false'
+      # Application port
+      appInternalPort:
+        type: string
+        default: '8080'
+      # Days to live
+      appDaysToLive:
+        type: string
+        default: '0'
+      # CI Metrics forward
+      forward_metrics_enabled:
+        type: string
+        default: 'false'
+    # Secrets
+    secrets:
+      shamanops_customer_token:
+        required: true
+      shamanops_argocd_dev_token:
+        required: true
+      shamanops_manifest_repository_token:
+        required: true
+      shamanops_chat_webhook:
+      shamanops_registry_password:
+        required: true
+      shamanops_secondary_registry_password:
+      shamanops_dockerfile_token:
+      # For AWS credentials
+      AWS_ACCESS_KEY_ID:
+      AWS_SECRET_ACCESS_KEY:
+      AWS_REGION:
+env:
+# Client side
+  runs_on: ${{inputs.runs_on}}
+  runner_url: ${{inputs.runner_url}}
+  runner_tag: ${{inputs.runner_tag}}
+  projectName: ${{inputs.projectName}}
+  code_language_detection_enabled: ${{inputs.code_language_detection_enabled}}
+  log_level: ${{inputs.log_level}}
+  appInternalPort: ${{inputs.appInternalPort}}
+  exposeEnabled: ${{inputs.exposeEnabled}}
+  appDaysToLive: ${{inputs.appDaysToLive}}
+  forward_metrics_enabled: ${{inputs.forward_metrics_enabled}}
+# Global side
+  shamanops_argocd_dev_url: ${{vars.shamanops_argocd_dev_url}}
+  shamanops_argocd_dev_user: ${{vars.shamanops_argocd_dev_user}}
+  shamanops_argocd_dev_token: ${{secrets.shamanops_argocd_dev_token}}
+  shamanops_chat_webhook: ${{secrets.shamanops_chat_webhook}}
+  shamanops_registry_name: ${{vars.shamanops_registry_name}}
+  shamanops_registry_url: ${{vars.shamanops_registry_url}}
+  shamanops_registry_user: ${{vars.shamanops_registry_user}}
+  shamanops_registry_password: ${{secrets.shamanops_registry_password}}
+  shamanops_secondary_registry_url: ${{vars.shamanops_secondary_registry_url}}
+  shamanops_secondary_registry_user: ${{vars.shamanops_secondary_registry_user}}
+  shamanops_secondary_registry_password: ${{secrets.shamanops_secondary_registry_password}}
+  shamanops_manifest_repository: ${{vars.shamanops_manifest_repository}}
+  shamanops_manifest_repository_user: ${{vars.shamanops_manifest_repository_user}}
+  shamanops_manifest_repository_token: ${{secrets.shamanops_manifest_repository_token}}
+  shamanops_customer_id: ${{vars.shamanops_customer_id}}
+  shamanops_customer_token: ${{secrets.shamanops_customer_token}}
+  shamanops_dockerfile_token: ${{secrets.shamanops_dockerfile_token}}
+  shamanops_forward_metrics_endpoint: ${{vars.shamanops_forward_metrics_endpoint}}
+  # For AWS credentials
+  AWS_ACCESS_KEY_ID: ${{secrets.AWS_ACCESS_KEY_ID}}
+  AWS_SECRET_ACCESS_KEY: ${{secrets.AWS_SECRET_ACCESS_KEY}}
+  AWS_REGION: ${{secrets.AWS_REGION}}
+# For CI Platform:
+  # Global variables
+  customerName: ${{github.repository_owner}}
+  appName: ${{github.event.repository.name}}
+  repoUrl: ${{github.server_url}}/${{github.repository}}
+  jobUrl: ${{ github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}
+  var2: ${CI_REGISTRY_IMAGE%/*}
+  pipelineId: ${{github.run_id}}
+jobs:
+################################################################################
+# Stages
+# ------------------------------------------------------------------------------
+# Stage 1 - Pretrunk ###########################################################
+  pretrunk:
+    runs-on: ${{ inputs.runs_on }}
+    container:
+      image: ${{ inputs.runner_url }}:${{ inputs.runner_tag }}
+      options: -u root --privileged --quiet
+      credentials:
+        username: ${{env.shamanops_customer_id}}
+        password: ${{env.shamanops_customer_token}}
+    steps:
+      - uses: actions/checkout@v4.1.1
+        with:
+          fetch-depth: 0
+      - name: pretrunk
+        run: shamanops pretrunk
+################################################################################

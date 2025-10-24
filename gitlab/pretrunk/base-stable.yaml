@@ -1,0 +1,50 @@
+################################################################################
+## ShamanOps Base Pre-trunk-based Pipeline | Github Actions STABLE
+################################################################################
+##
+image: 
+  name: registry.shamanops.com/runner/fedora:stable
+  pull_policy: always
+  entrypoint: [""]
+################################################################################
+# Stages
+stages:
+  - pretrunk
+################################################################################
+# Global variables
+variables:
+  # Pipeline exec
+  runs_on: 'docker'
+  # For CI Platform:
+  GIT_STRATEGY: fetch
+  GIT_DEPTH: 0
+  # Global variables
+  customerName: $CI_PROJECT_ROOT_NAMESPACE
+  # Project
+  projectName: 'default'
+  appInternalPort: '8080'
+  exposeEnabled: 'false'
+  appDaysToLive: '0'
+  forward_metrics_enabled: 'false'
+  appName: $CI_PROJECT_NAME
+  repoUrl: $CI_REPOSITORY_URL
+  jobUrl: $CI_JOB_URL
+  pipelineId: $CI_PIPELINE_ID
+  var2: ${CI_REGISTRY_IMAGE%/*}
+  # Code language Auto-detection
+  code_language_detection_enabled: 'false'
+  # Verbosity level
+  log_level: 'normal'
+################################################################################
+# Stages
+# ------------------------------------------------------------------------------
+# Stage 1 - Pre Trunk Based ####################################################
+deploy:
+  tags:
+    - $runs_on
+  stage: pretrunk
+  rules:
+    - when: always
+  script:
+    - shamanops pretrunk
+################################################################################

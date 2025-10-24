@@ -1,0 +1,92 @@
+variables:
+  # For CI Platform:
+  # Global variables
+  GIT_STRATEGY: "fetch"
+  GIT_DEPTH: "0"
+  customerURI: $(System.CollectionUri)
+  appName: $(Build.Repository.Name)
+  repoUrl: $(Build.Repository.Uri)
+  jobUrl: "$(System.CollectionUri)$(System.TeamProject)/_build/results?buildId=$(Build.BuildId)"
+  pipelineId: $(Build.BuildId)
+  # Client side
+  environments: 'full'
+  projectName: 'default'
+  appInternalPort: ''
+  strategyCanaryProd: 'false'
+  strategyCanaryStg: 'false'
+  strategyCanaryDev: 'false'
+  strategyBlueGreenProd: 'false'
+  strategyBlueGreenStg: 'false'
+  strategyBlueGreenDev: 'false'
+  # Approvals
+  approvals_timeout: '30'
+  shamanopsBusinessApprovers: ''
+  shamanopsTechnicalApprovers: ''
+  shamanopsApprovalsDev: 'false'
+  shamanopsApprovalsStg: 'false'
+  shamanopsApprovalsProd: 'true'
+  shamanopsBusinessApproversMinimalDev: '0'
+  shamanopsTechnicalApproversMinimalDev: '1'
+  shamanopsBusinessApproversMinimalStg: '0'
+  shamanopsTechnicalApproversMinimalStg: '1'
+  shamanopsBusinessApproversMinimalProd: '1'
+  shamanopsTechnicalApproversMinimalProd: '1'
+  # Code language Auto-detection
+  code_language_detection_enabled: 'false'
+  # Dependency and OS security checker
+  security_check_enabled: 'true'
+  security_check_blocker: 'false'
+  security_check_report_upload: 'false'
+  security_check_report_format: 'table'
+  # Software Bill of Materials
+  sbom_check_enabled: 'false'
+  sbom_check_report_upload: 'false'
+  sbom_check_report_format: 'table'
+  # SAST check
+  code_quality_check_enabled: 'false'
+  code_quality_check_blocker: 'false'
+  code_quality_check_exclusions: 'test/**'
+  code_quality_check_test_exclusions: '**/vendor/**' 
+  code_quality_check_test_inclusions: '**/*test*'
+  code_quality_check_cs_dir: ''
+  code_quality_check_cs_nuget_enabled: 'false'
+  code_quality_check_cs_nuget_dir: '/nuget'
+  code_quality_check_cs_nuget_config: 'NuGet.Config'
+  code_quality_check_test_cs_enabled: 'false'
+  code_quality_check_test_cs_opencover_reportsPaths: 'tests/**/coverage.opencover.xml'
+  # Stress tests
+  stress_check_enabled: 'false'
+  stress_check_blocker: 'false'
+  stress_check_error_rate_max: '15'
+  stress_check_thread: '19'
+  stress_check_upPeriod: '10'
+  stress_check_second: '60'
+  # Functional Analysis
+  functional_analysis_enabled: 'false'
+  functional_analysis_blocker: 'false'
+  functional_analysis_test_type: 'playwright'
+  functional_analysis_test_storage_enabled: 'false'
+  functional_analysis_test_storage_class: 'default'
+  functional_analysis_test_path: 'testing'
+  functional_analysis_test_timeout: '600'
+  # Database Versioning
+  db_versioning_enabled: 'false'
+  db_versioning_type: 'postgresql'
+  db_versioning_changelog_file: 'db.changelog.xml'
+  # Repository Metrics
+  repository_metrics_enabled: 'false'
+  repository_metrics_depth: 'mid'
+  # Verbosity level
+  log_level: 'normal'
+  # GIT Submodules
+  git_submodules_enabled: 'false'
+  # Dynamic Envs
+  shamanopsDynamicEnvsEnabled: 'false'
+  shamanopsDynamicEnvs: 'qa'
+  shamanopsTechnicalApproversMinimalDynamicEnvs: '1'
+  shamanopsBusinessApproversMinimalDynamicEnvs: '1'
+  shamanopsApprovalsDynamicEnvs: 'false'
+  # Secrets in code
+  secrets_in_code_blocker: 'false'
+  # CI Metrics forward
+  forward_metrics_enabled: 'false'

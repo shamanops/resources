@@ -1,0 +1,1170 @@
+stages:
+- stage: pre_requirements
+  jobs:
+  - job: azdevops
+    steps:
+    - checkout: none
+    - task: AzureKeyVault@1
+      name: azKeyVault
+      displayName: azure-keyvault
+      inputs:
+        azureSubscription: shamanops-keyvault
+        KeyVaultName: 'shamanops-01-135d'
+        SecretsFilter: '*' 
+        RunAsPreJob: false
+    - script: |
+        # Variables
+        customerName=$(echo $(customerURI) | cut -d "/" -f 4)
+        shamanops_customer_id=$(echo "$(shamanops-customer-id)" | tr -d "{}")
+        shamanops_argocd_dev_url=$(echo "$(shamanops-argocd-dev-url)" | tr -d "{}")
+        shamanops_argocd_dev_user=$(echo "$(shamanops-argocd-dev-user)" | tr -d "{}")
+        shamanops_argocd_stg_url=$(echo "$(shamanops-argocd-stg-url)" | tr -d "{}")
+        shamanops_argocd_stg_user=$(echo "$(shamanops-argocd-stg-user)" | tr -d "{}")
+        shamanops_argocd_prod_url=$(echo "$(shamanops-argocd-prod-url)" | tr -d "{}")
+        shamanops_argocd_prod_user=$(echo "$(shamanops-argocd-prod-user)" | tr -d "{}")
+        shamanops_argocd_drp_url=$(echo "$(shamanops-argocd-drp-url)" | tr -d "{}")
+        shamanops_argocd_drp_user=$(echo "$(shamanops-argocd-drp-user)" | tr -d "{}")
+        shamanops_manifest_repository=$(echo "$(shamanops-manifest-repository)" | tr -d "{}")
+        shamanops_manifest_repository_user=$(echo "$(shamanops-manifest-repository-user)" | tr -d "{}")
+        shamanops_registry_url=$(echo "$(shamanops-registry-url)" | tr -d "{}")
+        shamanops_registry_user=$(echo "$(shamanops-registry-user)" | tr -d "{}")
+        shamanops_code_quality_url=$(echo "$(shamanops-code-quality-url)" | tr -d "{}")
+        shamanops_chat_webhook=$(echo "$(shamanops-chat-webhook)" | tr -d "{}")
+        # Secrets
+        shamanops_customer_token=$(shamanops-customer-token)
+        shamanops_argocd_dev_token=$(shamanops-argocd-dev-token)
+        shamanops_argocd_stg_token=$(shamanops-argocd-stg-token)
+        shamanops_argocd_prod_token=$(shamanops-argocd-prod-token)
+        shamanops_argocd_drp_token=$(shamanops-argocd-drp-token)
+        shamanops_code_quality_token=$(shamanops-code-quality-token)
+        shamanops_manifest_repository_token=$(shamanops-manifest-repository-token)
+        shamanops_registry_password=$(shamanops-registry-password)
+        shamanops_dockerfile_token=$(shamanops_dockerfile_token)
+        # Export variables
+        echo "##vso[task.setvariable variable=customerName;isOutput=true]$customerName"
+        echo "##vso[task.setvariable variable=shamanops_customer_id;isOutput=true]$shamanops_customer_id"
+        echo "##vso[task.setvariable variable=shamanops_argocd_dev_url;isOutput=true]$shamanops_argocd_dev_url"
+        echo "##vso[task.setvariable variable=shamanops_argocd_dev_user;isOutput=true]$shamanops_argocd_dev_user"
+        echo "##vso[task.setvariable variable=shamanops_argocd_stg_url;isOutput=true]$shamanops_argocd_stg_url"
+        echo "##vso[task.setvariable variable=shamanops_argocd_stg_user;isOutput=true]$shamanops_argocd_stg_user"
+        echo "##vso[task.setvariable variable=shamanops_argocd_prod_url;isOutput=true]$shamanops_argocd_prod_url"
+        echo "##vso[task.setvariable variable=shamanops_argocd_prod_user;isOutput=true]$shamanops_argocd_prod_user"
+        echo "##vso[task.setvariable variable=shamanops_argocd_drp_url;isOutput=true]$shamanops_argocd_drp_url"
+        echo "##vso[task.setvariable variable=shamanops_argocd_drp_user;isOutput=true]$shamanops_argocd_drp_user"
+        echo "##vso[task.setvariable variable=shamanops_code_quality_url;isOutput=true]$shamanops_code_quality_url"
+        echo "##vso[task.setvariable variable=shamanops_code_quality_token;isOutput=true;issecret=true]$shamanops_code_quality_token"
+        echo "##vso[task.setvariable variable=shamanops_manifest_repository;isOutput=true]$shamanops_manifest_repository"
+        echo "##vso[task.setvariable variable=shamanops_manifest_repository_user;isOutput=true]$shamanops_manifest_repository_user"
+        echo "##vso[task.setvariable variable=shamanops_manifest_repository_token;isOutput=true;issecret=true]$shamanops_manifest_repository_token"
+        echo "##vso[task.setvariable variable=shamanops_registry_url;isOutput=true]$shamanops_registry_url"
+        echo "##vso[task.setvariable variable=shamanops_registry_user;isOutput=true]$shamanops_registry_user"
+        echo "##vso[task.setvariable variable=shamanops_registry_password;isOutput=true;issecret=true]$shamanops_registry_password"
+        echo "##vso[task.setvariable variable=shamanops_chat_webhook;isOutput=true;issecret=true]$shamanops_chat_webhook"
+        # Export secrets
+        echo "##vso[task.setvariable variable=shamanops_customer_token;isOutput=true;issecret=true]$shamanops_customer_token"
+        echo "##vso[task.setvariable variable=shamanops_argocd_dev_token;isOutput=true;issecret=true]$shamanops_argocd_dev_token"
+        echo "##vso[task.setvariable variable=shamanops_argocd_stg_token;isOutput=true;issecret=true]$shamanops_argocd_stg_token"
+        echo "##vso[task.setvariable variable=shamanops_argocd_prod_token;isOutput=true;issecret=true]$shamanops_argocd_prod_token"
+        echo "##vso[task.setvariable variable=shamanops_argocd_drp_token;isOutput=true;issecret=true]$shamanops_argocd_drp_token"
+        echo "##vso[task.setvariable variable=shamanops_code_quality_token;isOutput=true;issecret=true]$shamanops_code_quality_token"
+        echo "##vso[task.setvariable variable=shamanops_manifest_repository_token;isOutput=true;issecret=true]$shamanops_manifest_repository_token"
+        echo "##vso[task.setvariable variable=shamanops_registry_password;isOutput=true;issecret=true]$shamanops_registry_password"
+        echo "##vso[task.setvariable variable=shamanops_chat_webhook;isOutput=true;issecret=true]$shamanops_chat_webhook"
+        echo "##vso[task.setvariable variable=shamanops_dockerfile_token;isOutput=true;issecret=true]$shamanops_dockerfile_token"
+      displayName: cicd-variables-and-secrets
+      name: globalVars
+    - task: Docker@2
+      name: registryLogin
+      displayName: shamanops-registry-login
+      inputs:
+        containerRegistry: shamanops-registry
+        command: 'login'
+- stage: requirements
+  dependsOn: pre_requirements
+  variables:
+    customerName: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.customerName'] ]
+    shamanops_customer_id: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_customer_id'] ]
+    shamanops_manifest_repository: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_manifest_repository'] ]
+    shamanops_manifest_repository_user: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_manifest_repository_user'] ]
+    shamanops_argocd_dev_url: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_argocd_dev_url'] ]
+    shamanops_argocd_dev_user: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_argocd_dev_user'] ]
+    shamanops_argocd_stg_url: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_argocd_stg_url'] ]
+    shamanops_argocd_stg_user: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_argocd_stg_user'] ]
+    shamanops_argocd_prod_url: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_argocd_prod_url'] ]
+    shamanops_argocd_prod_user: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_argocd_prod_user'] ]
+    shamanops_argocd_drp_url: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_argocd_drp_url'] ]
+    shamanops_argocd_drp_user: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_argocd_drp_user'] ]
+    shamanops_registry_url: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_registry_url'] ]
+    shamanops_registry_user: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_registry_user'] ]
+    shamanops_customer_token: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_customer_token'] ]
+    shamanops_manifest_repository_token: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_manifest_repository_token'] ]
+    shamanops_registry_password: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_registry_password'] ]
+    shamanops_chat_webhook: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_chat_webhook'] ]
+  jobs:
+  - job: repository_check
+    steps:
+    - checkout: self
+      clean: true
+      fetchDepth: 0
+    - task: Docker@1
+      name: repository_check
+      displayName: repository-check
+      inputs:
+        containerregistrytype: 'Container Registry'
+        dockerRegistryEndpoint: shamanops-registry
+        command: 'Run an image'
+        arguments: '--privileged -u root --pull=always --quiet'
+        imageName: 'registry.shamanops.com/runner/fedora:stable'
+        volumes: '$(Build.Repository.LocalPath):/home/runner'
+        envVars: |
+          customerName=$(customerName)
+          appName=$(appName)
+          appInternalPort=$(appInternalPort)
+          repoUrl=$(repoUrl)
+          jobUrl=$(jobUrl)
+          pipelineId=$(pipelineId)
+          GIT_STRATEGY=$(GIT_STRATEGY)
+          GIT_DEPTH=$(GIT_DEPTH)
+          environments=$(environments)
+          projectName=$(projectName)
+          strategyCanaryProd=$(strategyCanaryProd)
+          strategyCanaryStg=$(strategyCanaryStg)
+          strategyCanaryDev=$(strategyCanaryDev)
+          strategyBlueGreenProd=$(strategyBlueGreenProd)
+          strategyBlueGreenStg=$(strategyBlueGreenStg)
+          strategyBlueGreenDev=$(strategyBlueGreenDev)
+          approvals_timeout=$(approvals_timeout)
+          code_language_detection_enabled=$(code_language_detection_enabled)
+          log_level=$(log_level)
+          shamanops_customer_id=$(shamanops_customer_id)
+          shamanops_customer_token=$(shamanops_customer_token)
+          shamanops_argocd_dev_url=$(shamanops_argocd_dev_url)
+          shamanops_argocd_dev_user=$(shamanops_argocd_dev_user)
+          shamanops_argocd_dev_token=$(shamanops_argocd_dev_token)
+          shamanops_argocd_stg_url=$(shamanops_argocd_stg_url)
+          shamanops_argocd_stg_user=$(shamanops_argocd_stg_user)
+          shamanops_argocd_stg_token=$(shamanops_argocd_stg_token)
+          shamanops_argocd_prod_url=$(shamanops_argocd_prod_url)
+          shamanops_argocd_prod_user=$(shamanops_argocd_prod_user)
+          shamanops_argocd_prod_token=$(shamanops_argocd_prod_token)
+          shamanops_argocd_drp_url=$(shamanops_argocd_drp_url)
+          shamanops_argocd_drp_user=$(shamanops_argocd_drp_user)
+          shamanops_argocd_drp_token=$(shamanops_argocd_drp_token)
+          shamanops_registry_url=$(shamanops_registry_url)
+          shamanops_registry_user=$(shamanops_registry_user)
+          shamanops_registry_password=$(shamanops_registry_password)
+          shamanops_argocd_drp_token=$(shamanops_argocd_drp_token)
+          shamanops_manifest_repository=$(shamanops_manifest_repository)
+          shamanops_manifest_repository_user=$(shamanops_manifest_repository_user)
+          shamanops_manifest_repository_token=$(shamanops_manifest_repository_token)
+          shamanops_chat_webhook=$(shamanops_chat_webhook)
+        containerCommand: '-c "shamanops repository-check"'
+        runInBackground: false
+- stage: build
+  dependsOn: 
+    - pre_requirements
+    - requirements
+  variables:
+    customerName: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.customerName'] ]
+    shamanops_customer_id: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_customer_id'] ]
+    shamanops_manifest_repository: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_manifest_repository'] ]
+    shamanops_manifest_repository_user: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_manifest_repository_user'] ]
+    shamanops_registry_url: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_registry_url'] ]
+    shamanops_registry_user: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_registry_user'] ]
+    shamanops_customer_token: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_customer_token'] ]
+    shamanops_manifest_repository_token: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_manifest_repository_token'] ]
+    shamanops_registry_password: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_registry_password'] ]
+    shamanops_chat_webhook: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_chat_webhook'] ]
+    shamanops_dockerfile_token: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_dockerfile_token'] ]
+  jobs:
+  - job: image_build_and_push
+    steps:
+    - checkout: self
+      clean: true
+      fetchDepth: 0
+    - task: Docker@1
+      name: image_build_and_push
+      displayName: image-build-and-push
+      inputs:
+        containerregistrytype: 'Container Registry'
+        dockerRegistryEndpoint: shamanops-registry
+        command: 'Run an image'
+        arguments: '--privileged -u root --pull=always --quiet'
+        imageName: 'registry.shamanops.com/runner/fedora:stable'
+        volumes: '$(Build.Repository.LocalPath):/home/runner'
+        envVars: |
+          customerName=$(customerName)
+          appName=$(appName)
+          appInternalPort=$(appInternalPort)
+          repoUrl=$(repoUrl)
+          jobUrl=$(jobUrl)
+          pipelineId=$(pipelineId)
+          GIT_STRATEGY=$(GIT_STRATEGY)
+          GIT_DEPTH=$(GIT_DEPTH)
+          environments=$(environments)
+          projectName=$(projectName)
+          code_language_detection_enabled=$(code_language_detection_enabled)
+          sbom_check_enabled=$(sbom_check_enabled)
+          sbom_check_report_upload=$(sbom_check_report_upload)
+          sbom_check_report_format=$(sbom_check_report_format)
+          log_level=$(log_level)
+          shamanops_customer_id=$(shamanops_customer_id)
+          shamanops_customer_token=$(shamanops_customer_token)
+          shamanops_registry_url=$(shamanops_registry_url)
+          shamanops_registry_user=$(shamanops_registry_user)
+          shamanops_registry_password=$(shamanops_registry_password)
+          shamanops_manifest_repository=$(shamanops_manifest_repository)
+          shamanops_manifest_repository_user=$(shamanops_manifest_repository_user)
+          shamanops_manifest_repository_token=$(shamanops_manifest_repository_token)
+          shamanops_chat_webhook=$(shamanops_chat_webhook)
+          shamanops_dockerfile_token=$(shamanops_dockerfile_token)
+        containerCommand: '-c "shamanops image-build"'
+        runInBackground: false
+  - job: image_check
+    dependsOn: image_build_and_push
+    steps:
+    - checkout: self 
+      clean: true 
+      fetchDepth: 0
+    - task: Docker@1
+      name: image_check
+      displayName: image-check
+      inputs:
+        containerregistrytype: 'Container Registry'
+        dockerRegistryEndpoint: shamanops-registry
+        command: 'Run an image'
+        arguments: '--privileged -u root --pull=always --quiet'
+        imageName: 'registry.shamanops.com/runner/fedora:stable'
+        volumes: '$(Build.Repository.LocalPath):/home/runner'
+        envVars: |
+          customerName=$(customerName)
+          appName=$(appName)
+          appInternalPort=$(appInternalPort)
+          repoUrl=$(repoUrl)
+          jobUrl=$(jobUrl)
+          pipelineId=$(pipelineId)
+          GIT_STRATEGY=$(GIT_STRATEGY)
+          GIT_DEPTH=$(GIT_DEPTH)
+          environments=$(environments)
+          projectName=$(projectName)
+          code_language_detection_enabled=$(code_language_detection_enabled)
+          sbom_check_enabled=$(sbom_check_enabled)
+          sbom_check_report_upload=$(sbom_check_report_upload)
+          sbom_check_report_format=$(sbom_check_report_format)
+          log_level=$(log_level)
+          shamanops_customer_id=$(shamanops_customer_id)
+          shamanops_customer_token=$(shamanops_customer_token)
+          shamanops_registry_url=$(shamanops_registry_url)
+          shamanops_registry_user=$(shamanops_registry_user)
+          shamanops_registry_password=$(shamanops_registry_password)
+          shamanops_manifest_repository=$(shamanops_manifest_repository)
+          shamanops_manifest_repository_user=$(shamanops_manifest_repository_user)
+          shamanops_manifest_repository_token=$(shamanops_manifest_repository_token)
+          shamanops_chat_webhook=$(shamanops_chat_webhook)
+          shamanops_dockerfile_token=$(shamanops_dockerfile_token)
+        containerCommand: '-c "shamanops image-check"'
+        runInBackground: false
+- stage: analysis
+  dependsOn: 
+    - pre_requirements
+    - requirements
+    - build
+  variables:
+    customerName: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.customerName'] ]
+    shamanops_customer_id: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_customer_id'] ]
+    shamanops_argocd_dev_url: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_argocd_dev_url'] ]
+    shamanops_argocd_dev_user: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_argocd_dev_user'] ]
+    shamanops_argocd_stg_url: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_argocd_stg_url'] ]
+    shamanops_argocd_stg_user: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_argocd_stg_user'] ]
+    shamanops_argocd_prod_url: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_argocd_prod_url'] ]
+    shamanops_argocd_prod_user: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_argocd_prod_user'] ]
+    shamanops_argocd_drp_url: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_argocd_drp_url'] ]
+    shamanops_argocd_drp_user: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_argocd_drp_user'] ]
+    shamanops_manifest_repository: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_manifest_repository'] ]
+    shamanops_manifest_repository_user: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_manifest_repository_user'] ]
+    shamanops_registry_url: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_registry_url'] ]
+    shamanops_registry_user: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_registry_user'] ]
+    shamanops_code_quality_url: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_code_quality_url'] ]
+    shamanops_customer_token: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_customer_token'] ]
+    shamanops_argocd_dev_token: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_argocd_dev_token'] ]
+    shamanops_argocd_stg_token: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_argocd_stg_token'] ]
+    shamanops_argocd_prod_token: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_argocd_prod_token'] ]
+    shamanops_argocd_drp_token: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_argocd_drp_token'] ]
+    shamanops_code_quality_token: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_code_quality_token'] ]
+    shamanops_manifest_repository_token: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_manifest_repository_token'] ]
+    shamanops_registry_password: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_registry_password'] ]
+    shamanops_chat_webhook: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_chat_webhook'] ]
+  jobs:
+  - job: security_check
+    condition: |
+        and(
+          succeeded(),
+          contains(variables['security_check_enabled'], 'true')
+        )
+    steps:
+    - checkout: self 
+      clean: true 
+      fetchDepth: 0
+    - task: Docker@1
+      name: security_check
+      displayName: security-check
+      ${{ if eq(variables['security_check_blocker'], 'false') }}:
+      continueOnError: true
+      inputs:
+        containerregistrytype: 'Container Registry'
+        dockerRegistryEndpoint: shamanops-registry
+        command: 'Run an image'
+        arguments: '--privileged -u root --pull=always --quiet'
+        imageName: 'registry.shamanops.com/runner/fedora:stable'
+        volumes: '$(Build.Repository.LocalPath):/home/runner'
+        envVars: |
+          customerName=$(customerName)
+          appName=$(appName)
+          appInternalPort=$(appInternalPort)
+          repoUrl=$(repoUrl)
+          jobUrl=$(jobUrl)
+          pipelineId=$(pipelineId)
+          GIT_STRATEGY=$(GIT_STRATEGY)
+          GIT_DEPTH=$(GIT_DEPTH)
+          environments=$(environments)
+          projectName=$(projectName)
+          code_language_detection_enabled=$(code_language_detection_enabled)
+          security_check_enabled=$(security_check_enabled)
+          security_check_blocker=$(security_check_blocker)
+          security_check_report_upload=$(security_check_report_upload)
+          security_check_report_format=$(security_check_report_format)
+          log_level=$(log_level)
+          shamanops_customer_id=$(shamanops_customer_id)
+          shamanops_customer_token=$(shamanops_customer_token)
+          shamanops_registry_url=$(shamanops_registry_url)
+          shamanops_registry_user=$(shamanops_registry_user)
+          shamanops_registry_password=$(shamanops_registry_password)
+          shamanops_code_quality_url=$(shamanops_code_quality_url)
+          shamanops_code_quality_token=$(shamanops_code_quality_token)
+          shamanops_argocd_dev_url=$(shamanops_argocd_dev_url)
+          shamanops_argocd_dev_user=$(shamanops_argocd_dev_user)
+          shamanops_argocd_dev_token=$(shamanops_argocd_dev_token)
+          shamanops_argocd_stg_url=$(shamanops_argocd_stg_url)
+          shamanops_argocd_stg_user=$(shamanops_argocd_stg_user)
+          shamanops_argocd_stg_token=$(shamanops_argocd_stg_token)
+          shamanops_argocd_prod_url=$(shamanops_argocd_prod_url)
+          shamanops_argocd_prod_user=$(shamanops_argocd_prod_user)
+          shamanops_argocd_prod_token=$(shamanops_argocd_prod_token)
+          shamanops_argocd_drp_url=$(shamanops_argocd_drp_url)
+          shamanops_argocd_drp_user=$(shamanops_argocd_drp_user)
+          shamanops_argocd_drp_token=$(shamanops_argocd_drp_token)
+          shamanops_manifest_repository=$(shamanops_manifest_repository)
+          shamanops_manifest_repository_user=$(shamanops_manifest_repository_user)
+          shamanops_manifest_repository_token=$(shamanops_manifest_repository_token)
+          shamanops_chat_webhook=$(shamanops_chat_webhook)
+        containerCommand: '-c "shamanops security-check"'
+        runInBackground: false
+  - job: sast_check
+    condition: |
+        and(
+          succeeded(),
+          contains(variables['code_quality_check_enabled'], 'true')
+        )
+    steps:
+    - checkout: self 
+      clean: true 
+      fetchDepth: 0
+    - task: Docker@1
+      name: sast_check
+      displayName: sast-check
+      ${{ if eq(variables['code_quality_check_blocker'], 'false') }}:
+      continueOnError: true
+      inputs:
+        containerregistrytype: 'Container Registry'
+        dockerRegistryEndpoint: shamanops-registry
+        command: 'Run an image'
+        arguments: '--privileged -u root --pull=always --quiet'
+        imageName: 'registry.shamanops.com/runner/fedora:stable'
+        volumes: '$(Build.Repository.LocalPath):/home/runner'
+        envVars: |
+          customerName=$(customerName)
+          appName=$(appName)
+          appInternalPort=$(appInternalPort)
+          repoUrl=$(repoUrl)
+          jobUrl=$(jobUrl)
+          pipelineId=$(pipelineId)
+          GIT_STRATEGY=$(GIT_STRATEGY)
+          GIT_DEPTH=$(GIT_DEPTH)
+          environments=$(environments)
+          projectName=$(projectName)
+          code_language_detection_enabled=$(code_language_detection_enabled)
+          code_quality_check_enabled=$(code_quality_check_enabled)
+          code_quality_check_blocker=$(code_quality_check_blocker)
+          code_quality_check_exclusions=$(code_quality_check_exlusions)
+          code_quality_check_test_exclusions=$(code_quality_check_test_exlusions)
+          code_quality_check_test_inclusions=$(code_quality_check_test_inclusions)
+          code_quality_check_cs_dir=$(code_quality_check_cs_dir)
+          code_quality_check_cs_nuget_enabled=$(code_quality_check_cs_nuget_enabled)
+          code_quality_check_cs_nuget_dir=$(code_quality_check_cs_nuget_dir)
+          code_quality_check_cs_nuget_config=$(code_quality_check_cs_nuget_config)
+          code_quality_check_test_cs_enabled=$(code_quality_check_test_cs_enabled)
+          code_quality_check_test_cs_opencover_reportsPaths=$(code_quality_check_test_cs_opencover_reportsPaths)
+          log_level=$(log_level)
+          shamanops_customer_id=$(shamanops_customer_id)
+          shamanops_customer_token=$(shamanops_customer_token)
+          shamanops_registry_url=$(shamanops_registry_url)
+          shamanops_registry_user=$(shamanops_registry_user)
+          shamanops_registry_password=$(shamanops_registry_password)
+          shamanops_code_quality_url=$(shamanops_code_quality_url)
+          shamanops_code_quality_token=$(shamanops_code_quality_token)
+          shamanops_argocd_dev_url=$(shamanops_argocd_dev_url)
+          shamanops_argocd_dev_user=$(shamanops_argocd_dev_user)
+          shamanops_argocd_dev_token=$(shamanops_argocd_dev_token)
+          shamanops_argocd_stg_url=$(shamanops_argocd_stg_url)
+          shamanops_argocd_stg_user=$(shamanops_argocd_stg_user)
+          shamanops_argocd_stg_token=$(shamanops_argocd_stg_token)
+          shamanops_argocd_prod_url=$(shamanops_argocd_prod_url)
+          shamanops_argocd_prod_user=$(shamanops_argocd_prod_user)
+          shamanops_argocd_prod_token=$(shamanops_argocd_prod_token)
+          shamanops_argocd_drp_url=$(shamanops_argocd_drp_url)
+          shamanops_argocd_drp_user=$(shamanops_argocd_drp_user)
+          shamanops_argocd_drp_token=$(shamanops_argocd_drp_token)
+          shamanops_manifest_repository=$(shamanops_manifest_repository)
+          shamanops_manifest_repository_user=$(shamanops_manifest_repository_user)
+          shamanops_manifest_repository_token=$(shamanops_manifest_repository_token)
+          shamanops_chat_webhook=$(shamanops_chat_webhook)
+        containerCommand: '-c "shamanops sast-check"'
+        runInBackground: false
+- stage: deploy
+  dependsOn: 
+    - pre_requirements
+    - requirements
+    - build
+    - analysis
+  variables:
+    customerName: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.customerName'] ]
+    shamanops_customer_id: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_customer_id'] ]
+    shamanops_argocd_dev_url: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_argocd_dev_url'] ]
+    shamanops_argocd_dev_user: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_argocd_dev_user'] ]
+    shamanops_argocd_stg_url: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_argocd_stg_url'] ]
+    shamanops_argocd_stg_user: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_argocd_stg_user'] ]
+    shamanops_argocd_prod_url: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_argocd_prod_url'] ]
+    shamanops_argocd_prod_user: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_argocd_prod_user'] ]
+    shamanops_argocd_drp_url: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_argocd_drp_url'] ]
+    shamanops_argocd_drp_user: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_argocd_drp_user'] ]
+    shamanops_manifest_repository: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_manifest_repository'] ]
+    shamanops_manifest_repository_user: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_manifest_repository_user'] ]
+    shamanops_registry_url: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_registry_url'] ]
+    shamanops_registry_user: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_registry_user'] ]
+    shamanops_customer_token: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_customer_token'] ]
+    shamanops_argocd_dev_token: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_argocd_dev_token'] ]
+    shamanops_argocd_stg_token: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_argocd_stg_token'] ]
+    shamanops_argocd_prod_token: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_argocd_prod_token'] ]
+    shamanops_argocd_drp_token: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_argocd_drp_token'] ]
+    shamanops_manifest_repository_token: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_manifest_repository_token'] ]
+    shamanops_registry_password: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_registry_password'] ]
+    shamanops_chat_webhook: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_chat_webhook'] ]
+  jobs:
+  - job: approvals_dev
+    condition: |
+        and(
+          not(contains(variables['environments'], 'minimal')),
+          not(contains(variables['environments'], 'mid')),
+          contains(variables['shamanopsApprovalsDev'], 'true')
+        )
+    steps:
+    - checkout: self 
+      clean: true 
+      fetchDepth: 0
+    - task: Docker@1
+      name: approvals_dev
+      displayName: approvals-dev
+      inputs:
+        containerregistrytype: 'Container Registry'
+        dockerRegistryEndpoint: shamanops-registry
+        command: 'Run an image'
+        arguments: '--privileged -u root --pull=always --quiet'
+        imageName: 'registry.shamanops.com/runner/fedora:stable'
+        volumes: '$(Build.Repository.LocalPath):/home/runner'
+        envVars: |
+          customerName=$(customerName)
+          appName=$(appName)
+          appInternalPort=$(appInternalPort)
+          repoUrl=$(repoUrl)
+          jobUrl=$(jobUrl)
+          pipelineId=$(pipelineId)
+          GIT_STRATEGY=$(GIT_STRATEGY)
+          GIT_DEPTH=$(GIT_DEPTH)
+          environments=$(environments)
+          projectName=$(projectName)
+          approvals_timeout=$(approvals_timeout)
+          log_level=$(log_level)
+          shamanopsBusinessApprovers=$(shamanopsBusinessApprovers)
+          shamanopsTechnicalApprovers=$(shamanopsTechnicalApprovers)
+          shamanopsApprovalsDev=$(shamanopsApprovalsDev)
+          shamanopsBusinessApproversMinimalDev=$(shamanopsBusinessApproversMinimalDev)
+          shamanopsTechnicalApproversMinimalDev=$(shamanopsTechnicalApproversMinimalDev)
+          shamanopsApprovalsStg=$(shamanopsApprovalsStg)
+          shamanopsBusinessApproversMinimalStg=$(shamanopsBusinessApproversMinimalStg)
+          shamanopsTechnicalApproversMinimalStg=$(shamanopsTechnicalApproversMinimalStg)
+          shamanopsApprovalsProd=$(shamanopsApprovalsProd)
+          shamanopsBusinessApproversMinimalProd=$(shamanopsBusinessApproversMinimalProd)
+          shamanopsTechnicalApproversMinimalProd=$(shamanopsTechnicalApproversMinimalProd)
+          shamanops_customer_id=$(shamanops_customer_id)
+          shamanops_customer_token=$(shamanops_customer_token)
+          shamanops_registry_url=$(shamanops_registry_url)
+          shamanops_registry_user=$(shamanops_registry_user)
+          shamanops_registry_password=$(shamanops_registry_password)
+          shamanops_manifest_repository=$(shamanops_manifest_repository)
+          shamanops_manifest_repository_user=$(shamanops_manifest_repository_user)
+          shamanops_manifest_repository_token=$(shamanops_manifest_repository_token)
+          shamanops_chat_webhook=$(shamanops_chat_webhook)
+        containerCommand: '-c "shamanops approvals dev"'
+        runInBackground: false
+  - job: db_versioning_dev
+    condition: |
+        and(
+          not(contains(variables['environments'], 'minimal')),
+          not(contains(variables['environments'], 'mid')),
+          contains(variables['db_versioning_dev_enabled'], 'true'),
+          in(dependencies.approvals_dev.result, 'Succeeded', 'Skipped')
+        )   
+    steps:
+    - checkout: self 
+      clean: true 
+      fetchDepth: 0
+    - task: Docker@1
+      name: db_versioning_dev
+      displayName: db-versioning-dev
+      inputs:
+        containerregistrytype: 'Container Registry'
+        dockerRegistryEndpoint: shamanops-registry
+        command: 'Run an image'
+        arguments: '--privileged -u root --pull=always --quiet'
+        imageName: 'registry.shamanops.com/runner/fedora:stable'
+        volumes: '$(Build.Repository.LocalPath):/home/runner'
+        envVars: |
+          customerName=$(customerName)
+          appName=$(appName)
+          appInternalPort=$(appInternalPort)
+          repoUrl=$(repoUrl)
+          jobUrl=$(jobUrl)
+          pipelineId=$(pipelineId)
+          GIT_STRATEGY=$(GIT_STRATEGY)
+          GIT_DEPTH=$(GIT_DEPTH)
+          environments=$(environments)
+          projectName=$(projectName)
+          log_level=$(log_level)
+          db_versioning_type=$(db_versioning_type)
+          db_versioning_changelog_file=$(db_versioning_changelog_file)
+          shamanops_customer_id=$(shamanops_customer_id)
+          shamanops_customer_token=$(shamanops_customer_token)
+          shamanops_registry_url=$(shamanops_registry_url)
+          shamanops_registry_user=$(shamanops_registry_user)
+          shamanops_registry_password=$(shamanops_registry_password)
+          shamanops_argocd_dev_url=$(shamanops_argocd_dev_url)
+          shamanops_argocd_dev_user=$(shamanops_argocd_dev_user)
+          shamanops_argocd_dev_token=$(shamanops_argocd_dev_token)
+          shamanops_manifest_repository=$(shamanops_manifest_repository)
+          shamanops_manifest_repository_user=$(shamanops_manifest_repository_user)
+          shamanops_manifest_repository_token=$(shamanops_manifest_repository_token)
+          shamanops_chat_webhook=$(shamanops_chat_webhook)
+        containerCommand: '-c "shamanops db-versioning dev"'
+        runInBackground: false
+  - job: app_create_and_deploy_dev
+    dependsOn:
+      - approvals_dev
+      - db_versioning_dev
+    condition: |
+        and(
+          not(contains(variables['environments'], 'minimal')),
+          not(contains(variables['environments'], 'mid')),
+          in(dependencies.approvals_dev.result, 'Succeeded', 'Skipped'),
+          in(dependencies.db_versioning_dev.result, 'Succeeded', 'Skipped')
+        ) 
+    steps:
+    - checkout: self 
+      clean: true 
+      fetchDepth: 0
+    - task: Docker@1
+      name: app_create_and_deploy_dev
+      displayName: app-create-and-deploy-dev
+      inputs:
+        containerregistrytype: 'Container Registry'
+        dockerRegistryEndpoint: shamanops-registry
+        command: 'Run an image'
+        arguments: '--privileged -u root --pull=always --quiet'
+        imageName: 'registry.shamanops.com/runner/fedora:stable'
+        volumes: '$(Build.Repository.LocalPath):/home/runner'
+        envVars: |
+          customerName=$(customerName)
+          appName=$(appName)
+          appInternalPort=$(appInternalPort)
+          repoUrl=$(repoUrl)
+          jobUrl=$(jobUrl)
+          pipelineId=$(pipelineId)
+          GIT_STRATEGY=$(GIT_STRATEGY)
+          GIT_DEPTH=$(GIT_DEPTH)
+          environments=$(environments)
+          projectName=$(projectName)
+          log_level=$(log_level)
+          shamanops_customer_id=$(shamanops_customer_id)
+          shamanops_customer_token=$(shamanops_customer_token)
+          shamanops_registry_url=$(shamanops_registry_url)
+          shamanops_registry_user=$(shamanops_registry_user)
+          shamanops_registry_password=$(shamanops_registry_password)
+          shamanops_argocd_dev_url=$(shamanops_argocd_dev_url)
+          shamanops_argocd_dev_user=$(shamanops_argocd_dev_user)
+          shamanops_argocd_dev_token=$(shamanops_argocd_dev_token)
+          shamanops_manifest_repository=$(shamanops_manifest_repository)
+          shamanops_manifest_repository_user=$(shamanops_manifest_repository_user)
+          shamanops_manifest_repository_token=$(shamanops_manifest_repository_token)
+          shamanops_chat_webhook=$(shamanops_chat_webhook)
+        containerCommand: '-c "shamanops app-create-and-deploy dev"'
+        runInBackground: false
+  - job: approvals_stg
+    dependsOn: app_create_and_deploy_dev
+    condition: |
+        and(
+          not(contains(variables['environments'], 'minimal')),
+          contains(variables['shamanopsApprovalsStg'], 'true'),
+          in(dependencies.app_create_and_deploy_dev.result, 'Succeeded', 'Skipped')
+        )
+    steps:
+    - checkout: self 
+      clean: true 
+      fetchDepth: 0
+    - task: Docker@1
+      name: approvals_stg
+      displayName: approvals-stg
+      inputs:
+        containerregistrytype: 'Container Registry'
+        dockerRegistryEndpoint: shamanops-registry
+        command: 'Run an image'
+        arguments: '--privileged -u root --pull=always --quiet'
+        imageName: 'registry.shamanops.com/runner/fedora:stable'
+        volumes: '$(Build.Repository.LocalPath):/home/runner'
+        envVars: |
+          customerName=$(customerName)
+          appName=$(appName)
+          appInternalPort=$(appInternalPort)
+          repoUrl=$(repoUrl)
+          jobUrl=$(jobUrl)
+          pipelineId=$(pipelineId)
+          GIT_STRATEGY=$(GIT_STRATEGY)
+          GIT_DEPTH=$(GIT_DEPTH)
+          environments=$(environments)
+          projectName=$(projectName)
+          approvals_timeout=$(approvals_timeout)
+          log_level=$(log_level)
+          shamanopsBusinessApprovers=$(shamanopsBusinessApprovers)
+          shamanopsTechnicalApprovers=$(shamanopsTechnicalApprovers)
+          shamanopsApprovalsDev=$(shamanopsApprovalsDev)
+          shamanopsBusinessApproversMinimalDev=$(shamanopsBusinessApproversMinimalDev)
+          shamanopsTechnicalApproversMinimalDev=$(shamanopsTechnicalApproversMinimalDev)
+          shamanopsApprovalsStg=$(shamanopsApprovalsStg)
+          shamanopsBusinessApproversMinimalStg=$(shamanopsBusinessApproversMinimalStg)
+          shamanopsTechnicalApproversMinimalStg=$(shamanopsTechnicalApproversMinimalStg)
+          shamanopsApprovalsProd=$(shamanopsApprovalsProd)
+          shamanopsBusinessApproversMinimalProd=$(shamanopsBusinessApproversMinimalProd)
+          shamanopsTechnicalApproversMinimalProd=$(shamanopsTechnicalApproversMinimalProd)
+          shamanops_customer_id=$(shamanops_customer_id)
+          shamanops_customer_token=$(shamanops_customer_token)
+          shamanops_registry_url=$(shamanops_registry_url)
+          shamanops_registry_user=$(shamanops_registry_user)
+          shamanops_registry_password=$(shamanops_registry_password)
+          shamanops_manifest_repository=$(shamanops_manifest_repository)
+          shamanops_manifest_repository_user=$(shamanops_manifest_repository_user)
+          shamanops_manifest_repository_token=$(shamanops_manifest_repository_token)
+          shamanops_chat_webhook=$(shamanops_chat_webhook)
+        containerCommand: '-c "shamanops approvals stg"'
+        runInBackground: false
+  - job: db_versioning_stg
+    dependsOn: 
+      - approvals_stg
+      - app_create_and_deploy_dev
+    condition: |
+        and(
+          not(contains(variables['environments'], 'minimal')),
+          contains(variables['db_versioning_stg_enabled'], 'true'),
+          in(dependencies.approvals_dev.result, 'Succeeded', 'Skipped'),
+          in(dependencies.app_create_and_deploy_dev.result, 'Succeeded', 'Skipped')
+        )
+    steps:
+    - checkout: self 
+      clean: true 
+      fetchDepth: 0
+    - task: Docker@1
+      name: db_versioning_stg
+      displayName: db-versioning-stg
+      inputs:
+        containerregistrytype: 'Container Registry'
+        dockerRegistryEndpoint: shamanops-registry
+        command: 'Run an image'
+        arguments: '--privileged -u root --pull=always --quiet'
+        imageName: 'registry.shamanops.com/runner/fedora:stable'
+        volumes: '$(Build.Repository.LocalPath):/home/runner'
+        envVars: |
+          customerName=$(customerName)
+          appName=$(appName)
+          appInternalPort=$(appInternalPort)
+          repoUrl=$(repoUrl)
+          jobUrl=$(jobUrl)
+          pipelineId=$(pipelineId)
+          GIT_STRATEGY=$(GIT_STRATEGY)
+          GIT_DEPTH=$(GIT_DEPTH)
+          environments=$(environments)
+          projectName=$(projectName)
+          approvals_timeout=$(approvals_timeout)
+          log_level=$(log_level)
+          db_versioning_type=$(db_versioning_type)
+          db_versioning_changelog_file=$(db_versioning_changelog_file)
+          shamanops_argocd_stg_url=$(shamanops_argocd_dev_url)
+          shamanops_argocd_stg_user=$(shamanops_argocd_dev_user)
+          shamanops_argocd_stg_token=$(shamanops_argocd_dev_token)
+          shamanops_customer_id=$(shamanops_customer_id)
+          shamanops_customer_token=$(shamanops_customer_token)
+          shamanops_registry_url=$(shamanops_registry_url)
+          shamanops_registry_user=$(shamanops_registry_user)
+          shamanops_registry_password=$(shamanops_registry_password)
+          shamanops_manifest_repository=$(shamanops_manifest_repository)
+          shamanops_manifest_repository_user=$(shamanops_manifest_repository_user)
+          shamanops_manifest_repository_token=$(shamanops_manifest_repository_token)
+          shamanops_chat_webhook=$(shamanops_chat_webhook)
+        containerCommand: '-c "shamanops db-versioning stg"'
+        runInBackground: false
+  - job: app_create_and_deploy_stg 
+    dependsOn: 
+      - app_create_and_deploy_dev
+      - approvals_stg
+      - db_versioning_stg
+    condition: |
+        and(
+          not(contains(variables['environments'], 'minimal')),
+          in(dependencies.app_create_and_deploy_dev.result, 'Succeeded', 'Skipped'),
+          in(dependencies.approvals_stg.result, 'Succeeded', 'Skipped'),
+          in(dependencies.db_versioning_stg.result, 'Succeeded', 'Skipped')
+        )
+    steps:
+    - checkout: self 
+      clean: true 
+      fetchDepth: 0
+    - task: Docker@1
+      name: app_create_and_deploy_stg
+      displayName: app-create-and-deploy-stg
+      inputs:
+        containerregistrytype: 'Container Registry'
+        dockerRegistryEndpoint: shamanops-registry
+        command: 'Run an image'
+        arguments: '--privileged -u root --pull=always --quiet'
+        imageName: 'registry.shamanops.com/runner/fedora:stable'
+        volumes: '$(Build.Repository.LocalPath):/home/runner'
+        envVars: |
+          customerName=$(customerName)
+          appName=$(appName)
+          appInternalPort=$(appInternalPort)
+          repoUrl=$(repoUrl)
+          jobUrl=$(jobUrl)
+          pipelineId=$(pipelineId)
+          GIT_STRATEGY=$(GIT_STRATEGY)
+          GIT_DEPTH=$(GIT_DEPTH)
+          environments=$(environments)
+          projectName=$(projectName)
+          log_level=$(log_level)
+          shamanops_customer_id=$(shamanops_customer_id)
+          shamanops_customer_token=$(shamanops_customer_token)
+          shamanops_registry_url=$(shamanops_registry_url)
+          shamanops_registry_user=$(shamanops_registry_user)
+          shamanops_registry_password=$(shamanops_registry_password)
+          shamanops_argocd_dev_url=$(shamanops_argocd_dev_url)
+          shamanops_argocd_dev_user=$(shamanops_argocd_dev_user)
+          shamanops_argocd_dev_token=$(shamanops_argocd_dev_token)
+          shamanops_argocd_stg_url=$(shamanops_argocd_stg_url)
+          shamanops_argocd_stg_user=$(shamanops_argocd_stg_user)
+          shamanops_argocd_stg_token=$(shamanops_argocd_stg_token)
+          shamanops_argocd_prod_url=$(shamanops_argocd_prod_url)
+          shamanops_argocd_prod_user=$(shamanops_argocd_prod_user)
+          shamanops_argocd_prod_token=$(shamanops_argocd_prod_token)
+          shamanops_argocd_drp_url=$(shamanops_argocd_drp_url)
+          shamanops_argocd_drp_user=$(shamanops_argocd_drp_user)
+          shamanops_argocd_drp_token=$(shamanops_argocd_drp_token)
+          shamanops_manifest_repository=$(shamanops_manifest_repository)
+          shamanops_manifest_repository_user=$(shamanops_manifest_repository_user)
+          shamanops_manifest_repository_token=$(shamanops_manifest_repository_token)
+          shamanops_chat_webhook=$(shamanops_chat_webhook)
+        containerCommand: '-c "shamanops app-create-and-deploy stg"'
+        runInBackground: false
+  - job: stress_check
+    dependsOn:
+      - approvals_dev
+      - db_versioning_dev
+      - app_create_and_deploy_dev
+      - approvals_stg
+      - db_versioning_stg
+      - app_create_and_deploy_stg
+    condition: |
+        and(
+          not(contains(variables['environments'], 'minimal')),
+          contains(variables['stress_check_enabled'], 'true'),
+          in(dependencies.approvals_dev.result, 'Succeeded', 'Skipped'),
+          in(dependencies.approvals_stg.result, 'Succeeded', 'Skipped'),
+          in(dependencies.db_versioning_dev.result, 'Succeeded', 'Skipped'),
+          in(dependencies.db_versioning_stg.result, 'Succeeded', 'Skipped'),
+          in(dependencies.app_create_and_deploy_dev.result, 'Succeeded', 'Skipped'),
+          in(dependencies.app_create_and_deploy_stg.result, 'Succeeded', 'Skipped')
+        )
+    steps:
+    - checkout: self 
+      clean: true 
+      fetchDepth: 0
+    - task: Docker@1
+      name: stress_check
+      displayName: stress-check
+      ${{ if eq(variables['stress_check_blocker'], 'false') }}:
+      continueOnError: true
+      inputs:
+        containerregistrytype: 'Container Registry'
+        dockerRegistryEndpoint: shamanops-registry
+        command: 'Run an image'
+        arguments: '--privileged -u root --pull=always --quiet'
+        imageName: 'registry.shamanops.com/runner/fedora:stable'
+        volumes: '$(Build.Repository.LocalPath):/home/runner'
+        envVars: |
+          customerName=$(customerName)
+          appName=$(appName)
+          appInternalPort=$(appInternalPort)
+          repoUrl=$(repoUrl)
+          jobUrl=$(jobUrl)
+          pipelineId=$(pipelineId)
+          GIT_STRATEGY=$(GIT_STRATEGY)
+          GIT_DEPTH=$(GIT_DEPTH)
+          environments=$(environments)
+          projectName=$(projectName)
+          code_language_detection_enabled=$(code_language_detection_enabled)
+          stress_check_enabled=$(stress_check_enabled)
+          stress_check_blocker=$(stress_check_blocker)
+          stress_check_error_rate_max=$(stress_check_error_rate_max)
+          stress_check_thread=$(stress_check_thread)
+          stress_check_upPeriod=$(stress_check_upPeriod)
+          stress_check_second=$(stress_check_second)
+          log_level=$(log_level)
+          shamanops_customer_id=$(shamanops_customer_id)
+          shamanops_customer_token=$(shamanops_customer_token)
+          shamanops_registry_url=$(shamanops_registry_url)
+          shamanops_registry_user=$(shamanops_registry_user)
+          shamanops_registry_password=$(shamanops_registry_password)
+          shamanops_argocd_dev_url=$(shamanops_argocd_dev_url)
+          shamanops_argocd_dev_user=$(shamanops_argocd_dev_user)
+          shamanops_argocd_dev_token=$(shamanops_argocd_dev_token)
+          shamanops_argocd_stg_url=$(shamanops_argocd_stg_url)
+          shamanops_argocd_stg_user=$(shamanops_argocd_stg_user)
+          shamanops_argocd_stg_token=$(shamanops_argocd_stg_token)
+          shamanops_argocd_prod_url=$(shamanops_argocd_prod_url)
+          shamanops_argocd_prod_user=$(shamanops_argocd_prod_user)
+          shamanops_argocd_prod_token=$(shamanops_argocd_prod_token)
+          shamanops_argocd_drp_url=$(shamanops_argocd_drp_url)
+          shamanops_argocd_drp_user=$(shamanops_argocd_drp_user)
+          shamanops_argocd_drp_token=$(shamanops_argocd_drp_token)
+          shamanops_manifest_repository=$(shamanops_manifest_repository)
+          shamanops_manifest_repository_user=$(shamanops_manifest_repository_user)
+          shamanops_manifest_repository_token=$(shamanops_manifest_repository_token)
+          shamanops_chat_webhook=$(shamanops_chat_webhook)
+        containerCommand: '-c "shamanops stress-check"'
+        runInBackground: false
+  - job: approvals_prod
+    dependsOn:
+      - approvals_dev
+      - db_versioning_dev
+      - app_create_and_deploy_dev
+      - approvals_stg
+      - db_versioning_stg
+      - app_create_and_deploy_stg
+      - stress_check
+    condition: |
+        and(
+          contains(variables['shamanopsApprovalsProd'], 'true'),
+          in(dependencies.approvals_dev.result, 'Succeeded', 'Skipped'),
+          in(dependencies.approvals_stg.result, 'Succeeded', 'Skipped'),
+          in(dependencies.db_versioning_dev.result, 'Succeeded', 'Skipped'),
+          in(dependencies.db_versioning_stg.result, 'Succeeded', 'Skipped'),
+          in(dependencies.app_create_and_deploy_dev.result, 'Succeeded', 'Skipped'),
+          in(dependencies.app_create_and_deploy_stg.result, 'Succeeded', 'Skipped'),
+          or(
+            in(dependencies.stress_check.result, 'Succeeded', 'Skipped'),
+            eq(variables['stress_check_blocker'], 'false')
+          )
+        )
+    steps:
+    - checkout: self 
+      clean: true 
+      fetchDepth: 0
+    - task: Docker@1
+      name: approvals_prod
+      displayName: approvals-prod
+      inputs:
+        containerregistrytype: 'Container Registry'
+        dockerRegistryEndpoint: shamanops-registry
+        command: 'Run an image'
+        arguments: '--privileged -u root --pull=always --quiet'
+        imageName: 'registry.shamanops.com/runner/fedora:stable'
+        volumes: '$(Build.Repository.LocalPath):/home/runner'
+        envVars: |
+          customerName=$(customerName)
+          appName=$(appName)
+          appInternalPort=$(appInternalPort)
+          repoUrl=$(repoUrl)
+          jobUrl=$(jobUrl)
+          pipelineId=$(pipelineId)
+          GIT_STRATEGY=$(GIT_STRATEGY)
+          GIT_DEPTH=$(GIT_DEPTH)
+          environments=$(environments)
+          projectName=$(projectName)
+          approvals_timeout=$(approvals_timeout)
+          log_level=$(log_level)
+          shamanopsBusinessApprovers=$(shamanopsBusinessApprovers)
+          shamanopsTechnicalApprovers=$(shamanopsTechnicalApprovers)
+          shamanopsApprovalsDev=$(shamanopsApprovalsDev)
+          shamanopsBusinessApproversMinimalDev=$(shamanopsBusinessApproversMinimalDev)
+          shamanopsTechnicalApproversMinimalDev=$(shamanopsTechnicalApproversMinimalDev)
+          shamanopsApprovalsStg=$(shamanopsApprovalsStg)
+          shamanopsBusinessApproversMinimalStg=$(shamanopsBusinessApproversMinimalStg)
+          shamanopsTechnicalApproversMinimalStg=$(shamanopsTechnicalApproversMinimalStg)
+          shamanopsApprovalsProd=$(shamanopsApprovalsProd)
+          shamanopsBusinessApproversMinimalProd=$(shamanopsBusinessApproversMinimalProd)
+          shamanopsTechnicalApproversMinimalProd=$(shamanopsTechnicalApproversMinimalProd)
+          shamanops_customer_id=$(shamanops_customer_id)
+          shamanops_customer_token=$(shamanops_customer_token)
+          shamanops_registry_url=$(shamanops_registry_url)
+          shamanops_registry_user=$(shamanops_registry_user)
+          shamanops_registry_password=$(shamanops_registry_password)
+          shamanops_manifest_repository=$(shamanops_manifest_repository)
+          shamanops_manifest_repository_user=$(shamanops_manifest_repository_user)
+          shamanops_manifest_repository_token=$(shamanops_manifest_repository_token)
+          shamanops_chat_webhook=$(shamanops_chat_webhook)
+        containerCommand: '-c "shamanops approvals prod"'
+        runInBackground: false
+  - job: db_versioning_prod
+    dependsOn: 
+      - approvals_prod
+      - approvals_dev
+      - db_versioning_dev
+      - app_create_and_deploy_dev
+      - approvals_stg
+      - db_versioning_stg
+      - app_create_and_deploy_stg
+      - stress_check
+    condition: |
+        and(
+          contains(variables['db_versioning_prod_enabled'], 'true'),
+          in(dependencies.approvals_dev.result, 'Succeeded', 'Skipped'),
+          in(dependencies.approvals_stg.result, 'Succeeded', 'Skipped'),
+          in(dependencies.approvals_prod.result, 'Succeeded', 'Skipped'),
+          in(dependencies.db_versioning_dev.result, 'Succeeded', 'Skipped'),
+          in(dependencies.db_versioning_stg.result, 'Succeeded', 'Skipped'),
+          in(dependencies.db_versioning_prod.result, 'Succeeded', 'Skipped'),
+          in(dependencies.app_create_and_deploy_dev.result, 'Succeeded', 'Skipped'),
+          in(dependencies.app_create_and_deploy_stg.result, 'Succeeded', 'Skipped'),
+          or(
+            in(dependencies.stress_check.result, 'Succeeded', 'Skipped'),
+            eq(variables['stress_check_blocker'], 'false')
+          )
+        )
+    steps:
+    - checkout: self 
+      clean: true 
+      fetchDepth: 0
+    - task: Docker@1
+      name: db_versioning_prod
+      displayName: db-versioning-prod
+      inputs:
+        containerregistrytype: 'Container Registry'
+        dockerRegistryEndpoint: shamanops-registry
+        command: 'Run an image'
+        arguments: '--privileged -u root --pull=always --quiet'
+        imageName: 'registry.shamanops.com/runner/fedora:stable'
+        volumes: '$(Build.Repository.LocalPath):/home/runner'
+        envVars: |
+          customerName=$(customerName)
+          appName=$(appName)
+          appInternalPort=$(appInternalPort)
+          repoUrl=$(repoUrl)
+          jobUrl=$(jobUrl)
+          pipelineId=$(pipelineId)
+          GIT_STRATEGY=$(GIT_STRATEGY)
+          GIT_DEPTH=$(GIT_DEPTH)
+          environments=$(environments)
+          projectName=$(projectName)
+          approvals_timeout=$(approvals_timeout)
+          log_level=$(log_level)
+          db_versioning_type=$(db_versioning_type)
+          db_versioning_changelog_file=$(db_versioning_changelog_file)
+          shamanops_argocd_prod_url=$(shamanops_argocd_dev_url)
+          shamanops_argocd_prod_user=$(shamanops_argocd_dev_user)
+          shamanops_argocd_prod_token=$(shamanops_argocd_dev_token)
+          shamanops_customer_id=$(shamanops_customer_id)
+          shamanops_customer_token=$(shamanops_customer_token)
+          shamanops_registry_url=$(shamanops_registry_url)
+          shamanops_registry_user=$(shamanops_registry_user)
+          shamanops_registry_password=$(shamanops_registry_password)
+          shamanops_manifest_repository=$(shamanops_manifest_repository)
+          shamanops_manifest_repository_user=$(shamanops_manifest_repository_user)
+          shamanops_manifest_repository_token=$(shamanops_manifest_repository_token)
+          shamanops_chat_webhook=$(shamanops_chat_webhook)
+        containerCommand: '-c "shamanops db-versioning prod"'
+        runInBackground: false
+  - job: app_create_and_deploy_prod
+    dependsOn: 
+      - approvals_dev
+      - db_versioning_dev
+      - app_create_and_deploy_dev
+      - approvals_stg
+      - db_versioning_stg
+      - app_create_and_deploy_stg
+      - stress_check
+      - approvals_prod
+      - db_versioning_prod
+    condition: |
+        and(
+          in(dependencies.approvals_prod.result, 'Succeeded', 'Skipped'),
+          in(dependencies.approvals_dev.result, 'Succeeded', 'Skipped'),
+          in(dependencies.approvals_stg.result, 'Succeeded', 'Skipped'),
+          in(dependencies.app_create_and_deploy_dev.result, 'Succeeded', 'Skipped'),
+          in(dependencies.app_create_and_deploy_stg.result, 'Succeeded', 'Skipped'),
+          in(dependencies.db_versioning_dev.result, 'Succeeded', 'Skipped'),
+          in(dependencies.db_versioning_stg.result, 'Succeeded', 'Skipped'),
+          in(dependencies.db_versioning_prod.result, 'Succeeded', 'Skipped'),
+          or(
+            in(dependencies.stress_check.result, 'Succeeded', 'Skipped'),
+            eq(variables['stress_check_blocker'], 'false')
+          )
+        ) 
+    steps:
+    - checkout: self 
+      clean: true 
+      fetchDepth: 0
+    - task: Docker@1
+      name: app_create_and_deploy_prod
+      displayName: app-create-and-deploy-prod
+      inputs:
+        containerregistrytype: 'Container Registry'
+        dockerRegistryEndpoint: shamanops-registry
+        command: 'Run an image'
+        arguments: '--privileged -u root --pull=always --quiet'
+        imageName: 'registry.shamanops.com/runner/fedora:stable'
+        volumes: '$(Build.Repository.LocalPath):/home/runner'
+        envVars: |
+          customerName=$(customerName)
+          appName=$(appName)
+          appInternalPort=$(appInternalPort)
+          repoUrl=$(repoUrl)
+          jobUrl=$(jobUrl)
+          pipelineId=$(pipelineId)
+          GIT_STRATEGY=$(GIT_STRATEGY)
+          GIT_DEPTH=$(GIT_DEPTH)
+          environments=$(environments)
+          projectName=$(projectName)
+          log_level=$(log_level)
+          shamanops_customer_id=$(shamanops_customer_id)
+          shamanops_customer_token=$(shamanops_customer_token)
+          shamanops_registry_url=$(shamanops_registry_url)
+          shamanops_registry_user=$(shamanops_registry_user)
+          shamanops_registry_password=$(shamanops_registry_password)
+          shamanops_argocd_dev_url=$(shamanops_argocd_dev_url)
+          shamanops_argocd_dev_user=$(shamanops_argocd_dev_user)
+          shamanops_argocd_dev_token=$(shamanops_argocd_dev_token)
+          shamanops_argocd_stg_url=$(shamanops_argocd_stg_url)
+          shamanops_argocd_stg_user=$(shamanops_argocd_stg_user)
+          shamanops_argocd_stg_token=$(shamanops_argocd_stg_token)
+          shamanops_argocd_prod_url=$(shamanops_argocd_prod_url)
+          shamanops_argocd_prod_user=$(shamanops_argocd_prod_user)
+          shamanops_argocd_prod_token=$(shamanops_argocd_prod_token)
+          shamanops_argocd_drp_url=$(shamanops_argocd_drp_url)
+          shamanops_argocd_drp_user=$(shamanops_argocd_drp_user)
+          shamanops_argocd_drp_token=$(shamanops_argocd_drp_token)
+          shamanops_manifest_repository=$(shamanops_manifest_repository)
+          shamanops_manifest_repository_user=$(shamanops_manifest_repository_user)
+          shamanops_manifest_repository_token=$(shamanops_manifest_repository_token)
+          shamanops_chat_webhook=$(shamanops_chat_webhook)
+        containerCommand: '-c "shamanops app-create-and-deploy prod"'
+        runInBackground: false
+  - job: app_create_and_deploy_drp
+    dependsOn:
+      - approvals_dev
+      - approvals_stg
+      - approvals_prod
+      - app_create_and_deploy_dev
+      - app_create_and_deploy_stg
+      - stress_check
+      - app_create_and_deploy_prod
+    condition: |
+        and(
+          in(dependencies.approvals_prod.result, 'Succeeded', 'Skipped'),
+          in(dependencies.approvals_dev.result, 'Succeeded', 'Skipped'),
+          in(dependencies.approvals_stg.result, 'Succeeded', 'Skipped'),
+          in(dependencies.db_versioning_dev.result, 'Succeeded', 'Skipped'),
+          in(dependencies.db_versioning_stg.result, 'Succeeded', 'Skipped'),
+          in(dependencies.db_versioning_prod.result, 'Succeeded', 'Skipped'),
+          in(dependencies.app_create_and_deploy_dev.result, 'Succeeded', 'Skipped'),
+          in(dependencies.app_create_and_deploy_stg.result, 'Succeeded', 'Skipped'),
+          or(
+            in(dependencies.stress_check.result, 'Succeeded', 'Skipped'),
+            eq(variables['stress_check_blocker'], 'false')
+          ),
+          in(dependencies.app_create_and_deploy_prod.result, 'Succeeded'),
+          contains(variables['environments'], 'full-with-drp')
+        )     
+    steps:
+    - checkout: self 
+      clean: true 
+      fetchDepth: 0
+    - task: Docker@1
+      name: app_create_and_deploy_drp
+      displayName: app-create-and-deploy-drp
+      inputs:
+        containerregistrytype: 'Container Registry'
+        dockerRegistryEndpoint: shamanops-registry
+        command: 'Run an image'
+        arguments: '--privileged -u root --pull=always --quiet'
+        imageName: 'registry.shamanops.com/runner/fedora:stable'
+        volumes: '$(Build.Repository.LocalPath):/home/runner'
+        envVars: |
+          customerName=$(customerName)
+          appName=$(appName)
+          appInternalPort=$(appInternalPort)
+          repoUrl=$(repoUrl)
+          jobUrl=$(jobUrl)
+          pipelineId=$(pipelineId)
+          GIT_STRATEGY=$(GIT_STRATEGY)
+          GIT_DEPTH=$(GIT_DEPTH)
+          environments=$(environments)
+          projectName=$(projectName)
+          log_level=$(log_level)
+          shamanopsBusinessApprovers=$(shamanopsBusinessApprovers)
+          shamanopsTechnicalApprovers=$(shamanopsTechnicalApprovers)
+          shamanopsApprovalsDev=$(shamanopsApprovalsDev)
+          shamanopsBusinessApproversMinimalDev=$(shamanopsBusinessApproversMinimalDev)
+          shamanopsTechnicalApproversMinimalDev=$(shamanopsTechnicalApproversMinimalDev)
+          shamanopsApprovalsStg=$(shamanopsApprovalsStg)
+          shamanopsBusinessApproversMinimalStg=$(shamanopsBusinessApproversMinimalStg)
+          shamanopsTechnicalApproversMinimalStg=$(shamanopsTechnicalApproversMinimalStg)
+          shamanopsApprovalsProd=$(shamanopsApprovalsProd)
+          shamanopsBusinessApproversMinimalProd=$(shamanopsBusinessApproversMinimalProd)
+          shamanopsTechnicalApproversMinimalProd=$(shamanopsTechnicalApproversMinimalProd)
+          shamanops_customer_id=$(shamanops_customer_id)
+          shamanops_customer_token=$(shamanops_customer_token)
+          shamanops_registry_url=$(shamanops_registry_url)
+          shamanops_registry_user=$(shamanops_registry_user)
+          shamanops_registry_password=$(shamanops_registry_password)
+          shamanops_argocd_dev_url=$(shamanops_argocd_dev_url)
+          shamanops_argocd_dev_user=$(shamanops_argocd_dev_user)
+          shamanops_argocd_dev_token=$(shamanops_argocd_dev_token)
+          shamanops_argocd_stg_url=$(shamanops_argocd_stg_url)
+          shamanops_argocd_stg_user=$(shamanops_argocd_stg_user)
+          shamanops_argocd_stg_token=$(shamanops_argocd_stg_token)
+          shamanops_argocd_prod_url=$(shamanops_argocd_prod_url)
+          shamanops_argocd_prod_user=$(shamanops_argocd_prod_user)
+          shamanops_argocd_prod_token=$(shamanops_argocd_prod_token)
+          shamanops_argocd_drp_url=$(shamanops_argocd_drp_url)
+          shamanops_argocd_drp_user=$(shamanops_argocd_drp_user)
+          shamanops_argocd_drp_token=$(shamanops_argocd_drp_token)
+          shamanops_manifest_repository=$(shamanops_manifest_repository)
+          shamanops_manifest_repository_user=$(shamanops_manifest_repository_user)
+          shamanops_manifest_repository_token=$(shamanops_manifest_repository_token)
+          shamanops_chat_webhook=$(shamanops_chat_webhook)
+        containerCommand: '-c "shamanops app-create-and-deploy drp"'
+        runInBackground: false

@@ -1,0 +1,7 @@
+FROM cgr.dev/chainguard/go AS builder
+COPY . /app
+RUN cd /app && go build -o go-app .
+
+FROM cgr.dev/chainguard/static
+COPY --from=builder /app/go-app /usr/bin/
+ENTRYPOINT ["/usr/bin/go-app"]

@@ -1,0 +1,503 @@
+export: true
+definitions:
+  services:
+    docker:
+      image: docker:24-dind
+  pipelines:
+    shamanops-pipeline:
+    - step:
+        name: pre-requisites
+        runs-on:
+          - 'self.hosted'
+        script:
+          - curl -sSL https://raw.githubusercontent.com/shamanops/resources/refs/heads/main/bitbucket/stable/base-variables.yaml -o base-variables.yaml
+          - source base-variables.yaml
+          - source .bitbucket/envs.yaml
+          - >-
+            if [ "${git_submodules_enabled}" == "true" ]; then
+              sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
+              git submodule update --init --recursive --remote              
+            fi
+        artifacts:
+          - base-variables.yaml
+        services:
+          - docker
+    - step:
+        name: repository-check
+        runs-on:
+          - 'self.hosted'
+        script:
+          - source base-variables.yaml
+          - source .bitbucket/envs.yaml
+          - echo $shamanops_customer_token | docker login registry.shamanops.com -u $shamanops_customer_id --password-stdin
+          - >-
+            docker run --user root --privileged -v $(pwd):/home/runner \
+              -e appName=$appName \
+              -e customerURI=$customerURI \
+              -e repoUrl=$repoUrl \
+              -e pipelineId=$pipelineId \
+              -e jobUrl=$jobUrl \
+              --env-file base-variables.yaml --env-file <(sed "s/[\'\"]//g" ".bitbucket/envs.yaml" | grep -v "#") --env-file <(env | grep shamanops) \
+              registry.shamanops.com/runner/fedora:stable -c "shamanops repository-check"
+        services:
+          - docker
+    - step:
+        name: repository-metrics
+        runs-on:
+          - 'self.hosted'
+        script:
+          - source base-variables.yaml
+          - source .bitbucket/envs.yaml
+          - echo $shamanops_customer_token | docker login registry.shamanops.com -u $shamanops_customer_id --password-stdin
+          - >-
+            if [[ "${repository_metrics_enabled}" == "true" ]]; then
+              docker run --user root --privileged -v $(pwd):/home/runner \
+                -e appName=$appName \
+                -e customerURI=$customerURI \
+                -e repoUrl=$repoUrl \
+                -e pipelineId=$pipelineId \
+                -e jobUrl=$jobUrl \
+                --env-file base-variables.yaml --env-file <(sed "s/[\'\"]//g" ".bitbucket/envs.yaml" | grep -v "#") --env-file <(env | grep shamanops) \
+                registry.shamanops.com/runner/fedora:stable -c "shamanops repository-metrics"
+            else
+              echo "This step has been skipped due to conditionals!" && exit 0;
+            fi
+        services:
+          - docker
+    - step:
+        name: image-build-and-push
+        runs-on:
+          - 'self.hosted'
+        script:
+          - source base-variables.yaml
+          - source .bitbucket/envs.yaml
+          - echo $shamanops_customer_token | docker login registry.shamanops.com -u $shamanops_customer_id --password-stdin
+          - >-
+            docker run --user root --privileged -v $(pwd):/home/runner \
+              -e appName=$appName \
+              -e customerURI=$customerURI \
+              -e repoUrl=$repoUrl \
+              -e pipelineId=$pipelineId \
+              -e jobUrl=$jobUrl \
+              --env-file base-variables.yaml --env-file <(sed "s/[\'\"]//g" ".bitbucket/envs.yaml" | grep -v "#") --env-file <(env | grep shamanops) \
+              registry.shamanops.com/runner/fedora:stable -c "shamanops image-build"
+        services:
+          - docker
+    - step:
+        name: image-check
+        runs-on:
+          - 'self.hosted'
+        script:
+          - source base-variables.yaml
+          - source .bitbucket/envs.yaml
+          - echo $shamanops_customer_token | docker login registry.shamanops.com -u $shamanops_customer_id --password-stdin
+          - >-
+            docker run --user root --privileged -v $(pwd):/home/runner \
+              -e appName=$appName \
+              -e customerURI=$customerURI \
+              -e repoUrl=$repoUrl \
+              -e pipelineId=$pipelineId \
+              -e jobUrl=$jobUrl \
+              --env-file base-variables.yaml --env-file <(sed "s/[\'\"]//g" ".bitbucket/envs.yaml" | grep -v "#") --env-file <(env | grep shamanops) \
+              registry.shamanops.com/runner/fedora:stable -c "shamanops image-check"
+        services:
+          - docker
+    - step:
+        name: security-check
+        runs-on:
+          - 'self.hosted'
+        script:
+          - source base-variables.yaml
+          - source .bitbucket/envs.yaml
+          - echo $shamanops_customer_token | docker login registry.shamanops.com -u $shamanops_customer_id --password-stdin
+          - >-
+            if [[ "${security_check_enabled}" == "true" ]]; then
+              if [[ "${security_check_blocker}" == "true" ]]; then
+                docker run --user root --privileged -v $(pwd):/home/runner \
+                  -e appName=$appName \
+                  -e customerURI=$customerURI \
+                  -e repoUrl=$repoUrl \
+                  -e pipelineId=$pipelineId \
+                  -e jobUrl=$jobUrl \
+                  --env-file base-variables.yaml --env-file <(sed "s/[\'\"]//g" ".bitbucket/envs.yaml" | grep -v "#") --env-file <(env | grep shamanops) \
+                  registry.shamanops.com/runner/fedora:stable -c "shamanops security-check"
+              else
+                docker run --user root --privileged -v $(pwd):/home/runner \
+                  -e appName=$appName \
+                  -e customerURI=$customerURI \
+                  -e repoUrl=$repoUrl \
+                  -e pipelineId=$pipelineId \
+                  -e jobUrl=$jobUrl \
+                  --env-file base-variables.yaml --env-file <(sed "s/[\'\"]//g" ".bitbucket/envs.yaml" | grep -v "#") --env-file <(env | grep shamanops) \
+                  registry.shamanops.com/runner/fedora:stable -c "shamanops security-check || true"
+              fi
+            else
+              echo "This step has been skipped due to conditionals!" && exit 0;
+            fi
+        services:
+          - docker
+    - step:
+        name: sast-check
+        runs-on:
+          - 'self.hosted'
+        script:
+          - source base-variables.yaml
+          - source .bitbucket/envs.yaml
+          - echo $shamanops_customer_token | docker login registry.shamanops.com -u $shamanops_customer_id --password-stdin
+          - >-
+            if [[ "${code_quality_check_enabled}" == "true" ]]; then
+              if [[ "${code_quality_check_blocker}" == "true" ]]; then
+                docker run --user root --privileged -v $(pwd):/home/runner \
+                  -e appName=$appName \
+                  -e customerURI=$customerURI \
+                  -e repoUrl=$repoUrl \
+                  -e pipelineId=$pipelineId \
+                  -e jobUrl=$jobUrl \
+                  --env-file base-variables.yaml --env-file <(sed "s/[\'\"]//g" ".bitbucket/envs.yaml" | grep -v "#") --env-file <(env | grep shamanops) \
+                  registry.shamanops.com/runner/fedora:stable -c "shamanops sast-check"
+              else
+                docker run --user root --privileged -v $(pwd):/home/runner \
+                  -e appName=$appName \
+                  -e customerURI=$customerURI \
+                  -e repoUrl=$repoUrl \
+                  -e pipelineId=$pipelineId \
+                  -e jobUrl=$jobUrl \
+                  --env-file base-variables.yaml --env-file <(sed "s/[\'\"]//g" ".bitbucket/envs.yaml" | grep -v "#") --env-file <(env | grep shamanops) \
+                  registry.shamanops.com/runner/fedora:stable -c "shamanops sast-check || true"
+              fi
+            else
+              echo "This step has been skipped due to conditionals!" && exit 0;
+            fi
+        services:
+          - docker
+    - step:
+        name: approvals-dev
+        runs-on:
+          - 'self.hosted'
+        script:
+          - source base-variables.yaml
+          - source .bitbucket/envs.yaml
+          - echo $shamanops_customer_token | docker login registry.shamanops.com -u $shamanops_customer_id --password-stdin
+          - >-
+            if [[ "$shamanopsApprovalsDev" == "true" && "$environments" != "mid" && "$environments" != "minimal" ]]; then
+              docker run --user root --privileged -v $(pwd):/home/runner \
+                -e appName=$appName \
+                -e customerURI=$customerURI \
+                -e repoUrl=$repoUrl \
+                -e pipelineId=$pipelineId \
+                -e jobUrl=$jobUrl \
+                --env-file base-variables.yaml --env-file <(sed "s/[\'\"]//g" ".bitbucket/envs.yaml" | grep -v "#") --env-file <(env | grep shamanops) \
+                registry.shamanops.com/runner/fedora:stable -c "shamanops approvals dev"
+            else
+              echo "This step has been skipped due to conditionals!" && exit 0;
+            fi
+        services:
+          - docker
+    - step:
+        name: db-versioning-dev
+        runs-on:
+          - 'self.hosted'
+        script:
+          - source base-variables.yaml
+          - source .bitbucket/envs.yaml
+          - echo $shamanops_customer_token | docker login registry.shamanops.com -u $shamanops_customer_id --password-stdin
+          - >-
+            if [[ "$db_versioning_enabled" == "true" && "$environments" != "mid" && "$environments" != "minimal" ]]; then
+              docker run --user root --privileged -v $(pwd):/home/runner \
+                -e appName=$appName \
+                -e customerURI=$customerURI \
+                -e repoUrl=$repoUrl \
+                -e pipelineId=$pipelineId \
+                -e jobUrl=$jobUrl \
+                --env-file base-variables.yaml --env-file <(sed "s/[\'\"]//g" ".bitbucket/envs.yaml" | grep -v "#") --env-file <(env | grep shamanops) \
+                registry.shamanops.com/runner/fedora:stable -c "shamanops db-versioning dev"
+            else
+              echo "This step has been skipped due to conditionals!" && exit 0;
+            fi
+        services:
+          - docker
+    - step:
+        name: app-create-and-deploy-dev
+        runs-on:
+          - 'self.hosted'
+        script: 
+          - source base-variables.yaml
+          - source .bitbucket/envs.yaml
+          - echo $shamanops_customer_token | docker login registry.shamanops.com -u $shamanops_customer_id --password-stdin
+          - >-
+            if [[ "$environments" != "mid" && "$environments" != "minimal" ]]; then
+              docker run --user root --privileged -v $(pwd):/home/runner \
+                -e appName=$appName \
+                -e customerURI=$customerURI \
+                -e repoUrl=$repoUrl \
+                -e pipelineId=$pipelineId \
+                -e jobUrl=$jobUrl \
+                --env-file base-variables.yaml --env-file <(sed "s/[\'\"]//g" ".bitbucket/envs.yaml" | grep -v "#") --env-file <(env | grep shamanops) \
+                registry.shamanops.com/runner/fedora:stable -c "shamanops app-create-and-deploy dev"
+            else
+              echo "This step has been skipped due to conditionals!" && exit 0;
+            fi
+        services:
+          - docker
+    - step:
+        name: app-create-and-deploy-dynenv
+        runs-on:
+          - 'self.hosted'
+        script: 
+          - source base-variables.yaml
+          - source .bitbucket/envs.yaml
+          - echo $shamanops_customer_token | docker login registry.shamanops.com -u $shamanops_customer_id --password-stdin
+          - >-
+            if [[ "$shamanopsDynamicEnvsEnabled" == "true" && "$environments" != "minimal" ]]; then
+              docker run --user root --privileged -v $(pwd):/home/runner \
+                -e appName=$appName \
+                -e customerURI=$customerURI \
+                -e repoUrl=$repoUrl \
+                -e pipelineId=$pipelineId \
+                -e jobUrl=$jobUrl \
+                --env-file base-variables.yaml --env-file <(sed "s/[\'\"]//g" ".bitbucket/envs.yaml" | grep -v "#") --env-file <(env | grep shamanops) \
+                registry.shamanops.com/runner/fedora:stable -c "shamanops dynamic-envs"
+            else
+              echo "This step has been skipped due to conditionals!" && exit 0;
+            fi
+        services:
+          - docker
+    - step:
+        name: approvals-stg
+        runs-on:
+          - 'self.hosted'
+        script: 
+          - source base-variables.yaml
+          - source .bitbucket/envs.yaml
+          - echo $shamanops_customer_token | docker login registry.shamanops.com -u $shamanops_customer_id --password-stdin
+          - >-
+            if [[ "$shamanopsApprovalsStg" == "true" && "$environments" != "minimal" ]]; then
+              docker run --user root --privileged -v $(pwd):/home/runner \
+                -e appName=$appName \
+                -e customerURI=$customerURI \
+                -e repoUrl=$repoUrl \
+                -e pipelineId=$pipelineId \
+                -e jobUrl=$jobUrl \
+                --env-file base-variables.yaml --env-file <(sed "s/[\'\"]//g" ".bitbucket/envs.yaml" | grep -v "#") --env-file <(env | grep shamanops) \
+               registry.shamanops.com/runner/fedora:stable -c "shamanops approvals stg"
+            else
+              echo "This step has been skipped due to conditionals!" && exit 0;
+            fi
+        services:
+          - docker
+    - step:
+        name: db_versioning_stg
+        runs-on:
+          - 'self.hosted'
+        script: 
+          - source base-variables.yaml
+          - source .bitbucket/envs.yaml
+          - echo $shamanops_customer_token | docker login registry.shamanops.com -u $shamanops_customer_id --password-stdin
+          - >-
+            if [[ "$db_versioning_enabled" == "true" && "$environments" != "minimal" ]]; then
+              docker run --user root --privileged -v $(pwd):/home/runner \
+                -e appName=$appName \
+                -e customerURI=$customerURI \
+                -e repoUrl=$repoUrl \
+                -e pipelineId=$pipelineId \
+                -e jobUrl=$jobUrl \
+                --env-file base-variables.yaml --env-file <(sed "s/[\'\"]//g" ".bitbucket/envs.yaml" | grep -v "#") --env-file <(env | grep shamanops) \
+                registry.shamanops.com/runner/fedora:stable -c "shamanops db-versioning stg"
+            else
+              echo "This step has been skipped due to conditionals!" && exit 0;
+            fi
+        services:
+          - docker
+    - step:
+        name: app-create-and-deploy-stg
+        runs-on:
+          - 'self.hosted'
+        script:
+          - source base-variables.yaml
+          - source .bitbucket/envs.yaml
+          - echo $shamanops_customer_token | docker login registry.shamanops.com -u $shamanops_customer_id --password-stdin
+          - >-
+            if [[ "$environments" != "minimal" ]]; then
+              docker run --user root --privileged -v $(pwd):/home/runner \
+                -e appName=$appName \
+                -e customerURI=$customerURI \
+                -e repoUrl=$repoUrl \
+                -e pipelineId=$pipelineId \
+                -e jobUrl=$jobUrl \
+                --env-file base-variables.yaml --env-file <(sed "s/[\'\"]//g" ".bitbucket/envs.yaml" | grep -v "#") --env-file <(env | grep shamanops) \
+                registry.shamanops.com/runner/fedora:stable -c "shamanops app-create-and-deploy stg"
+            else
+              echo "This step has been skipped due to conditionals!" && exit 0;
+            fi
+        services:
+          - docker
+    - step:
+        name: functional_analysis
+        runs-on:
+          - 'self.hosted'
+        script:
+          - source base-variables.yaml
+          - source .bitbucket/envs.yaml
+          - echo $shamanops_customer_token | docker login registry.shamanops.com -u $shamanops_customer_id --password-stdin
+          - >-
+            if [[ "${functional_analysis_enabled}" == "true" && "${environments}" != "minimal" ]]; then 
+              if [[ "${functional_analysis_blocker}" == "true" ]]; then
+                docker run --user root --privileged -v $(pwd):/home/runner \
+                  -e appName=$appName \
+                  -e customerURI=$customerURI \
+                  -e repoUrl=$repoUrl \
+                  -e pipelineId=$pipelineId \
+                  -e jobUrl=$jobUrl \
+                  --env-file base-variables.yaml --env-file <(sed "s/[\'\"]//g" ".bitbucket/envs.yaml" | grep -v "#") --env-file <(env | grep shamanops) \
+                  registry.shamanops.com/runner/fedora:stable -c "shamanops functional-check"
+              else
+                docker run --user root --privileged -v $(pwd):/home/runner \
+                  -e appName=$appName \
+                  -e customerURI=$customerURI \
+                  -e repoUrl=$repoUrl \
+                  -e pipelineId=$pipelineId \
+                  -e jobUrl=$jobUrl \
+                  --env-file base-variables.yaml --env-file <(sed "s/[\'\"]//g" ".bitbucket/envs.yaml" | grep -v "#") --env-file <(env | grep shamanops) \
+                  registry.shamanops.com/runner/fedora:stable -c "shamanops functional-check || true"
+               fi
+            else
+              echo "This step has been skipped due to conditionals!" && exit 0;
+            fi
+        services:
+          - docker
+    - step:
+        name: stress-check
+        runs-on:
+          - 'self.hosted'
+        script:
+          - source base-variables.yaml
+          - source .bitbucket/envs.yaml
+          - echo $shamanops_customer_token | docker login registry.shamanops.com -u $shamanops_customer_id --password-stdin
+          - >-
+            if [[ "${stress_check_enabled}" == "true" && "${environments}" != "minimal" ]]; then 
+              if [[ "${stress_check_blocker}" == "true" ]]; then
+                docker run --user root --privileged -v $(pwd):/home/runner \
+                  -e appName=$appName \
+                  -e customerURI=$customerURI \
+                  -e repoUrl=$repoUrl \
+                  -e pipelineId=$pipelineId \
+                  -e jobUrl=$jobUrl \
+                  --env-file base-variables.yaml --env-file <(sed "s/[\'\"]//g" ".bitbucket/envs.yaml" | grep -v "#") --env-file <(env | grep shamanops) \
+                  registry.shamanops.com/runner/fedora:stable -c "shamanops stress-check"
+              else
+                docker run --user root --privileged -v $(pwd):/home/runner \
+                  -e appName=$appName \
+                  -e customerURI=$customerURI \
+                  -e repoUrl=$repoUrl \
+                  -e pipelineId=$pipelineId \
+                  -e jobUrl=$jobUrl \
+                  --env-file base-variables.yaml --env-file <(sed "s/[\'\"]//g" ".bitbucket/envs.yaml" | grep -v "#") --env-file <(env | grep shamanops) \
+                  registry.shamanops.com/runner/fedora:stable -c "shamanops stress-check || true"
+               fi
+            else
+              echo "This step has been skipped due to conditionals!" && exit 0;
+            fi
+        services:
+          - docker
+    - step:
+        name: approvals-prod
+        runs-on:
+          - 'self.hosted'
+        script:
+          - source base-variables.yaml
+          - source .bitbucket/envs.yaml
+          - echo $shamanops_customer_token | docker login registry.shamanops.com -u $shamanops_customer_id --password-stdin
+          - >-
+            if [[ "$shamanopsApprovalsProd" == "true" && "${environments}" != "pre" ]]; then
+              docker run --user root --privileged -v $(pwd):/home/runner \
+                -e appName=$appName \
+                -e customerURI=$customerURI \
+                -e repoUrl=$repoUrl \
+                -e pipelineId=$pipelineId \
+                -e jobUrl=$jobUrl \
+                --env-file base-variables.yaml --env-file <(sed "s/[\'\"]//g" ".bitbucket/envs.yaml" | grep -v "#") --env-file <(env | grep shamanops) \
+                registry.shamanops.com/runner/fedora:stable -c "shamanops approvals prod"
+            else
+              echo "This step has been skipped due to conditionals!" && exit 0;
+            fi
+        services:
+          - docker 
+    - step:
+        name: db_versioning_prod
+        runs-on:
+          - 'self.hosted'
+        script:
+          - source base-variables.yaml
+          - source .bitbucket/envs.yaml
+          - echo $shamanops_customer_token | docker login registry.shamanops.com -u $shamanops_customer_id --password-stdin
+          - >-
+            if [[ "$db_versioning_enabled" == "true" && "${environments}" != "pre" ]]; then
+              docker run --user root --privileged -v $(pwd):/home/runner \
+                -e appName=$appName \
+                -e customerURI=$customerURI \
+                -e repoUrl=$repoUrl \
+                -e pipelineId=$pipelineId \
+                -e jobUrl=$jobUrl \
+                --env-file base-variables.yaml --env-file <(sed "s/[\'\"]//g" ".bitbucket/envs.yaml" | grep -v "#") --env-file <(env | grep shamanops) \
+                registry.shamanops.com/runner/fedora:stable -c "shamanops db-versioning prod"
+            else
+              echo "This step has been skipped due to conditionals!" && exit 0;
+            fi
+        services:
+          - docker
+    - step:
+        name: app-create-and-deploy-prod
+        runs-on:
+          - 'self.hosted'
+        script:
+          - source base-variables.yaml
+          - source .bitbucket/envs.yaml
+          - echo $shamanops_customer_token | docker login registry.shamanops.com -u $shamanops_customer_id --password-stdin
+          - >-
+            if [[ "${environments}" != "pre" ]]; then
+              docker run --user root --privileged -v $(pwd):/home/runner \
+                -e appName=$appName \
+                -e customerURI=$customerURI \
+                -e repoUrl=$repoUrl \
+                -e pipelineId=$pipelineId \
+                -e jobUrl=$jobUrl \
+                --env-file base-variables.yaml --env-file <(sed "s/[\'\"]//g" ".bitbucket/envs.yaml" | grep -v "#") --env-file <(env | grep shamanops) \
+                registry.shamanops.com/runner/fedora:stable -c "shamanops app-create-and-deploy prod"
+            else
+              echo "This step has been skipped due to conditionals!" && exit 0;
+            fi
+        services:
+          - docker
+    - step:
+        name: app_create_and_deploy_drp
+        runs-on:
+          - 'self.hosted'
+        script:
+          - source base-variables.yaml
+          - source .bitbucket/envs.yaml
+          - echo $shamanops_customer_token | docker login registry.shamanops.com -u $shamanops_customer_id --password-stdin
+          - >-
+            if [[ "$environments" == "full-with-drp" ]]; then
+              docker run --user root --privileged -v $(pwd):/home/runner \
+                -e appName=$appName \
+                -e customerURI=$customerURI \
+                -e repoUrl=$repoUrl \
+                -e pipelineId=$pipelineId \
+                -e jobUrl=$jobUrl \
+                --env-file base-variables.yaml --env-file <(sed "s/[\'\"]//g" ".bitbucket/envs.yaml" | grep -v "#") --env-file <(env | grep shamanops) \
+                registry.shamanops.com/runner/fedora:stable -c "shamanops app-create-and-deploy drp"
+            else
+              echo "This step has been skipped due to conditionals!" && exit 0;
+            fi
+        services:
+          - docker
+pipelines:
+  default:
+    - step:
+        name: ShamanOps-base-pipeline-download
+        script:
+        - rm -rf bitbucket-pipelines.yml
+        - curl -sSL https://raw.githubusercontent.com/shamanops/resources/main/bitbucket/stable/base-pipeline.yaml -o bitbucket-pipelines.yml
+        - git add bitbucket-pipelines.yml
+        - git commit -m "ShamanOps - Add bitbucket base pipeline to shamanops project" || true
+        - git push

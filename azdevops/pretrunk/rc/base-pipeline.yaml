@@ -1,0 +1,114 @@
+stages:
+- stage: pre_requirements
+  jobs:
+  - job: azdevops
+    steps:
+    - checkout: none
+    - task: AzureKeyVault@1
+      name: azKeyVault
+      displayName: azure-keyvault
+      inputs:
+        azureSubscription: 'shamanops-keyvault'
+        KeyVaultName: 'shamanops-keyvault'
+        SecretsFilter: '*' 
+        RunAsPreJob: false
+    - script: |
+        # Variables
+        customerName=$(echo $(customerURI) | cut -d "/" -f 4)
+        shamanops_customer_id=$(echo "$(shamanops-customer-id)" | tr -d "{}")
+        shamanops_argocd_dev_url=$(echo "$(shamanops-argocd-dev-url)" | tr -d "{}")
+        shamanops_argocd_dev_user=$(echo "$(shamanops-argocd-dev-user)" | tr -d "{}")
+        shamanops_registry_url=$(echo "$(shamanops-registry-url)" | tr -d "{}")
+        shamanops_registry_user=$(echo "$(shamanops-registry-user)" | tr -d "{}")
+        shamanops_secondary_registry_url=$(echo "$(shamanops-secondary-registry-url)" | tr -d "{}")
+        shamanops_secondary_registry_user=$(echo "$(shamanops-secondary-registry-user)" | tr -d "{}")
+        shamanops_chat_webhook=$(echo "$(shamanops-chat-webhook)" | tr -d "{}")
+        # Secrets
+        shamanops_customer_token=$(shamanops-customer-token)
+        shamanops_argocd_dev_token=$(shamanops-argocd-dev-token)
+        shamanops_registry_password=$(shamanops-registry-password)
+        shamanops_secondary_registry_password=$(shamanops-secondary-registry-password)
+        # Export variables
+        echo "##vso[task.setvariable variable=customerName;isOutput=true]$customerName"
+        echo "##vso[task.setvariable variable=shamanops_customer_id;isOutput=true]$shamanops_customer_id"
+        echo "##vso[task.setvariable variable=shamanops_argocd_dev_url;isOutput=true]$shamanops_argocd_dev_url"
+        echo "##vso[task.setvariable variable=shamanops_argocd_dev_user;isOutput=true]$shamanops_argocd_dev_user"
+        echo "##vso[task.setvariable variable=shamanops_registry_url;isOutput=true]$shamanops_registry_url"
+        echo "##vso[task.setvariable variable=shamanops_registry_user;isOutput=true]$shamanops_registry_user"
+        echo "##vso[task.setvariable variable=shamanops_secondary_registry_url;isOutput=true]$shamanops_secondary_registry_url"
+        echo "##vso[task.setvariable variable=shamanops_secondary_registry_user;isOutput=true]$shamanops_secondary_registry_user"
+        # Export secrets
+        echo "##vso[task.setvariable variable=shamanops_customer_token;isOutput=true;issecret=true]$shamanops_customer_token"
+        echo "##vso[task.setvariable variable=shamanops_argocd_dev_token;isOutput=true;issecret=true]$shamanops_argocd_dev_token"
+        echo "##vso[task.setvariable variable=shamanops_registry_password;isOutput=true;issecret=true]$shamanops_registry_password"
+        echo "##vso[task.setvariable variable=shamanops_secondary_registry_password;isOutput=true;issecret=true]$shamanops_secondary_registry_password"
+        echo "##vso[task.setvariable variable=shamanops_chat_webhook;isOutput=true;issecret=true]$shamanops_chat_webhook"
+      displayName: cicd-variables-and-secrets
+      name: globalVars
+    - task: Docker@2
+      name: registryLogin
+      displayName: shamanops-registry-login
+      inputs:
+        containerRegistry: 'shamanops-registry'
+        command: 'login'
+- stage: deploy
+  dependsOn: pre_requirements
+  variables:
+    customerName: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.customerName'] ]
+    shamanops_customer_id: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_customer_id'] ]
+    shamanops_argocd_dev_url: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_argocd_dev_url'] ]
+    shamanops_argocd_dev_user: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_argocd_dev_user'] ]
+    shamanops_registry_url: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_registry_url'] ]
+    shamanops_registry_user: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_registry_user'] ]
+    shamanops_customer_token: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_customer_token'] ]
+    shamanops_argocd_dev_token: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_argocd_dev_token'] ]
+    shamanops_registry_password: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_registry_password'] ]
+    shamanops_chat_webhook: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_chat_webhook'] ]
+    shamanops_secondary_registry_url: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_secondary_registry_url'] ]
+    shamanops_secondary_registry_user: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_secondary_registry_user'] ]
+    shamanops_secondary_registry_password: $[ stageDependencies.pre_requirements.azdevops.outputs['globalVars.shamanops_secondary_registry_password'] ]
+  jobs:
+  - job: pretrunk
+    steps:
+    - checkout: self
+      clean: true
+      fetchDepth: 0
+    - task: Docker@1
+      name: pretrunk
+      displayName: pretrunk
+      inputs:
+        containerregistrytype: 'Container Registry'
+        dockerRegistryEndpoint: 'shamanops-registry'
+        command: 'Run an image'
+        arguments: '--privileged -u root --pull=always --quiet'
+        imageName: 'registry.shamanops.com/runner/fedora:rc'
+        volumes: '$(Build.Repository.LocalPath):/home/runner'
+        envVars: |
+          customerName=$(customerName)
+          appName=$(appName)
+          appInternalPort=$(appInternalPort)
+          appDaysToLive=$(appDaysToLive)
+          repoUrl=$(repoUrl)
+          jobUrl=$(jobUrl)
+          pipelineId=$(pipelineId)
+          GIT_STRATEGY=$(GIT_STRATEGY)
+          GIT_DEPTH=$(GIT_DEPTH)
+          projectName=$(projectName)
+          code_language_detection_enabled=$(code_language_detection_enabled)
+          log_level=$(log_level)
+          forward_metrics_enabled=$(forward_metrics_enabled)
+          shamanops_customer_id=$(shamanops_customer_id)
+          shamanops_customer_token=$(shamanops_customer_token)
+          shamanops_registry_url=$(shamanops_registry_url)
+          shamanops_registry_user=$(shamanops_registry_user)
+          shamanops_registry_password=$(shamanops_registry_password)
+          shamanops_secondary_registry_url=$(shamanops_registry_url)
+          shamanops_secondary_registry_user=$(shamanops_registry_user)
+          shamanops_secondary_registry_password=$(shamanops_registry_password)
+          shamanops_argocd_dev_url=$(shamanops_argocd_dev_url)
+          shamanops_argocd_dev_user=$(shamanops_argocd_dev_user)
+          shamanops_argocd_dev_token=$(shamanops_argocd_dev_token)
+          shamanops_chat_webhook=$(shamanops_chat_webhook)       
+        containerCommand: '-c "shamanops pretrunk"'
+        runInBackground: false
+

@@ -1,0 +1,21 @@
+variables:
+  # For CI Platform:
+  GIT_STRATEGY: 'fetch'
+  GIT_DEPTH: '0'
+  # Global variables
+  customerURI: $(System.CollectionUri)
+  # Project
+  projectName: 'default'
+  appInternalPort: '8080'
+  appDaysToLive: '1'
+  exposeEnabled: 'true'
+  appName: $(Build.Repository.Name)
+  repoUrl: $(Build.Repository.Uri)
+  jobUrl: "$(System.CollectionUri)$(System.TeamProject)/_build/results?buildId=$(Build.BuildId)"
+  pipelineId: $(Build.BuildId)
+  # Code language Auto-detection
+  code_language_detection_enabled: 'false'
+  # Verbosity level
+  log_level: 'normal'
+  # CI Metrics forward
+  forward_metrics_enabled: 'false'

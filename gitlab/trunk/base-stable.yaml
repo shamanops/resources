@@ -1,0 +1,793 @@
+################################################################################
+## ShamanOps Base Pipeline | Gitlab CI | Runner STABLE #########################
+################################################################################
+##
+image: 
+  name: registry.shamanops.com/runner/fedora:stable
+  pull_policy: always
+  entrypoint: [""]
+################################################################################
+# Stages
+stages:
+  - requirements
+  - build
+  - analysis
+  - test
+  - deploy
+ 
+################################################################################
+# Global variables
+variables:
+  # For CI Platform:
+  GIT_STRATEGY: fetch
+  GIT_DEPTH: 0
+  runs_on: 'docker'
+  runs_on_build: 'docker'
+  # Environments: full-with-drp (dev/stg/prod/drp) | full (dev/stg/prod) | mid (stg/prod) | minimal (prod)
+  environments: 'full'
+  multiclusterTag: ''
+  # Global variables
+  customerName: $CI_PROJECT_ROOT_NAMESPACE
+  # Project
+  projectName: 'default'
+  appName: $CI_PROJECT_NAME
+  appInternalPort: ''
+  strategyCanaryProd: 'false'
+  strategyCanaryStg: 'false'
+  strategyCanaryDev: 'false'
+  strategyBlueGreenProd: 'false'
+  strategyBlueGreenStg: 'false'
+  strategyBlueGreenDev: 'false'
+  repoUrl: $CI_REPOSITORY_URL
+  jobUrl: $CI_JOB_URL
+  pipelineId: $CI_PIPELINE_ID
+  var2: ${CI_REGISTRY_IMAGE%/*}
+  # Approvals
+  approvals_timeout: '30'
+  shamanopsBusinessApprovers: ''
+  shamanopsTechnicalApprovers: ''
+  shamanopsApprovalsDev: 'false'
+  shamanopsApprovalsStg: 'false'
+  shamanopsApprovalsProd: 'true'
+  shamanopsBusinessApproversMinimalDev: '0'
+  shamanopsTechnicalApproversMinimalDev: '1' 
+  shamanopsBusinessApproversMinimalStg: '0'
+  shamanopsTechnicalApproversMinimalStg: '1'    
+  shamanopsBusinessApproversMinimalProd: '1'
+  shamanopsTechnicalApproversMinimalProd: '1' 
+  # Code language Auto-detection
+  code_language_detection_enabled: 'false'
+  # Dependency and OS security checker
+  security_check_enabled: 'true'
+  security_check_blocker: 'false'
+  security_check_report_upload: 'false'
+  security_check_report_format: 'table'
+  # Software Bill of Materials
+  sbom_check_enabled: 'false'
+  sbom_check_report_upload: 'false'
+  sbom_check_report_format: 'table'
+  # SAST check
+  code_quality_check_enabled: 'false'
+  code_quality_check_blocker: 'false'
+  code_quality_check_exclusions: 'test/**'
+  code_quality_check_test_exclusions: '**/vendor/**' 
+  code_quality_check_test_inclusions: '**/*test*'
+  code_quality_check_cs_dir: ''
+  code_quality_check_cs_nuget_enabled: 'false'
+  code_quality_check_cs_nuget_dir: '/nuget'
+  code_quality_check_cs_nuget_config: 'NuGet.Config'
+  code_quality_check_test_cs_enabled: 'false'
+  code_quality_check_test_cs_opencover_reportsPaths: 'tests/**/coverage.opencover.xml'
+  # Stress tests
+  stress_check_enabled: 'false'
+  stress_check_blocker: 'false'
+  stress_check_error_rate_max: '15'
+  stress_check_thread: '19'
+  stress_check_upPeriod: '10'
+  stress_check_second: '60'
+  # Functional Analysis
+  functional_analysis_enabled: 'false'
+  functional_analysis_blocker: 'false'
+  functional_analysis_test_type: 'playwright'
+  functional_analysis_test_storage_enabled: 'false'
+  functional_analysis_test_storage_class: 'default'
+  functional_analysis_test_path: 'testing'
+  functional_analysis_test_timeout: '600'
+  # Database Versioning
+  db_versioning_enabled: 'false'
+  db_versioning_type: 'postgresql'
+  db_versioning_changelog_file: 'db.changelog.xml'
+  # Verbosity level
+  log_level: 'normal'
+  # GIT Submodules
+  git_submodules_enabled: 'false'
+  # Dynamic Envs
+  shamanopsDynamicEnvsEnabled: 'false'
+  shamanopsDynamicEnvs: 'qa'
+  shamanopsTechnicalApproversMinimalDynamicEnvs: '1'
+  shamanopsBusinessApproversMinimalDynamicEnvs: '1'
+  shamanopsApprovalsDynamicEnvs: 'false'
+  # Repository Metrics
+  repository_metrics_enabled: 'false'
+  repository_metrics_depth: 'mid'
+  # Pre-deploy Jobs
+  pre_jobs_enabled: 'false'
+  pre_jobs_blocker: 'false'
+  # Secrets in Code
+  secrets_in_code_blocker: 'false'
+  # CI Metrics forward
+  forward_metrics_enabled: 'false'
+################################################################################
+# Stages
+# ------------------------------------------------------------------------------
+# Stage 1 - Requirements #######################################################
+repository-check:
+  tags:
+    - $runs_on_build
+  stage: requirements
+  rules:
+    - when: always
+  before_script: |
+    if [ "${git_submodules_enabled}" == "true" ]; then
+      git config --global --add safe.directory "/builds/*"
+      sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
+      git submodule update --init --recursive --remote    
+    fi
+  script:
+    - shamanops repository-check
+repository-metrics:
+  tags:
+    - $runs_on_build
+  stage: requirements
+  rules:
+    - if: $repository_metrics_enabled == 'true' || $shamanops_global_pipeline_repository_metrics_enabled == 'true'
+      when: on_success
+      allow_failure: true
+  before_script: |
+    if [ "${git_submodules_enabled}" == "true" ]; then
+      git config --global --add safe.directory "/builds/*"
+      sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
+      git submodule update --init --recursive --remote    
+    fi 
+  script:
+    - shamanops repository-metrics
+# ------------------------------------------------------------------------------
+# Stage 2 - Build ##############################################################
+image-build-and-push:
+  tags:
+    - $runs_on_build
+  stage: build
+  before_script: |
+    if [ "${git_submodules_enabled}" == "true" ]; then
+      git config --global --add safe.directory "/builds/*"
+      sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
+      git submodule update --init --recursive --remote    
+    fi 
+  script:
+    - shamanops image-build
+  needs: ["repository-check"]
+image-check:
+  tags:
+    - $runs_on_build
+  stage: build
+  before_script: |
+    if [ "${git_submodules_enabled}" == "true" ]; then
+      git config --global --add safe.directory "/builds/*"
+      sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
+      git submodule update --init --recursive --remote    
+    fi 
+  script:
+    - shamanops image-check
+  needs: ["repository-check", "image-build-and-push"]
+# ------------------------------------------------------------------------------
+# Stage 3 - Analysis ###########################################################
+security_check:
+  tags:
+    - $runs_on_build
+  stage: analysis
+  needs: ["image-check"]
+  rules:
+    - if: ($security_check_enabled == 'true' || $shamanops_global_pipeline_sca_enabled == 'true') && 
+          ($security_check_blocker == 'true' || $shamanops_global_pipeline_sca_blocker == 'true')
+      when: on_success
+      allow_failure: false
+    - if: ($security_check_enabled == 'true' || $shamanops_global_pipeline_sca_enabled == 'true') && 
+          ($security_check_blocker != 'true' || $shamanops_global_pipeline_sca_blocker != 'true')
+      when: on_success
+      allow_failure: true
+    - when: never
+  before_script: |
+    if [ "${git_submodules_enabled}" == "true" ]; then
+      git config --global --add safe.directory "/builds/*"
+      sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
+      git submodule update --init --recursive --remote    
+    fi 
+  script:
+    - shamanops security-check
+sast_check:
+  tags:
+    - $runs_on
+  stage: analysis
+  needs: ["image-check"]
+  rules:
+    - if: ($code_quality_check_enabled == 'true' || $shamanops_global_pipeline_sast_enabled == 'true') && 
+          ($code_quality_check_blocker == 'true' || $shamanops_global_pipeline_sast_blocker == 'true')
+      when: on_success
+      allow_failure: false
+    - if: ($code_quality_check_enabled == 'true' || $shamanops_global_pipeline_sast_enabled == 'true') && 
+          ($code_quality_check_blocker != 'true' || $shamanops_global_pipeline_sast_blocker != 'true')
+      when: on_success
+      allow_failure: true
+    - when: never
+  before_script: |
+    if [ "${git_submodules_enabled}" == "true" ]; then
+      git config --global --add safe.directory "/builds/*"
+      sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
+      git submodule update --init --recursive --remote    
+    fi 
+  script:
+    - shamanops sast-check
+# ------------------------------------------------------------------------------
+# Stage 5 - Deploy - DEV environment #########################################################
+approvals-dev:
+  tags:
+    - $runs_on_build
+  stage: deploy
+  needs: 
+    - job: security_check
+      optional: true
+    - job: sast-check
+      optional: true
+    - job: image-check
+      optional: false
+  rules:
+    - if: ($environments == 'full' || $environments == 'full-with-drp' || $environments == 'available' ||
+           $shamanops_global_pipeline_environments == 'full' || $shamanops_global_pipeline_environments  == 'full-with-drp' || $shamanops_global_pipeline_environments == 'available' ) &&
+          ($shamanopsApprovalsDev == 'true' || $shamanops_global_pipeline_approvals_dev == 'true')
+      when: on_success
+      allow_failure: false
+    - when: never
+  before_script: |
+    if [ "${git_submodules_enabled}" == "true" ]; then
+      git config --global --add safe.directory "/builds/*"
+      sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
+      git submodule update --init --recursive --remote    
+    fi 
+  script:
+    - shamanops approvals dev
+db-versioning-dev:
+  tags:
+    - $runs_on
+  stage: deploy
+  needs:
+    - job: approvals-dev
+      optional: true
+    - job: security_check
+      optional: true
+    - job: sast-check
+      optional: true
+    - job: image-check
+      optional: false
+  rules:
+    - if: ($environments == 'full' || $environments == 'full-with-drp' || $environments == 'available' ||
+          $shamanops_global_pipeline_environments == 'full' || $shamanops_global_pipeline_environments  == 'full-with-drp' || $shamanops_global_pipeline_environments == 'available' ) && 
+          $db_versioning_enabled == 'true'
+      when: on_success
+      allow_failure: false
+    - when: never
+  before_script: |
+    if [ "${git_submodules_enabled}" == "true" ]; then
+      git config --global --add safe.directory "/builds/*"
+      sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
+      git submodule update --init --recursive --remote    
+    fi 
+  script:
+    - shamanops db-versioning dev
+pre-jobs-dev:
+  tags:
+    - $runs_on
+  stage: deploy
+  needs:
+    - job: db-versioning-dev
+      optional: true
+    - job: approvals-dev
+      optional: true
+    - job: security_check
+      optional: true
+    - job: sast-check
+      optional: true
+    - job: image-check
+      optional: false
+  rules:
+    - if: ($environments == 'full' || $environments == 'full-with-drp' || $environments == 'available' || 
+          $shamanops_global_pipeline_environments == 'full' || $shamanops_global_pipeline_environments  == 'full-with-drp' || $shamanops_global_pipeline_environments == 'available' ) && 
+          $pre_jobs_enabled == 'true' && $pre_jobs_blocker == 'true'
+      when: on_success
+      allow_failure: false
+    - if: ($environments == 'full' || $environments == 'full-with-drp' || $environments == 'available' || 
+          $shamanops_global_pipeline_environments == 'full' || $shamanops_global_pipeline_environments  == 'full-with-drp' || $shamanops_global_pipeline_environments == 'available' ) && 
+          $pre_jobs_enabled == 'true' && $pre_jobs_blocker != 'true'
+      when: on_success
+      allow_failure: true
+    - when: never
+  before_script: |
+    if [ "${git_submodules_enabled}" == "true" ]; then
+      git config --global --add safe.directory "/builds/*"
+      sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
+      git submodule update --init --recursive --remote    
+    fi 
+  script:
+    - shamanops pre-job dev
+app-create-and-deploy-dev:
+  tags:
+    - $runs_on
+  stage: deploy
+  needs: 
+    - job: approvals-dev
+      optional: true
+    - job: db-versioning-dev
+      optional: true
+    - job: pre-jobs-dev
+      optional: true
+    - job: image-check
+      optional: false
+  rules:
+    - if: $environments == 'full' || $environments == 'full-with-drp' || $environments == 'available' || 
+          $shamanops_global_pipeline_environments == 'full' || $shamanops_global_pipeline_environments  == 'full-with-drp' || $shamanops_global_pipeline_environments == 'available'
+      when: on_success
+      allow_failure: false
+    - when: never
+  before_script: |
+    if [ "${git_submodules_enabled}" == "true" ]; then
+      git config --global --add safe.directory "/builds/*"
+      sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
+      git submodule update --init --recursive --remote    
+    fi 
+  script:
+    - shamanops app-create-and-deploy dev
+# Deploy - DYNAMIC environment #############################################
+app-create-and-deploy-dynamic-envs:
+  tags:
+    - $runs_on
+  stage: deploy
+  needs: 
+    - job: approvals-dev
+      optional: true
+    - job: db-versioning-dev
+      optional: true
+    - job: pre-jobs-dev
+      optional: true
+    - job: app-create-and-deploy-dev
+      optional: true
+    - job: image-check
+      optional: false
+  rules:
+    - if: ($environments == 'full' || $environments == 'full-with-drp' || $environments == 'available' || $environments == 'mid' ||
+          $shamanops_global_pipeline_environments == 'full' || $shamanops_global_pipeline_environments  == 'full-with-drp' || $shamanops_global_pipeline_environments == 'available' || 
+          $shamanops_global_pipeline_environments == 'mid') &&       
+          $shamanopsDynamicEnvsEnabled == 'true'
+      when: on_success
+      allow_failure: false
+    - when: never
+  before_script: |
+    if [ "${git_submodules_enabled}" == "true" ]; then
+      git config --global --add safe.directory "/builds/*"
+      sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
+      git submodule update --init --recursive --remote    
+    fi 
+  script:
+    - shamanops dynamic-envs
+# ------------------------------------------------------------------------------
+# Stage 5 - Deploy - STG environment #########################################################
+approvals-stg:
+  tags:
+    - $runs_on_build
+  stage: deploy
+  needs: 
+    - job: approvals-dev
+      optional: true
+    - job: db-versioning-dev
+      optional: true
+    - job: pre-jobs-dev
+      optional: true
+    - job: app-create-and-deploy-dev
+      optional: true
+    - job: app-create-and-deploy-dynamic-envs
+      optional: true
+    - job: image-check
+      optional: false
+  rules:
+    - if: ($environments == 'full' || $environments == 'full-with-drp' || $environments == 'available' || $environments == 'mid' ||
+          $shamanops_global_pipeline_environments == 'full' || $shamanops_global_pipeline_environments  == 'full-with-drp' || $shamanops_global_pipeline_environments == 'available' ||
+          $shamanops_global_pipeline_environments == 'mid') &&
+          ($shamanopsApprovalsStg == 'true' || $shamanops_global_pipeline_approvals_stg == 'true')
+      when: on_success
+      allow_failure: false
+    - when: never
+  before_script: |
+    if [ "${git_submodules_enabled}" == "true" ]; then
+      git config --global --add safe.directory "/builds/*"
+      sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
+      git submodule update --init --recursive --remote    
+    fi 
+  script:
+    - shamanops approvals stg
+db-versioning-stg:
+  tags:
+    - $runs_on
+  stage: deploy
+  needs:
+    - job: approvals-dev
+      optional: true
+    - job: db-versioning-dev
+      optional: true
+    - job: pre-jobs-dev
+      optional: true
+    - job: app-create-and-deploy-dev
+      optional: true
+    - job: app-create-and-deploy-dynamic-envs
+      optional: true
+    - job: approvals-stg
+      optional: true
+    - job: image-check
+      optional: false
+  rules:
+    - if: ($environments == 'full' || $environments == 'full-with-drp' || $environments == 'available' || $environments == 'mid' ||
+          $shamanops_global_pipeline_environments == 'full' || $shamanops_global_pipeline_environments  == 'full-with-drp' || $shamanops_global_pipeline_environments == 'available' ||
+          $shamanops_global_pipeline_environments == 'mid') &&
+          $db_versioning_enabled == 'true'
+      when: on_success
+      allow_failure: false
+    - when: never
+  before_script: |
+    if [ "${git_submodules_enabled}" == "true" ]; then
+      git config --global --add safe.directory "/builds/*"
+      sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
+      git submodule update --init --recursive --remote    
+    fi 
+  script:
+    - shamanops db-versioning stg
+pre-jobs-stg:
+  tags:
+    - $runs_on
+  stage: deploy
+  needs:
+    - job: db-versioning-stg
+      optional: true
+    - job: approvals-dev
+      optional: true
+    - job: db-versioning-dev
+      optional: true
+    - job: pre-jobs-dev
+      optional: true
+    - job: app-create-and-deploy-dev
+      optional: true
+    - job: app-create-and-deploy-dynamic-envs
+      optional: true
+    - job: approvals-stg
+      optional: true
+    - job: image-check
+      optional: false
+  rules:
+    - if: ($environments == 'full' || $environments == 'full-with-drp' || $environments == 'available' || $environments == 'mid' ||
+          $shamanops_global_pipeline_environments == 'full' || $shamanops_global_pipeline_environments  == 'full-with-drp' || $shamanops_global_pipeline_environments == 'available' ||
+          $shamanops_global_pipeline_environments == 'mid') &&
+          $pre_jobs_enabled == 'true' && $pre_jobs_blocker == 'true'
+      when: on_success
+      allow_failure: false
+    - if: ($environments == 'full' || $environments == 'full-with-drp' || $environments == 'available' || $environments == 'mid' ||
+          $shamanops_global_pipeline_environments == 'full' || $shamanops_global_pipeline_environments  == 'full-with-drp' || $shamanops_global_pipeline_environments == 'available' ||
+          $shamanops_global_pipeline_environments == 'mid') &&
+          $pre_jobs_enabled == 'true' && $pre_jobs_blocker != 'true'
+      when: on_success
+      allow_failure: true
+    - when: never
+  before_script: |
+    if [ "${git_submodules_enabled}" == "true" ]; then
+      git config --global --add safe.directory "/builds/*"
+      sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
+      git submodule update --init --recursive --remote    
+    fi 
+  script:
+    - shamanops pre-job stg
+app-create-and-deploy-stg:
+  tags:
+    - $runs_on
+  stage: deploy
+  needs: 
+    - job: approvals-dev
+      optional: true
+    - job: db-versioning-dev
+      optional: true
+    - job: pre-jobs-dev
+      optional: true
+    - job: app-create-and-deploy-dev
+      optional: true
+    - job: app-create-and-deploy-dynamic-envs
+      optional: true
+    - job: approvals-stg
+      optional: true
+    - job: db-versioning-stg
+      optional: true
+    - job: pre-jobs-stg
+      optional: true
+    - job: image-check
+      optional: false
+  rules:
+    - if: $environments == 'full' || $environments == 'full-with-drp' || $environments == 'available' || $environments == 'mid' ||
+          $shamanops_global_pipeline_environments == 'full' || $shamanops_global_pipeline_environments  == 'full-with-drp' || $shamanops_global_pipeline_environments == 'available' ||
+          $shamanops_global_pipeline_environments == 'mid'
+      when: on_success
+      allow_failure: false
+    - when: never
+  before_script: |
+    if [ "${git_submodules_enabled}" == "true" ]; then
+      git config --global --add safe.directory "/builds/*"
+      sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
+      git submodule update --init --recursive --remote    
+    fi 
+  script:
+    - shamanops app-create-and-deploy stg
+# ------------------------------------------------------------------------------
+# Stage 5 - Deploy - PROD environment #########################################################
+functional_analysis:
+  tags:
+    - $runs_on
+  stage: deploy
+  needs: ["app-create-and-deploy-stg"]
+  rules:
+    - if: ($environments == 'full' || $environments == 'full-with-drp' || $environments == 'available' || $environments == 'mid' ||
+          $shamanops_global_pipeline_environments == 'full' || $shamanops_global_pipeline_environments  == 'full-with-drp' || $shamanops_global_pipeline_environments == 'available' ||
+          $shamanops_global_pipeline_environments == 'mid') &&
+          $functional_analysis_enabled == 'true' && $functional_analysis_blocker == 'true'
+      when: on_success
+      allow_failure: false
+    - if: ($environments == 'full' || $environments == 'full-with-drp' || $environments == 'available' || $environments == 'mid' ||
+          $shamanops_global_pipeline_environments == 'full' || $shamanops_global_pipeline_environments  == 'full-with-drp' || $shamanops_global_pipeline_environments == 'available' ||
+          $shamanops_global_pipeline_environments == 'mid') &&
+          $functional_analysis_enabled == 'true' && $functional_analysis_blocker != 'true'
+      when: on_success
+      allow_failure: true
+    - when: never
+  before_script: |
+    if [ "${git_submodules_enabled}" == "true" ]; then
+      git config --global --add safe.directory "/builds/*"
+      sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
+      git submodule update --init --recursive --remote    
+    fi 
+  script:
+    - shamanops functional-check
+stress_test:
+  tags:
+    - $runs_on
+  stage: deploy
+  needs: 
+    - job: app-create-and-deploy-stg
+      optional: false
+    - job: functional_analysis
+      optional: true
+  rules:
+    - if: ($environments == 'full' || $environments == 'full-with-drp' || $environments == 'available' || $environments == 'mid' ||
+          $shamanops_global_pipeline_environments == 'full' || $shamanops_global_pipeline_environments  == 'full-with-drp' || $shamanops_global_pipeline_environments == 'available' ||
+          $shamanops_global_pipeline_environments == 'mid') &&
+          ($stress_check_enabled == 'true' || $shamanops_global_pipeline_stress_enabled == 'true') && 
+          ($stress_check_blocker == 'true' || $shamanops_global_pipeline_stress_blocker == 'true')
+      when: on_success
+      allow_failure: false
+    - if: ($environments == 'full' || $environments == 'full-with-drp' || $environments == 'available' || $environments == 'mid' ||
+          $shamanops_global_pipeline_environments == 'full' || $shamanops_global_pipeline_environments  == 'full-with-drp' || $shamanops_global_pipeline_environments == 'available' ||
+          $shamanops_global_pipeline_environments == 'mid') &&
+          ($stress_check_enabled == 'true' || $shamanops_global_pipeline_stress_enabled == 'true') && 
+          ($stress_check_blocker != 'true' || $shamanops_global_pipeline_stress_blocker == 'false')
+      when: on_success
+      allow_failure: true
+    - when: never
+  before_script: |
+    if [ "${git_submodules_enabled}" == "true" ]; then
+      git config --global --add safe.directory "/builds/*"
+      sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
+      git submodule update --init --recursive --remote    
+    fi 
+  script:
+    - shamanops stress-check
+approvals-prod:
+  tags:
+    - $runs_on_build
+  stage: deploy
+  needs: 
+    - job: approvals-dev
+      optional: true
+    - job: db-versioning-dev
+      optional: true
+    - job: pre-jobs-dev
+      optional: true
+    - job: app-create-and-deploy-dev
+      optional: true
+    - job: app-create-and-deploy-dynamic-envs
+      optional: true
+    - job: approvals-stg
+      optional: true
+    - job: db-versioning-stg
+      optional: true
+    - job: pre-jobs-stg
+      optional: true
+    - job: app-create-and-deploy-stg
+      optional: true
+    - job: functional_analysis
+      optional: true
+    - job: stress_test
+      optional: true
+    - job: image-check
+      optional: false
+  rules:
+    - if: $shamanopsApprovalsProd == 'true' || $shamanops_global_pipeline_approvals_prod == 'true' 
+      when: on_success
+      allow_failure: false
+    - when: never
+  before_script: |
+    if [ "${git_submodules_enabled}" == "true" ]; then
+      git config --global --add safe.directory "/builds/*"
+      sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
+      git submodule update --init --recursive --remote    
+    fi 
+  script:
+    - shamanops approvals prod
+db-versioning-prod:
+  tags:
+    - $runs_on
+  stage: deploy
+  needs:
+    - job: approvals-dev
+      optional: true
+    - job: db-versioning-dev
+      optional: true
+    - job: pre-jobs-dev
+      optional: true
+    - job: app-create-and-deploy-dev
+      optional: true
+    - job: app-create-and-deploy-dynamic-envs
+      optional: true
+    - job: approvals-stg
+      optional: true
+    - job: db-versioning-stg
+      optional: true
+    - job: pre-jobs-stg
+      optional: true
+    - job: app-create-and-deploy-stg
+      optional: true
+    - job: approvals-prod
+      optional: true
+    - job: image-check
+      optional: false
+    - job: functional_analysis
+      optional: true
+    - job: stress_test
+      optional: true
+  rules:
+    - if: $db_versioning_enabled == 'true'
+      when: on_success
+      allow_failure: false
+    - when: never
+  before_script: |
+    if [ "${git_submodules_enabled}" == "true" ]; then
+      git config --global --add safe.directory "/builds/*"
+      sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
+      git submodule update --init --recursive --remote    
+    fi 
+  script:
+    - shamanops db-versioning prod
+pre-jobs-prod:
+  tags:
+    - $runs_on
+  stage: deploy
+  needs:
+    - job: approvals-dev
+      optional: true
+    - job: db-versioning-dev
+      optional: true
+    - job: pre-jobs-dev
+      optional: true
+    - job: app-create-and-deploy-dev
+      optional: true
+    - job: app-create-and-deploy-dynamic-envs
+      optional: true
+    - job: approvals-stg
+      optional: true
+    - job: db-versioning-stg
+      optional: true
+    - job: pre-jobs-stg
+      optional: true
+    - job: app-create-and-deploy-stg
+      optional: true
+    - job: approvals-prod
+      optional: true
+    - job: db-versioning-prod
+      optional: true
+    - job: image-check
+      optional: false
+    - job: functional_analysis
+      optional: true
+    - job: stress_test
+      optional: true
+  rules:
+    - if: $pre_jobs_enabled == 'true' && $pre_jobs_blocker == 'true'
+      when: on_success
+      allow_failure: false
+    - if: $pre_jobs_enabled == 'true' && $pre_jobs_blocker != 'true'
+      when: on_success
+      allow_failure: true
+    - when: never
+  before_script: |
+    if [ "${git_submodules_enabled}" == "true" ]; then
+      git config --global --add safe.directory "/builds/*"
+      sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
+      git submodule update --init --recursive --remote    
+    fi 
+  script:
+    - shamanops pre-job prod
+app-create-and-deploy-prod:
+  tags:
+    - $runs_on
+  stage: deploy
+  needs: 
+    - job: approvals-dev
+      optional: true
+    - job: db-versioning-dev
+      optional: true
+    - job: pre-jobs-dev
+      optional: true
+    - job: app-create-and-deploy-dev
+      optional: true
+    - job: app-create-and-deploy-dynamic-envs
+      optional: true
+    - job: approvals-stg
+      optional: true
+    - job: db-versioning-stg
+      optional: true
+    - job: pre-jobs-stg
+      optional: true
+    - job: app-create-and-deploy-stg
+      optional: true
+    - job: approvals-prod
+      optional: true
+    - job: db-versioning-prod
+      optional: true
+    - job: pre-jobs-prod
+      optional: true
+    - job: image-check
+      optional: false
+    - job: functional_analysis
+      optional: true
+    - job: stress_test
+      optional: true
+  rules:
+    - if: $environments != 'pre'
+      when: on_success
+      allow_failure: false
+  before_script: |
+    if [ "${git_submodules_enabled}" == "true" ]; then
+      git config --global --add safe.directory "/builds/*"
+      sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
+      git submodule update --init --recursive --remote    
+    fi 
+  script:
+    - shamanops app-create-and-deploy prod
+app-create-and-deploy-drp:
+  tags:
+    - $runs_on
+  stage: deploy
+  needs: ["app-create-and-deploy-prod"]
+  rules:
+    - if: $environments == 'full-with-drp' || $shamanops_global_pipeline_environments == 'full-with-drp'
+      when: on_success
+      allow_failure: false
+    - when: never
+  before_script: |
+    if [ "${git_submodules_enabled}" == "true" ]; then
+      git config --global --add safe.directory "/builds/*"
+      sed -i "s/\${shamanops_submodules_token}/${shamanops_submodules_token}/g" .gitmodules
+      git submodule update --init --recursive --remote    
+    fi 
+  script:
+    - shamanops app-create-and-deploy drp
+################################################################################
