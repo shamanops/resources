@@ -136,6 +136,9 @@ on:
       stress_check_blocker:
         type: string
         default: 'false'
+      stress_check_path:
+        type: string
+        default: '/'
       stress_check_error_rate_max:
         type: string
         default: '15'
@@ -155,6 +158,9 @@ on:
       security_check_blocker:
         type: string
         default: 'false'
+      security_check_severity_threshold:
+        type: string
+        default: 'CRITICAL'
       security_check_report_upload:
         type: string
         default: 'false'
@@ -316,12 +322,14 @@ env:
   code_quality_check_test_cs_opencover_reportsPaths: ${{inputs.code_quality_check_test_cs_opencover_reportsPaths}}
   stress_check_enabled: ${{inputs.stress_check_enabled}}
   stress_check_blocker: ${{inputs.stress_check_blocker}}
+  stress_check_path: ${{inputs.stress_check_path}}
   stress_check_error_rate_max: ${{inputs.stress_check_error_rate_max}}
   stress_check_thread: ${{inputs.stress_check_thread}}
   stress_check_upPeriod: ${{inputs.stress_check_upPeriod}}
   stress_check_second: ${{inputs.stress_check_second}}
   security_check_enabled: ${{inputs.security_check_enabled}}
   security_check_blocker: ${{inputs.security_check_blocker}}
+  security_check_severity_threshold: ${{inputs.security_check_severity_threshold}}
   security_check_report_upload: ${{inputs.security_check_report_upload}}
   security_check_report_format: ${{inputs.security_check_report_format}}
   sbom_check_enabled: ${{inputs.sbom_check_enabled}}
